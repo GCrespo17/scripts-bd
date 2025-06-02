@@ -1,3 +1,5 @@
+
+
 CREATE SEQUENCE seq_lugar
     START WITH 1
     INCREMENT BY 1;
