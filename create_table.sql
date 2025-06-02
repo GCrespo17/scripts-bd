@@ -1,4 +1,32 @@
+-- DROP TABLE TIPO_TICKETS;
+-- DROP TABLE HIST_MUSEOS;
+-- DROP TABLE TICKETS;
+-- DROP TABLE HORARIOS;
+-- DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS;
+-- DROP TABLE PROGRAMAS_MANT;
+-- DROP TABLE HIST_OBRAS_MOV;
+-- DROP TABLE HIST_EMPLEADOS;
+-- DROP TABLE SALAS_COLECCIONES;
+-- DROP TABLE COLECCIONES_PERMANENTES;
+-- DROP TABLE EST_ORGANIZACIONAL;
+-- DROP TABLE CIERRES_TEMPORALES;
+-- DROP TABLE EXPOSICIONES_EVENTOS;
+-- DROP TABLE SALAS_EXP;
+-- DROP TABLE ASIGNACIONES_MES;
+-- DROP TABLE EST_FISICA;
+-- DROP TABLE MUSEOS;
+-- DROP TABLE FORMACIONES;
+-- DROP TABLE EMPLEADOS_IDIOMAS;
+-- DROP TABLE EMPLEADOS_PROFESIONALES;
+-- DROP TABLE ARTISTAS_OBRAS;
+-- DROP TABLE ARTISTAS;
+-- DROP TABLE EMPLEADOS_VIGILANTE_MANT;
+-- DROP TABLE IDIOMAS;
+-- DROP TABLE OBRAS;
 -- DROP TABLE LUGARES;
+
+
+
 
 CREATE TABLE LUGARES(
     id_lugar NUMBER DEFAULT seq_lugar.NEXTVAL PRIMARY KEY,
@@ -27,7 +55,7 @@ CREATE TABLE OBRAS(
 );
 
 CREATE TABLE IDIOMAS(
-    id_idioma NUMBER DEFAULT seq_idioma PRIMARY KEY,
+    id_idioma NUMBER DEFAULT seq_idioma.NEXTVAL PRIMARY KEY,
     nombre VARCHAR2(30) NOT NULL
 );
 
@@ -87,7 +115,7 @@ CREATE TABLE FORMACIONES(
     titulo VARCHAR2(50) NOT NULL,
     anio NUMBER NOT NULL,
     descripcion_espec VARCHAR2(300) NOT NULL,
-    CONSTRAINT pk_formaciones PRIMARY KEY(id_especialidad, id_empleado_prof)
+    CONSTRAINT pk_formaciones PRIMARY KEY(id_formacion, id_empleado_prof)
 );
 
 CREATE TABLE MUSEOS(
@@ -106,7 +134,7 @@ CREATE TABLE EST_FISICA(
     tipo VARCHAR2(12) NOT NULL,
     descripcion VARCHAR2(300),
     direccion_edificio VARCHAR2(300),
-    CONSTRAINT check_tipo CHECK(tipo IN('EDIFICIO', 'PISO', 'AREA')),
+    CONSTRAINT check_tipo_est_fisica CHECK(tipo IN('EDIFICIO', 'PISO', 'AREA')),
     CONSTRAINT pk_est_fisica PRIMARY KEY(id_est, id_museo)
 );
 
@@ -140,7 +168,7 @@ CREATE TABLE EXPOSICIONES_EVENTOS(
     costo_persona NUMBER(8, 2),
     cant_visitantes NUMBER,
     institucion_educativa VARCHAR2(250),
-    CONSTRAINT check_fechas CHECK(fecha_fin<=fecha_inicio),
+    CONSTRAINT check_fechas_exp CHECK(fecha_fin<=fecha_inicio),
     CONSTRAINT pk_expo_eventos PRIMARY KEY(id_expo, id_sala, id_est, id_museo)
 );
 
@@ -150,7 +178,7 @@ CREATE TABLE CIERRES_TEMPORALES(
     id_est NUMBER NOT NULL, --PK FK
     id_museo NUMBER NOT NULL, --PK FK
     fecha_fin DATE,
-    CONSTRAINT check_fechas CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
+    CONSTRAINT check_fechas_cierres CHECK (fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     CONSTRAINT pk_cierres_tem PRIMARY KEY(fecha_inicio, id_sala, id_est, id_museo)
 );
 
@@ -162,8 +190,8 @@ CREATE TABLE EST_ORGANIZACIONAL(
     tipo VARCHAR2(20) NOT NULL,
     nivel NUMBER NOT NULL,
     descripcion VARCHAR2(300) NOT NULL,
-    CONSTRAINT check_tipo CHECK(tipo IN('DIRECCION', 'DEPARTAMENTO', 'SECCION')),
-    CONSTRAINT pk_est_organizacional PRIMARY KEY(id_est_org, id_museo, id_est_org_padre)
+    CONSTRAINT check_tipo_est_org CHECK(tipo IN('DIRECCION', 'DEPARTAMENTO', 'SECCION')),
+    CONSTRAINT pk_est_organizacional PRIMARY KEY(id_est_org, id_museo)
 );
 
 CREATE TABLE COLECCIONES_PERMANENTES(
@@ -194,7 +222,7 @@ CREATE TABLE HIST_EMPLEADOS(
     id_empleado_prof NUMBER NOT NULL, --PK FK
     fecha_fin DATE,
     cargo VARCHAR2(50) NOT NULL,
-    CONSTRAINT check_fechas CHECK(fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
+    CONSTRAINT check_fechas_hist_emp CHECK(fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     CONSTRAINT check_cargo CHECK(cargo IN('RESTAURADOR', 'CURADOR', 'DIRECTOR', 'ADMINISTRATIVO')),
     CONSTRAINT pk_hist_empleados PRIMARY KEY(fecha_inicio, id_est_org, id_museo, id_empleado_prof)
 );
@@ -205,13 +233,16 @@ CREATE TABLE HIST_OBRAS_MOV(
     id_coleccion NUMBER NOT NULL, --FK
     id_sala NUMBER NOT NULL, --FK
     id_empleado NUMBER NOT NULL, --FK
+    id_est_org NUMBER NOT NULL, --FK 
+    id_museo NUMBER NOT NULL,   --FK sala y est org
+    id_est_fis NUMBER NOT NULL, --FK sala
     fecha_entrada DATE NOT NULL,
     fecha_salida DATE,
     tipo_adquisicion VARCHAR2(20) NOT NULL,
     destacada VARCHAR2(2) NOT NULL,
     orden_recorrido NUMBER,
     valor_monetario NUMBER(*, 4),
-    CONSTRAINT check_fechas CHECK(fecha_salida IS NULL OR fecha_salida >= fecha_entrada),
+    CONSTRAINT check_fechas_hist_ob_mov CHECK(fecha_salida IS NULL OR fecha_salida >= fecha_entrada),
     CONSTRAINT check_tipo_adq CHECK(tipo_adquisicion IN('COMPRADA', 'DONADA', 'COMPRADA A MUSEO', 'DONADA POR MUSEO')),
     CONSTRAINT check_destacada CHECK(destacada IN('SI', 'NO')),
     CONSTRAINT pk_hist_obras_mov PRIMARY KEY(id_catalogo_museo, id_obra)
@@ -224,7 +255,7 @@ CREATE TABLE PROGRAMAS_MANT(
     actividad VARCHAR2(300) NOT NULL, 
     frecuencia VARCHAR2(100) NOT NULL,
     tipo_responsable VARCHAR2(20) NOT NULL,
-    CONSTRAINT check_tipo_responsable CHECK(tipo_responsable IN('RESTAURADOR', 'CURADOR')),
+    CONSTRAINT check_tipo_responsable_programa_mant CHECK(tipo_responsable IN('RESTAURADOR', 'CURADOR')),
     CONSTRAINT pk_programas_mant PRIMARY KEY(id_mant, id_catalogo, id_obra)
 );
 
@@ -237,7 +268,7 @@ CREATE TABLE MANTENIMIENTOS_OBRAS_REALIZADOS(
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE,  
     observaciones VARCHAR2(300),
-    CONSTRAINT check_fecha CHECK(fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
+    CONSTRAINT check_fecha_mant_realizados CHECK(fecha_fin IS NULL OR fecha_fin >= fecha_inicio),
     CONSTRAINT pk_mant_ralizado PRIMARY KEY(id_mant_realizado, id_mant, id_catalogo, id_obra, id_empleado)
 );
 
@@ -248,7 +279,7 @@ CREATE TABLE HORARIOS(
     hora_cierre DATE NOT NULL, 
     CONSTRAINT check_dia CHECK(dia>=1 AND dia<=7),
     CONSTRAINT check_horas_validas CHECK (
-        TO_CHAR(hora_apertura, 'HH24:MI:SS') < TO_CHAR(hora_cierre, 'HH24:MI:SS')
+        TO_CHAR(hora_inicio, 'HH24:MI:SS') < TO_CHAR(hora_cierre, 'HH24:MI:SS')
     ),
     CONSTRAINT pk_horarios PRIMARY KEY(dia, id_museo)
 );
@@ -259,7 +290,7 @@ CREATE TABLE TICKETS(
     fecha_hora_emision DATE NOT NULL,
     tipo VARCHAR2(15) NOT NULL,
     precio NUMBER (*, 4) NOT NULL,
-    CONSTRAINT check_tipo CHECK(tipo IN('ESTUDIANTE', 'INFANTIL', 'ADULTO')),
+    CONSTRAINT check_tipo_ticket CHECK(tipo IN('ESTUDIANTE', 'INFANTIL', 'ADULTO')),
     CONSTRAINT pk_ticket PRIMARY KEY(id_num_ticket, id_museo) 
 );
 
@@ -276,7 +307,8 @@ CREATE TABLE TIPO_TICKETS(
     precio NUMBER(*, 2) NOT NULL,
     tipo VARCHAR2(20) NOT NULL,
     fecha_fin DATE,
-    CONSTRAINT check_fechas CHECK(fecha_fin IS NULL OR fecha_fin>=fecha_inicio),
-    CONSTRAINT check_tipo CHECK(tipo IN('ESTUDIANTE', 'INFANTIL', 'ADULTO')),
+    CONSTRAINT check_fechas_tipo_ticket CHECK(fecha_fin IS NULL OR fecha_fin>=fecha_inicio),
+    CONSTRAINT check_tipo_hist_ticket CHECK(tipo IN('ESTUDIANTE', 'INFANTIL', 'ADULTO')),
     CONSTRAINT pk_tipo_tickets PRIMARY KEY(fecha_inicio, id_museo)
 );
+
