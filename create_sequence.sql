@@ -1,0 +1,69 @@
+
+
+CREATE SEQUENCE seq_lugar
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_obra
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_idioma
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_empleado_vigilante_mant
+    START WITH 1
+    INCREMENT BY 1;    
+
+CREATE SEQUENCE seq_artista
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_empleado_profesional
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_formacion
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_museo
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_est_fisica
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_sala_exp
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_exposicion_evento
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_est_organizacional
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_coleccion_permanente
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_hist_obra_mov
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_programa_mant
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_mant_obra_realizado
+    START WITH 1
+    INCREMENT BY 1;
+
+CREATE SEQUENCE seq_ticket --NO ESTOY SEGURO SI A ESTO SE LE APLICA SECUENCIA
+    START WITH 1
+    INCREMENT BY 1;
