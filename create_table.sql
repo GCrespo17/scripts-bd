@@ -69,6 +69,17 @@ CREATE TABLE EMPLEADOS_VIGILANTE_MANT(
     CONSTRAINT check_tipo_responsable CHECK(tipo_responsable IN('VIGILANTE', 'MANTENIMIENTO'))
 );
 
+CREATE TABLE EMPLEADOS_PROFESIONALES(
+    id_empleado NUMBER DEFAULT seq_empleado_profesional.NEXTVAL PRIMARY KEY,
+    doc_identidad NUMBER NOT NULL UNIQUE,
+    primer_nombre VARCHAR2(30) NOT NULL,
+    primer_apellido VARCHAR2(30) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    contacto NUMBER NOT NULL,
+    segundo_nombre VARCHAR2(30),
+    segundo_apellido VARCHAR2(30)
+);
+
 CREATE TABLE ARTISTAS(
     id_artista NUMBER DEFAULT seq_artista.NEXTVAL PRIMARY KEY,
     resumen_caracteristicas VARCHAR2(300) NOT NULL,
@@ -94,17 +105,6 @@ CREATE TABLE ARTISTAS_OBRAS(
     CONSTRAINT fk_obra_artista FOREIGN KEY(id_obra) REFERENCES OBRAS(id_obra),
     CONSTRAINT fk_artista_obra FOREIGN KEY(id_artista) REFERENCES ARTISTAS(id_artista),
     CONSTRAINT pk_artistas_obras PRIMARY KEY(id_obra, id_artista)
-);
-
-CREATE TABLE EMPLEADOS_PROFESIONALES(
-    id_empleado NUMBER DEFAULT seq_empleado_profesional.NEXTVAL PRIMARY KEY,
-    doc_identidad NUMBER NOT NULL UNIQUE,
-    primer_nombre VARCHAR2(30) NOT NULL,
-    primer_apellido VARCHAR2(30) NOT NULL,
-    fecha_nacimiento DATE NOT NULL,
-    contacto NUMBER NOT NULL,
-    segundo_nombre VARCHAR2(30),
-    segundo_apellido VARCHAR2(30)
 );
 
 CREATE TABLE EMPLEADOS_IDIOMAS(
@@ -182,7 +182,7 @@ CREATE TABLE EXPOSICIONES_EVENTOS(
     cant_visitantes NUMBER,
     institucion_educativa VARCHAR2(250),
     CONSTRAINT fk_sala_est_museo_exposicion FOREIGN KEY(id_sala, id_est, id_museo) REFERENCES SALAS_EXP(id_sala, id_est, id_museo),
-    CONSTRAINT check_fechas_exp CHECK(fecha_fin<=fecha_inicio),
+    CONSTRAINT check_fechas_exp CHECK(fecha_inicio<=fecha_fin),
     CONSTRAINT pk_expo_eventos PRIMARY KEY(id_expo, id_sala, id_est, id_museo)
 );
 
@@ -230,8 +230,8 @@ CREATE TABLE SALAS_COLECCIONES(
     id_sala NUMBER NOT NULL, --PK FK
     id_est_fisica NUMBER NOT NULL, --PK FK
     orden NUMBER NOT NULL,
-    CONSTRAINT fk_sala_estfis_museo_sala FOREIGN KEY(id_sala, id_est_org, id_museo) REFERENCES SALAS_EXP(id_sala, id_est, id_museo),
-    CONSTRAINT fk_coleccion_estorg_museo_coleccion FOREIGN KEY(id_coleccion, id_est_org, id_museo) REFERENCES COLECCIONES_PERMANENTES(id_coleccion, id_est_org, id_museo),
+    CONSTRAINT fk_sala_est_fis_museo FOREIGN KEY(id_sala, id_est_fisica, id_museo) REFERENCES SALAS_EXP(id_sala, id_est, id_museo),
+    CONSTRAINT fk_coleccion_est_org_museo FOREIGN KEY(id_coleccion, id_est_org, id_museo) REFERENCES COLECCIONES_PERMANENTES(id_coleccion, id_est_org, id_museo),
     CONSTRAINT pk_salas_colecciones PRIMARY KEY(id_coleccion, id_est_org, id_museo, id_sala, id_est_fisica)
 );
 
