@@ -200,7 +200,7 @@ CREATE TABLE CIERRES_TEMPORALES(
 CREATE TABLE EST_ORGANIZACIONAL(
     id_est_org NUMBER DEFAULT seq_est_organizacional.NEXTVAL NOT NULL, --PK
     id_museo NUMBER NOT NULL, --PK FK
-    nombre VARCHAR2(50) NOT NULL, 
+    nombre VARCHAR2(100) NOT NULL, 
     tipo VARCHAR2(20) NOT NULL,
     nivel NUMBER NOT NULL,
     descripcion VARCHAR2(300) NOT NULL,
@@ -342,6 +342,6 @@ CREATE TABLE TIPO_TICKETS(
     CONSTRAINT fk_museo_tipo_ticket FOREIGN KEY(id_museo) REFERENCES MUSEOS(id_museo),
     CONSTRAINT check_fechas_tipo_ticket CHECK(fecha_fin IS NULL OR fecha_fin>=fecha_inicio),
     CONSTRAINT check_tipo_hist_ticket CHECK(tipo IN('ESTUDIANTE', 'INFANTIL', 'ADULTO')),
-    CONSTRAINT pk_tipo_tickets PRIMARY KEY(fecha_inicio, id_museo)
+    CONSTRAINT pk_tipo_tickets PRIMARY KEY(fecha_inicio, id_museo, tipo)
 );
 
