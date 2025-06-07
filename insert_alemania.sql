@@ -853,9 +853,47 @@ PROMPT Data inserted into HORARIOS table.
 PROMPT -----------------------------------------------------------------------------
 
 -- -----------------------------------------------------------------------------
+-- Tabla: TIPO_TICKETS
+-- Descripción: Define los tipos de tickets y sus precios históricos y actuales.
+-- PK: (fecha_inicio, id_museo, tipo)
+-- NOTA: Esta tabla debe poblarse ANTES que TICKETS para que el trigger funcione correctamente.
+-- -----------------------------------------------------------------------------
+PROMPT Inserting data into TIPO_TICKETS table...
+
+-- Tipos de Tickets para MdbK Leipzig
+-- Precios antiguos (hasta 31-DIC-2023)
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 10.00, 'ADULTO', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 6.00, 'ESTUDIANTE', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 0.00, 'INFANTIL', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
+
+-- Precios actuales (desde 01-ENE-2024)
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 12.00, 'ADULTO', NULL);
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 7.00, 'ESTUDIANTE', NULL);
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 0.00, 'INFANTIL', NULL);
+
+-- Tipos de Tickets para Hamburger Kunsthalle
+-- Precios actuales (desde 01-ENE-2024)
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 16.00, 'ADULTO', NULL);
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 8.00, 'ESTUDIANTE', NULL);
+INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
+(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 0.00, 'INFANTIL', NULL);
+
+PROMPT Data inserted into TIPO_TICKETS table.
+PROMPT -----------------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------------
 -- Tabla: TICKETS
 -- Descripción: Registra los tickets emitidos.
--- id_num_ticket se genera por seq_ticket.
+-- id_num_ticket se genera automáticamente por trigger.
+-- precio se asigna automáticamente desde TIPO_TICKETS por trigger.
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into TICKETS table...
 
@@ -943,42 +981,6 @@ INSERT INTO HIST_MUSEOS (anio, id_museo, hecho) VALUES (
 );
 
 PROMPT Data inserted into HIST_MUSEOS table.
-PROMPT -----------------------------------------------------------------------------
-
--- -----------------------------------------------------------------------------
--- Tabla: TIPO_TICKETS
--- Descripción: Define los tipos de tickets y sus precios históricos y actuales.
--- PK: (fecha_inicio, id_museo, tipo)
--- -----------------------------------------------------------------------------
-PROMPT Inserting data into TIPO_TICKETS table...
-
--- Tipos de Tickets para MdbK Leipzig
--- Precios antiguos (hasta 31-DIC-2023)
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 10.00, 'ADULTO', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 6.00, 'ESTUDIANTE', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2023-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 0.00, 'INFANTIL', TO_DATE('2023-12-31', 'YYYY-MM-DD'));
-
--- Precios actuales (desde 01-ENE-2024)
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 12.00, 'ADULTO', NULL);
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 7.00, 'ESTUDIANTE', NULL);
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 0.00, 'INFANTIL', NULL);
-
--- Tipos de Tickets para Hamburger Kunsthalle
--- Precios actuales (desde 01-ENE-2024)
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 16.00, 'ADULTO', NULL);
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 8.00, 'ESTUDIANTE', NULL);
-INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
-(TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 0.00, 'INFANTIL', NULL);
-
-PROMPT Data inserted into TIPO_TICKETS table.
 PROMPT -----------------------------------------------------------------------------
 
 -- COMMIT; -- Descomentar al final del script para guardar todos los cambios.
