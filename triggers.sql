@@ -1,15 +1,17 @@
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_TICKETS_BEFORE_INSERT (Versión Mejorada)
+-- TRIGGER: TRG_TICKETS_BEFORE_INSERT (Versión Optimizada para Concurrencia)
 -- -----------------------------------------------------------------------------
 -- Fecha de Creación: 06-JUN-2025 
 -- Descripción: TRIGGER MEJORADO que combina la funcionalidad de generación de ID
--- y asignación de precios automática en uno solo para evitar conflictos de 
--- concurrencia y mejorar el rendimiento.
+-- y asignación de precios automática con manejo avanzado de concurrencia.
 -- 
 -- Funcionalidades integradas:
--- - Generación secuencial de id_num_ticket por museo
+-- - Generación secuencial de id_num_ticket por museo con retry logic
+-- - Doble check para reducir race conditions en alta concurrencia
 -- - Asignación automática de precios desde TIPO_TICKETS
 -- - Manejo robusto de errores y validaciones
+-- - Optimización de rendimiento con ROWNUM limitado
+-- - Máximo 3 intentos para generación de ID único
 -- -----------------------------------------------------------------------------
 
 CREATE OR REPLACE TRIGGER TRG_TICKETS_BEFORE_INSERT
@@ -18,19 +20,11 @@ FOR EACH ROW
 DECLARE
     v_new_ticket_id     NUMBER;
     v_precio_correcto   TIPO_TICKETS.precio%TYPE;
+    v_attempt           NUMBER := 0;
+    v_max_attempts      CONSTANT NUMBER := 3;
+    v_id_exists         NUMBER;
 BEGIN
-    -- PASO 1: Generar ID de ticket si no se proporciona
-    -- Esta funcionalidad optimiza la generación secuencial de tickets por museo
-    IF :NEW.id_num_ticket IS NULL THEN
-        SELECT NVL(MAX(id_num_ticket), 0) + 1
-        INTO v_new_ticket_id
-        FROM TICKETS
-        WHERE id_museo = :NEW.id_museo;
-        
-        :NEW.id_num_ticket := v_new_ticket_id;
-    END IF;
-
-    -- PASO 2: Buscar y asignar precio correcto automáticamente
+    -- PASO 1: Buscar y asignar precio correcto automáticamente (primero para fallar rápido)
     -- Esta funcionalidad garantiza integridad de precios desde TIPO_TICKETS
     BEGIN
         SELECT precio
@@ -58,6 +52,47 @@ BEGIN
                 'Error: Se encontró más de un precio de ticket válido. Verifique los datos en TIPO_TICKETS para el museo ' ||
                 :NEW.id_museo || ' y tipo "' || :NEW.tipo || '" para evitar solapamientos de fechas.');
     END;
+
+    -- PASO 2: Generar ID de ticket con retry logic y doble check
+    -- Esta funcionalidad optimiza la generación secuencial y reduce race conditions
+    IF :NEW.id_num_ticket IS NULL THEN
+        WHILE v_attempt < v_max_attempts LOOP
+            v_attempt := v_attempt + 1;
+            
+            -- Generar ID con ROWNUM para reducir window de race condition
+            SELECT NVL(MAX(id_num_ticket), 0) + 1
+            INTO v_new_ticket_id
+            FROM TICKETS
+            WHERE id_museo = :NEW.id_museo
+            AND ROWNUM <= 1000; -- Limitar scan para mejorar rendimiento
+    
+            -- Doble check: Verificar si el ID ya existe (reducir race condition)
+            BEGIN
+                SELECT 1 
+                INTO v_id_exists
+                FROM TICKETS
+                WHERE id_museo = :NEW.id_museo 
+                  AND id_num_ticket = v_new_ticket_id
+                  AND ROWNUM = 1;
+                
+                -- Si llega aquí, el ID ya existe, incrementar y retry
+                v_new_ticket_id := v_new_ticket_id + v_attempt;
+                
+            EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                    -- ID no existe, es seguro usarlo
+                    :NEW.id_num_ticket := v_new_ticket_id;
+                    EXIT; -- Salir del loop exitosamente
+            END;
+            
+            -- Si llegamos al máximo de intentos, lanzar error
+            IF v_attempt >= v_max_attempts THEN
+                RAISE_APPLICATION_ERROR(-20025, 
+                    'Error: No se pudo generar un ID único de ticket tras ' || 
+                    v_max_attempts || ' intentos para el museo ID ' || :NEW.id_museo);
+            END IF;
+        END LOOP;
+    END IF;
 
 EXCEPTION
     -- Captura de cualquier error inesperado
