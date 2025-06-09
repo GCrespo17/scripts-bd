@@ -1,0 +1,58 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      # Monta el código fuente para permitir la recarga en caliente
+      - ./frontend:/app
+    # Se reemplaza el volumen de node_modules por un comando que asegura la instalación
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - oracle-db
+    environment:
+      # Es mejor práctica pasar secretos como variables de entorno
+      # En un entorno de producción, se deberían usar "Docker Secrets"
+      ORACLE_PASSWORD: admin
+    networks:
+      - app-network
+
+  oracle-db:
+    # Imagen oficial de Oracle XE 21c, optimizada para un arranque rápido
+    image: gvenzl/oracle-xe:21-slim-faststart
+    ports:
+      - "1525:1521"
+    environment:
+      # La contraseña para el usuario SYSTEM de la base de datos
+      - ORACLE_PASSWORD=admin
+    volumes:
+      # Monta un volumen para persistir los datos de la BD
+      - oracle-data:/opt/oracle/oradata
+    networks:
+      - app-network
+
+# Define la red que usarán los servicios para comunicarse
+networks:
+  app-network:
+    driver: bridge
+
+# Define el volumen para la persistencia de datos de Oracle
+volumes:
+  oracle-data:
+    driver: local 

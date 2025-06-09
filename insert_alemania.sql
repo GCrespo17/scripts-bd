@@ -756,7 +756,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 
 -- NIVEL 2: DEPARTAMENTOS
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Colecciones y Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Departamento académico central, organizado por áreas de colección. Jefatura de Área: Dr. Andreas Stolzenburg (Grabados y Dibujos), Dr. Sandra Pisot (Antiguos Maestros), Dr. Markus Bertsch (Siglo XIX), Toby Kamps (Colección Modernista), Dr. Brigitte Kölle y Dr. Corinne Diserens (Arte Contemporáneo), Dr. Annabelle Görgen-Lammers (Esculturas y Numismática).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Colecciones y Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Departamento académico central organizado por áreas de colección. Jefes: Dr. Andreas Stolzenburg, Dr. Sandra Pisot, Dr. Markus Bertsch, Toby Kamps, Dr. Brigitte Kölle, Dr. Corinne Diserens, Dr. Annabelle Görgen-Lammers.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Educación Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Dr. Andrea Weniger.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -765,7 +765,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Biblioteca, Archivo y Documentación Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Katharina Therese Gietkowski.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Conservación y Tecnología del Arte Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Silvia Castro (Jefa de Conservación y Tecnología del Arte, Antiguos Maestros), Sabine Zorn (Jefa de Conservación de Papel y Fotografía). Las diferentes especialidades (Antiguos Maestros, Siglo XIX, Arte Moderno, etc.) pueden ser consideradas como secciones informales dentro de este departamento.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Conservación y Tecnología del Arte Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Silvia Castro (Conservación, Antiguos Maestros), Sabine Zorn (Conservación Papel y Fotografía). Especialidades: Antiguos Maestros, Siglo XIX, Arte Moderno.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Registro y Coordinación de Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Meike Wenck.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -951,15 +951,15 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Dirección General MdbK' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000002),
- 'SUBDIRECTOR',
- NULL);
+ 'ADMINISTRATIVO',
+ TO_DATE('2018-12-31', 'YYYY-MM-DD'));
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2018-06-01', 'YYYY-MM-DD'),
+(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000002),
- 'JEFE DE DEPARTAMENTO',
+ 'CURADOR',
  NULL);
 
 -- Dr. Jan Nicolaisen - Jefe de Pintura y Escultura
@@ -968,7 +968,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000008),
- 'JEFE DE SECCIÓN',
+ 'CURADOR',
  NULL);
 
 -- Dr. Jenny Graser - Curadora
@@ -995,7 +995,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauración MdbK' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000020),
- 'JEFE DE DEPARTAMENTO',
+ 'RESTAURADOR',
  NULL);
 
 -- Carolin Rothmund - Jefa de Educación Artística
@@ -1004,7 +1004,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Educación Artística MdbK' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000025),
- 'JEFE DE DEPARTAMENTO',
+ 'ADMINISTRATIVO',
  NULL);
 
 -- Historial para Hamburger Kunsthalle
@@ -1023,7 +1023,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Management Board Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000051),
- 'MANAGING DIRECTOR',
+ 'ADMINISTRATIVO',
  NULL);
 
 -- Dr. Andreas Stolzenburg - Grabados y Dibujos
@@ -1032,7 +1032,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000052),
- 'JEFE DE ÁREA',
+ 'CURADOR',
  NULL);
 
 -- Dr. Sandra Pisot - Antiguos Maestros
@@ -1041,7 +1041,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000053),
- 'JEFE DE ÁREA',
+ 'CURADOR',
  NULL);
 
 -- Dr. Markus Bertsch - Siglo XIX
@@ -1050,7 +1050,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000054),
- 'JEFE DE ÁREA',
+ 'CURADOR',
  NULL);
 
 -- Toby Kamps - Colección Modernista
@@ -1059,7 +1059,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000055),
- 'JEFE DE ÁREA',
+ 'CURADOR',
  NULL);
 
 -- Dr. Brigitte Kölle - Arte Contemporáneo
@@ -1068,7 +1068,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000056),
- 'JEFE DE ÁREA',
+ 'CURADOR',
  NULL);
 
 -- Dr. Andrea Weniger - Educación
@@ -1077,7 +1077,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Educación Kunsthalle' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
  (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000062),
- 'JEFE DE DEPARTAMENTO',
+ 'ADMINISTRATIVO',
  NULL);
 
 PROMPT Data inserted into HIST_EMPLEADOS table.
@@ -1095,7 +1095,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
-    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Curaduría y Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     TO_DATE('1840-01-01', 'YYYY-MM-DD'), 
@@ -1106,7 +1106,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
-    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Curaduría y Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     TO_DATE('1920-05-10', 'YYYY-MM-DD'), 
@@ -1117,7 +1117,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
-    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Curaduría y Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     TO_DATE('1902-01-01', 'YYYY-MM-DD'), 
@@ -1330,19 +1330,22 @@ PROMPT -------------------------------------------------------------------------
 PROMPT Inserting data into TICKETS table...
 
 -- Tickets para MdbK Leipzig
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
     TO_DATE('2025-06-04 10:30:00', 'YYYY-MM-DD HH24:MI:SS'),
     'ADULTO',
     12.00
 );
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
     TO_DATE('2025-06-04 10:32:15', 'YYYY-MM-DD HH24:MI:SS'),
     'ESTUDIANTE',
     7.00
 );
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
     TO_DATE('2025-06-05 14:05:30', 'YYYY-MM-DD HH24:MI:SS'),
     'INFANTIL',
@@ -1350,19 +1353,22 @@ INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
 );
 
 -- Tickets para Hamburger Kunsthalle
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
     TO_DATE('2025-06-04 11:15:45', 'YYYY-MM-DD HH24:MI:SS'),
     'ADULTO',
     16.00
 );
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
     TO_DATE('2025-06-04 11:17:00', 'YYYY-MM-DD HH24:MI:SS'),
     'ADULTO',
     16.00
 );
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES (
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (
+    NULL,
     (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
     TO_DATE('2025-06-05 16:30:00', 'YYYY-MM-DD HH24:MI:SS'),
     'ESTUDIANTE',

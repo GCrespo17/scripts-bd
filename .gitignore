@@ -1,2 +1,4 @@
 *.pdf
 *.csv
+node_modules
+*.mdc
