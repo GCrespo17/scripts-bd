@@ -324,4 +324,135 @@ END;
 /
 */
 
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_CALCULAR_RANKING_MUSEO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 07-JUN-2025
+-- Descripción:
+-- Calcula el ranking de un museo basándose en la permanencia de su personal.
+-- Devuelve la antigüedad promedio en años, la tasa de rotación alta (personal
+-- con menos de 5 años de servicio) y una categoría descriptiva del ranking.
+-- Este procedimiento es llamado por la API para enriquecer el reporte de Ficha de Museo.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
+    p_id_museo                  IN  MUSEOS.id_museo%TYPE,
+    p_antiguedad_promedio_anios OUT NUMBER,
+    p_tasa_rotacion_alta_pct    OUT NUMBER,
+    p_visitas_ultimo_anio       OUT NUMBER,
+    p_categoria_ranking         OUT VARCHAR2
+)
+AS
+    -- Variables para el cálculo de estabilidad del personal
+    v_total_antiguedad_dias   NUMBER := 0;
+    v_total_empleados         NUMBER := 0;
+    v_empleados_alta_rotacion NUMBER := 0;
+    v_antiguedad_promedio_anios NUMBER := 0;
+    v_estabilidad_score       NUMBER := 0;
+
+    -- Variables para el cálculo de popularidad
+    v_visitas_anuales         NUMBER := 0;
+    v_popularidad_score       NUMBER := 0;
+
+    -- Variable para el ranking final
+    v_ranking_final_score     NUMBER;
+
+BEGIN
+    -- ========= PASO 1: Calcular la Estabilidad del Personal =========
+    FOR rec IN (
+        SELECT (COALESCE(fecha_fin, SYSDATE) - fecha_inicio) as dias_trabajados
+        FROM HIST_EMPLEADOS
+        WHERE id_museo = p_id_museo
+    ) LOOP
+        v_total_antiguedad_dias := v_total_antiguedad_dias + rec.dias_trabajados;
+        v_total_empleados := v_total_empleados + 1;
+        
+        IF rec.dias_trabajados < (365.25 * 5) THEN
+            v_empleados_alta_rotacion := v_empleados_alta_rotacion + 1;
+        END IF;
+    END LOOP;
+
+    IF v_total_empleados > 0 THEN
+        v_antiguedad_promedio_anios := (v_total_antiguedad_dias / v_total_empleados) / 365.25;
+        p_antiguedad_promedio_anios := v_antiguedad_promedio_anios;
+        p_tasa_rotacion_alta_pct := (v_empleados_alta_rotacion / v_total_empleados) * 100;
+        
+        -- Asignar un puntaje de estabilidad (0 a 10)
+        v_estabilidad_score := LEAST(v_antiguedad_promedio_anios, 10);
+    ELSE
+        p_antiguedad_promedio_anios := 0;
+        p_tasa_rotacion_alta_pct := 0;
+    END IF;
+
+    -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
+    SELECT COUNT(id_num_ticket)
+    INTO v_visitas_anuales
+    FROM TICKETS
+    WHERE id_museo = p_id_museo
+      AND fecha_hora_emision >= (SYSDATE - 365);
+      
+    p_visitas_ultimo_anio := v_visitas_anuales;
+
+    -- Asignar un puntaje de popularidad (0 a 10)
+    IF v_visitas_anuales > 1000000 THEN v_popularidad_score := 10;
+    ELSIF v_visitas_anuales > 500000 THEN v_popularidad_score := 8;
+    ELSIF v_visitas_anuales > 250000 THEN v_popularidad_score := 6;
+    ELSIF v_visitas_anuales > 100000 THEN v_popularidad_score := 4;
+    ELSIF v_visitas_anuales > 50000 THEN v_popularidad_score := 2;
+    ELSE v_popularidad_score := 1;
+    END IF;
+
+    -- ========= PASO 3: Calcular Ranking Final y Asignar Categoría =========
+    -- Se da un 60% de peso a la estabilidad del personal y 40% a la popularidad.
+    v_ranking_final_score := (v_estabilidad_score * 0.6) + (v_popularidad_score * 0.4);
+
+    IF v_ranking_final_score >= 8 THEN
+        p_categoria_ranking := 'Excelente (Líder del Sector)';
+    ELSIF v_ranking_final_score >= 6 THEN
+        p_categoria_ranking := 'Bueno (Sólido y Reconocido)';
+    ELSIF v_ranking_final_score >= 4 THEN
+        p_categoria_ranking := 'Regular (Estable con Potencial)';
+    ELSE
+        p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        p_antiguedad_promedio_anios := -1;
+        p_tasa_rotacion_alta_pct := -1;
+        p_visitas_ultimo_anio := -1;
+        p_categoria_ranking := 'Error al calcular';
+        RAISE;
+END SP_CALCULAR_RANKING_MUSEO;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO (PL/SQL Anónimo)
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_museo_id_test NUMBER;
+    v_antiguedad    NUMBER;
+    v_tasa          NUMBER;
+    v_visitas       NUMBER;
+    v_categoria     VARCHAR2(100);
+BEGIN
+    SELECT id_museo INTO v_museo_id_test FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+
+    SP_CALCULAR_RANKING_MUSEO(
+        p_id_museo => v_museo_id_test,
+        p_antiguedad_promedio_anios => v_antiguedad,
+        p_tasa_rotacion_alta_pct => v_tasa,
+        p_visitas_ultimo_anio => v_visitas,
+        p_categoria_ranking => v_categoria
+    );
+
+    DBMS_OUTPUT.PUT_LINE('--- Ranking del Museo ID ' || v_museo_id_test || ' ---');
+    DBMS_OUTPUT.PUT_LINE('Antigüedad Promedio: ' || ROUND(v_antiguedad, 2) || ' años');
+    DBMS_OUTPUT.PUT_LINE('Tasa de Rotación (<5 años): ' || ROUND(v_tasa, 2) || '%');
+    DBMS_OUTPUT.PUT_LINE('Visitas en el último año: ' || v_visitas);
+    DBMS_OUTPUT.PUT_LINE('Categoría Final: ' || v_categoria);
+END;
+/
+*/
+
 
