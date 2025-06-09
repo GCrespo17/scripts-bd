@@ -3819,38 +3819,40 @@ INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUE
 -- Tabla: TICKETS
 -- ---------------------------------------------------------------
 -- MUSEO JACQUEMART ANDRE
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:25:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 09:45:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:25:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:25:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 09:45:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:25:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
 
 -- MUSEO PETIT PALAIS
+
 INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
 VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
 INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
