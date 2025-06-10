@@ -1,5 +1,3 @@
-
-
 CREATE SEQUENCE seq_lugar
     START WITH 1
     INCREMENT BY 1;
@@ -64,6 +62,3 @@ CREATE SEQUENCE seq_mant_obra_realizado
     START WITH 1
     INCREMENT BY 1;
 
--- CREATE SEQUENCE seq_ticket
---    START WITH 1
---    INCREMENT BY 1;
