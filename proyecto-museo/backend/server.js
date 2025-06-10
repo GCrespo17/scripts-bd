@@ -644,7 +644,7 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener la ficha detallada de un museo (OPTIMIZADO con SP para Ranking)
+// Endpoint para obtener la ficha detallada de un museo (OPTIMIZADO con Ranking Comparativo)
 app.get('/api/museos/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
@@ -674,16 +674,32 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             [id_museo]
         );
 
-        // --- Llamada al Stored Procedure para el Ranking ---
+        // --- Nueva consulta para el Ranking Comparativo usando la Vista ---
         const rankingPromise = connection.execute(
-            `BEGIN ${dbConfig.schema}.SP_CALCULAR_RANKING_MUSEO(:id, :antiguedad, :tasa, :visitas, :categoria); END;`,
-            {
-                id: id_museo,
-                antiguedad: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                tasa: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                visitas: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                categoria: { type: oracledb.STRING, dir: oracledb.BIND_OUT, maxSize: 100 }
-            }
+            `WITH Rankings AS (
+                SELECT
+                    id_museo,
+                    nombre_museo,
+                    ciudad,
+                    pais,
+                    antiguedad_promedio_anios,
+                    tasa_rotacion_alta_pct,
+                    visitas_ultimo_anio,
+                    score_final,
+                    categoria_ranking,
+                    RANK() OVER (PARTITION BY id_pais ORDER BY score_final DESC) as ranking_nacional,
+                    COUNT(*) OVER (PARTITION BY id_pais) as total_nacional,
+                    RANK() OVER (ORDER BY score_final DESC) as ranking_mundial,
+                    COUNT(*) OVER () as total_mundial
+                FROM ${dbConfig.schema}.V_MUSEOS_RANKING_SCORES
+            )
+            SELECT 
+                ciudad, pais, antiguedad_promedio_anios, tasa_rotacion_alta_pct, 
+                visitas_ultimo_anio, score_final, categoria_ranking,
+                ranking_nacional, total_nacional, ranking_mundial, total_mundial
+            FROM Rankings
+            WHERE id_museo = :id`,
+            [id_museo]
         );
         
         // --- Ejecución y Procesamiento ---
@@ -698,18 +714,44 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             return res.status(404).json({ message: 'Museo no encontrado' });
         }
 
+        // --- Procesamiento del Ranking ---
+        let rankingData = null;
+        if (rankingResult.rows.length > 0) {
+            const r = rankingResult.rows[0];
+            console.log('Raw ranking data:', r); // Debug logging
+            
+            rankingData = {
+                ubicacion: {
+                    ciudad: r[0],
+                    pais: r[1]
+                },
+                metricas: {
+                    antiguedad_promedio_anios: parseFloat((r[2] || 0).toFixed(2)),
+                    tasa_rotacion_alta_pct: parseFloat((r[3] || 0).toFixed(2)),
+                    visitas_ultimo_anio: r[4] || 0
+                },
+                ranking: {
+                    score_final: parseFloat((r[5] || 0).toFixed(2)),
+                    categoria: r[6] || 'Sin clasificar',
+                    posicion_nacional: r[7] || null,
+                    total_nacional: r[8] || null,
+                    posicion_mundial: r[9] || null,
+                    total_mundial: r[10] || null
+                }
+            };
+            
+            console.log('Processed ranking data:', JSON.stringify(rankingData, null, 2)); // Debug logging
+        } else {
+            console.log(`No ranking data found for museum ${id_museo}`); // Debug logging
+        }
+
         // --- Ensamblaje de la Respuesta ---
         const museoData = {
             id: museoResult.rows[0][0],
             nombre: museoResult.rows[0][1],
             fecha_fundacion: museoResult.rows[0][2],
             mision: museoResult.rows[0][3],
-            ranking: {
-                antiguedad_promedio_anios: parseFloat((rankingResult.outBinds.antiguedad[0] || 0).toFixed(2)),
-                tasa_rotacion_alta_pct: parseFloat((rankingResult.outBinds.tasa[0] || 0).toFixed(2)),
-                visitas_ultimo_anio: rankingResult.outBinds.visitas[0] || 0,
-                categoria: rankingResult.outBinds.categoria[0]
-            },
+            ranking: rankingData,
             historia: historiaResult.rows.map(r => ({ anio: r[0], hecho: r[1] })),
             colecciones: coleccionesResult.rows.map(r => ({
                 id: r[0],
@@ -723,7 +765,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
 
     } catch (err) {
         console.error(`Error al obtener la ficha del museo ${id_museo}:`, err);
-        res.status(500).json({ message: 'Error al obtener la ficha del museo' });
+        res.status(500).json({ message: 'Error al obtener la ficha del museo', error: err.message });
     } finally {
         if (connection) {
             try {

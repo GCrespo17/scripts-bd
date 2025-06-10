@@ -31,6 +31,11 @@ const router = createRouter({
       path: '/reporte-estructura',
       name: 'reporte-estructura',
       component: () => import('../views/ReporteEstructuraFisica.vue')
+    },
+    {
+      path: '/ficha-museo',
+      name: 'ficha-museo',
+      component: () => import('../views/FichaMuseoView.vue')
     }
   ]
 })

@@ -32,6 +32,10 @@ import { RouterLink, RouterView } from 'vue-router'
           <span class="nav-icon">📊</span>
           <span class="nav-text">Reporte Estructura</span>
         </RouterLink>
+        <RouterLink to="/ficha-museo" class="nav-link">
+          <span class="nav-icon">📄</span>
+          <span class="nav-text">Ficha de Museo</span>
+        </RouterLink>
       </nav>
       
       <div class="sidebar-footer">
