@@ -127,53 +127,31 @@ export default {
       this.exportingPDF = true;
       
       try {
-        // Importación dinámica de jsPDF
         const jsPDF = (await import('jspdf')).default;
         
-        // Crear el PDF en orientación vertical A4
         const pdf = new jsPDF('portrait', 'mm', 'a4');
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         let yPosition = 20;
         
-        // Función helper para verificar si necesitamos nueva página
         const checkNewPage = (requiredHeight) => {
           if (yPosition + requiredHeight > pageHeight - 20) {
             pdf.addPage();
             yPosition = 20;
-            return true;
           }
-          return false;
         };
         
-        // Función para agregar texto con ajuste automático
-        const addWrappedText = (text, x, maxWidth, fontSize = 10) => {
-          pdf.setFontSize(fontSize);
-          const lines = pdf.splitTextToSize(text, maxWidth);
-          const lineHeight = fontSize * 0.4;
-          
-          checkNewPage(lines.length * lineHeight);
-          
-          lines.forEach(line => {
-            pdf.text(line, x, yPosition);
-            yPosition += lineHeight;
-          });
-          return yPosition;
-        };
-        
-        // HEADER DEL DOCUMENTO
+        // --- INICIO CABECERA PDF ---
         pdf.setFontSize(18);
         pdf.setFont('helvetica', 'bold');
         pdf.text('REPORTE DE ESTRUCTURA ORGANIZACIONAL', pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 15;
         
-        // Línea separadora
         pdf.setLineWidth(0.5);
         pdf.line(20, yPosition, pageWidth - 20, yPosition);
         yPosition += 10;
         
-        // INFORMACIÓN DEL MUSEO
-        pdf.setFontSize(14);
+        pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
         pdf.text('MUSEO:', 20, yPosition);
         pdf.setFont('helvetica', 'normal');
@@ -192,215 +170,182 @@ export default {
         pdf.text(this.museoInfo.ranking.categoria, 50, yPosition);
         yPosition += 8;
         
-        // MISIÓN
         pdf.setFont('helvetica', 'bold');
-        pdf.text('MISION:', 20, yPosition);
+        pdf.text('MISIÓN:', 20, yPosition);
         yPosition += 6;
-        pdf.setFont('helvetica', 'italic');
-        yPosition = addWrappedText(this.museoInfo.mision, 20, pageWidth - 40, 10);
-        yPosition += 10;
         
-        // Línea separadora
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(10);
+        const missionLines = pdf.splitTextToSize(this.museoInfo.mision, pageWidth - 40);
+        pdf.text(missionLines, 20, yPosition);
+        yPosition += missionLines.length * (10 * 0.5);
+        yPosition += 4;
+        
         pdf.setLineWidth(0.3);
         pdf.line(20, yPosition, pageWidth - 20, yPosition);
         yPosition += 10;
         
-        // ORGANIGRAMA
         pdf.setFontSize(14);
         pdf.setFont('helvetica', 'bold');
         pdf.text('ESTRUCTURA ORGANIZACIONAL:', 20, yPosition);
         yPosition += 10;
-        
-        // Función recursiva para dibujar el organigrama (CORREGIDA)
+        // --- FIN CABECERA PDF ---
+
         const drawOrganigramaNode = (node, level = 0, parentNumber = '', siblingIndex = 0) => {
           const indent = 20 + (level * 15);
-          
-          // Corregir la numeración secuencial
-          let nodeNumber;
-          if (level === 0) {
-            nodeNumber = (siblingIndex + 1).toString();
-          } else {
-            nodeNumber = parentNumber + '.' + (siblingIndex + 1);
-          }
-          
-          // Calcular total de empleados correctamente (manejo de Proxies de Vue)
+          const nodeNumber = level === 0 ? (siblingIndex + 1).toString() : `${parentNumber}.${siblingIndex + 1}`;
+          const contentMaxWidth = pageWidth - indent - 28;
+
           const jefesArray = Array.isArray(node.jefes) ? node.jefes : [];
           const personalArray = Array.isArray(node.personal) ? node.personal : [];
           const totalEmpleados = jefesArray.length + personalArray.length;
+
+          const lh = { tiny: 3, small: 4, medium: 5, large: 6 };
+
+          // --- 1. Calcular Altura del Bloque ---
+          let calculatedHeight = 0;
+
+          const titleText = `${nodeNumber}. ${node.nombre} (${node.tipo})`;
+          calculatedHeight += pdf.splitTextToSize(titleText, contentMaxWidth).length * lh.medium;
+
+          calculatedHeight += lh.small; // Empleados asignados
+
+          if (node.descripcion) {
+            calculatedHeight += pdf.splitTextToSize(node.descripcion, contentMaxWidth).slice(0, 3).length * lh.small;
+          }
+
+          if (jefesArray.length > 0) {
+            calculatedHeight += lh.large; // "DIRECCION:"
+            jefesArray.forEach(jefe => {
+              calculatedHeight += pdf.splitTextToSize(`• ${jefe.nombre_completo}`, contentMaxWidth - 5).length * lh.small;
+              calculatedHeight += pdf.splitTextToSize(`  ${jefe.cargo}`, contentMaxWidth - 7).length * lh.tiny;
+            });
+          }
           
-          // Calcular altura necesaria para el nodo completo
-          let nodeHeight = 20; // Altura base reducida
+          if (personalArray.length > 0) {
+            calculatedHeight += lh.large;
+            personalArray.forEach(empleado => {
+              calculatedHeight += pdf.splitTextToSize(`• ${empleado.nombre_completo} - ${empleado.cargo}`, contentMaxWidth - 5).length * lh.small;
+            });
+          }
           
-          // Añadir altura para el título (puede ser múltiples líneas)
-          const maxTitleWidth = pageWidth - indent - 25;
-          const titleLinesForHeight = pdf.splitTextToSize(`${nodeNumber}. ${node.nombre}`, maxTitleWidth);
-          nodeHeight += titleLinesForHeight.length * 5;
+          if (totalEmpleados === 0) calculatedHeight += lh.small;
           
-          if (node.descripcion) nodeHeight += 8;
-          if (jefesArray.length > 0) nodeHeight += 8 + (jefesArray.length * 6);
-          if (personalArray.length > 0) nodeHeight += 8 + (personalArray.length * 4);
-          if (totalEmpleados === 0) nodeHeight += 8;
-          
-          checkNewPage(nodeHeight + 10);
-          
-          // Fondo del nodo según el nivel
-          const bgColors = [
-            [230, 245, 255], // Azul claro
-            [230, 255, 230], // Verde claro  
-            [255, 240, 230], // Naranja claro
-            [245, 230, 255], // Violeta claro
-          ];
-          const bgColor = bgColors[level % bgColors.length];
-          
+          const nodeHeight = calculatedHeight + 12;
+
+          checkNewPage(nodeHeight);
+          const startY = yPosition;
+
+          // --- 2. Dibujar Contenedor ---
+          const bgColors = [[230, 245, 255], [230, 255, 230], [255, 240, 230], [245, 230, 255]];
+          const bgColor = bgColors[Math.min(level, bgColors.length - 1)];
           pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-          pdf.rect(indent, yPosition - 3, pageWidth - indent - 20, nodeHeight, 'F');
-          
-          // Borde del nodo
-          pdf.setDrawColor(100, 100, 100);
+          pdf.rect(indent, startY - 4, pageWidth - indent - 20, nodeHeight, 'F');
+          pdf.setDrawColor(150, 150, 150);
           pdf.setLineWidth(0.2);
-          pdf.rect(indent, yPosition - 3, pageWidth - indent - 20, nodeHeight);
-          
-          // Título del nodo con text wrapping
+          pdf.rect(indent, startY - 4, pageWidth - indent - 20, nodeHeight);
+
+          yPosition = startY;
+
+          // --- 3. Dibujar Contenido (con wrapping) ---
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(0, 0, 0);
-          
-          const titleText = `${nodeNumber}. ${node.nombre}`;
-          const titleLines = pdf.splitTextToSize(titleText, maxTitleWidth);
-          titleLines.forEach((line, index) => {
-            pdf.text(line, indent + 3, yPosition + 2 + (index * 5));
-          });
-          yPosition += titleLines.length * 5 + 3;
-          
-          // Solo mostrar total de empleados (sin información redundante)
-          if (totalEmpleados > 0) {
-            pdf.setFontSize(9);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(100, 100, 100);
-            pdf.text(`${totalEmpleados} empleado${totalEmpleados > 1 ? 's' : ''} asignado${totalEmpleados > 1 ? 's' : ''}`, indent + 3, yPosition);
-            yPosition += 6;
-          }
-          
-          // Descripción si existe
+          const titleLines = pdf.splitTextToSize(titleText, contentMaxWidth);
+          pdf.text(titleLines, indent + 3, yPosition);
+          yPosition += titleLines.length * lh.medium;
+
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(`${totalEmpleados} empleado${totalEmpleados > 1 ? 's' : ''} asignado${totalEmpleados > 1 ? 's' : ''}`, indent + 3, yPosition);
+          yPosition += lh.small;
+
           if (node.descripcion) {
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(80, 80, 80);
-            const maxDescWidth = pageWidth - indent - 25;
-            const descLines = pdf.splitTextToSize(node.descripcion, maxDescWidth);
-            descLines.slice(0, 2).forEach(line => { // Máximo 2 líneas
-              pdf.text(line, indent + 3, yPosition);
-              yPosition += 3;
-            });
-            yPosition += 2;
+            const descLines = pdf.splitTextToSize(node.descripcion, contentMaxWidth);
+            pdf.text(descLines.slice(0, 3), indent + 3, yPosition);
+            yPosition += descLines.slice(0, 3).length * lh.small;
           }
-          
-          // DIRECCIÓN/JEFES (dentro de la tarjeta)
+
           if (jefesArray.length > 0) {
+            yPosition += 2;
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0, 0, 0);
+            pdf.setTextColor(0,0,0);
             pdf.text(`DIRECCION (${jefesArray.length}):`, indent + 5, yPosition);
-            yPosition += 4;
+            yPosition += lh.medium;
             
-            jefesArray.forEach((jefe) => {
+            jefesArray.forEach(jefe => {
               pdf.setFontSize(9);
               pdf.setFont('helvetica', 'bold');
-              pdf.setTextColor(0, 0, 0);
+              const jefeNameLines = pdf.splitTextToSize(`• ${jefe.nombre_completo}`, contentMaxWidth - 5);
+              pdf.text(jefeNameLines, indent + 8, yPosition);
+              yPosition += jefeNameLines.length * lh.small;
               
-              // Text wrapping para nombres largos
-              const jefeText = `• ${jefe.nombre_completo}`;
-              const maxNameWidth = pageWidth - indent - 35;
-              const nameLines = pdf.splitTextToSize(jefeText, maxNameWidth);
-              nameLines.forEach((line, index) => {
-                pdf.text(line, indent + 10, yPosition + (index * 3));
-              });
-              yPosition += nameLines.length * 3;
-              
-              pdf.setFont('helvetica', 'normal');
-              pdf.setTextColor(60, 60, 60);
-              const cargoLines = pdf.splitTextToSize(`  ${jefe.cargo}`, maxNameWidth);
-              cargoLines.forEach((line, index) => {
-                pdf.text(line, indent + 12, yPosition + (index * 3));
-              });
-              yPosition += cargoLines.length * 3;
-            });
-            yPosition += 2;
-          }
-          
-          // PERSONAL (dentro de la tarjeta)
-          if (personalArray.length > 0) {
-            pdf.setFontSize(10);
-            pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0, 0, 0);
-            pdf.text(`PERSONAL (${personalArray.length}):`, indent + 5, yPosition);
-            yPosition += 4;
-            
-            personalArray.forEach((empleado) => {
               pdf.setFontSize(8);
               pdf.setFont('helvetica', 'normal');
-              pdf.setTextColor(0, 0, 0);
-              
-              // Text wrapping para nombres largos del personal
-              const empleadoText = `• ${empleado.nombre_completo} - ${empleado.cargo}`;
-              const maxEmpWidth = pageWidth - indent - 35;
-              const empLines = pdf.splitTextToSize(empleadoText, maxEmpWidth);
-              empLines.forEach((line, index) => {
-                pdf.text(line, indent + 10, yPosition + (index * 3));
-              });
-              yPosition += empLines.length * 3;
+              pdf.setTextColor(80, 80, 80);
+              const cargoLines = pdf.splitTextToSize(`${jefe.cargo}`, contentMaxWidth - 7);
+              pdf.text(cargoLines, indent + 12, yPosition);
+              yPosition += cargoLines.length * lh.tiny + 1;
             });
-            yPosition += 2;
           }
-          
-          // Mensaje si no hay empleados (dentro de la tarjeta)
+
+          if (personalArray.length > 0) {
+            yPosition += 2;
+            pdf.setFontSize(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(0,0,0);
+            pdf.text(`PERSONAL (${personalArray.length}):`, indent + 5, yPosition);
+            yPosition += lh.medium;
+            
+            personalArray.forEach(empleado => {
+              pdf.setFontSize(8);
+              pdf.setFont('helvetica', 'normal');
+              pdf.setTextColor(50, 50, 50);
+              const empLines = pdf.splitTextToSize(`• ${empleado.nombre_completo} - ${empleado.cargo}`, contentMaxWidth - 5);
+              pdf.text(empLines, indent + 8, yPosition);
+              yPosition += empLines.length * lh.small;
+            });
+          }
+
           if (totalEmpleados === 0) {
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'italic');
-            pdf.setTextColor(100, 100, 100);
+            pdf.setTextColor(150, 150, 150);
             pdf.text('Sin personal asignado actualmente', indent + 5, yPosition);
-            pdf.setTextColor(0, 0, 0);
-            yPosition += 4;
           }
           
-          yPosition += 5; // Espacio después del nodo
-          
-          // Procesar hijos con numeración correcta
+          yPosition = startY + nodeHeight + 2;
+
           if (node.children && node.children.length > 0) {
             node.children.forEach((child, childIndex) => {
               drawOrganigramaNode(child, level + 1, nodeNumber, childIndex);
             });
           }
-          
-          yPosition += 3; // Espacio entre nodos del mismo nivel
         };
-        
-        // Dibujar todos los nodos raíz con numeración correcta
+
         this.organigrama.forEach((rootNode, index) => {
           drawOrganigramaNode(rootNode, 0, '', index);
         });
         
-        // FOOTER
+        // --- FOOTER ---
         const totalPages = pdf.internal.getNumberOfPages();
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
           pdf.setFontSize(8);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(100, 100, 100);
-          
-          // Fecha de generación
           const fechaGeneracion = new Date().toLocaleString('es-ES');
           pdf.text(`Generado el: ${fechaGeneracion}`, 20, pageHeight - 10);
-          
-          // Número de página
-          pdf.text(`Pagina ${i} de ${totalPages}`, pageWidth - 40, pageHeight - 10);
+          pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 40, pageHeight - 10);
         }
         
-        // Generar nombre del archivo
         const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
         const nombreArchivo = `Organigrama_${this.museoInfo.nombre.replace(/\s+/g, '_')}_${fecha}.pdf`;
         
-        // Descargar el PDF
         pdf.save(nombreArchivo);
 
       } catch (error) {

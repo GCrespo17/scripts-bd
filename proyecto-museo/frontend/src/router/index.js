@@ -21,6 +21,16 @@ const router = createRouter({
       path: '/organigrama',
       name: 'organigrama',
       component: () => import('../views/OrganigramaView.vue')
+    },
+    {
+      path: '/estructura',
+      name: 'estructura',
+      component: () => import('../views/EstructuraFisica.vue')
+    },
+    {
+      path: '/reporte-estructura',
+      name: 'reporte-estructura',
+      component: () => import('../views/ReporteEstructuraFisica.vue')
     }
   ]
 })

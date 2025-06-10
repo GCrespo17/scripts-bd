@@ -1576,5 +1576,5 @@ INSERT INTO HIST_MUSEOS (anio, id_museo, hecho) VALUES (
 PROMPT Data inserted into HIST_MUSEOS table.
 PROMPT -----------------------------------------------------------------------------
 
--- COMMIT; -- Descomentar al final del script para guardar todos los cambios.
+COMMIT;
 SET DEFINE ON;
