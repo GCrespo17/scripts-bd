@@ -626,6 +626,90 @@ app.get('/api/museos/:id_museo', async (req, res) => {
     }
 });
 
+
+
+
+//Endpoint para obtener la lista de curadores
+app.get('/api/empleados/curadores/:id_museo', async (req, res)=>{
+    let connection;
+    try{
+        const idMuseo = req.params.id_museo;
+        connection = await oracledb.getConnection(dbConfig);
+
+        const query = 
+        `SELECT ep.id_empleado, ep.primer_nombre, ep.primer_apellido, ep.doc_identidad, he.cargo
+            FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+            JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+            WHERE
+                he.id_museo = :idMuseo 
+                AND he.cargo = 'CURADOR'
+                AND he.fecha_fin IS NULL
+        `;
+
+        const result = await connection.execute(
+            query,
+            {idMuseo: idMuseo}
+        );
+
+        const empleados = result.rows.map(row => ({
+            id: row[0],
+            nombre: `${row[1]} ${row[2]}`,
+            doc_identidad: row[3],
+            cargo: row[4]
+        }));
+        res.json(empleados);
+    }catch(err){
+        console.error('Error al obtener empleados: ', err);
+        res.status(500).json({message: 'Error al obtener a los curadores'});
+    }finally{
+         if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+//Endpoint para obtener la lista de restauradores
+app.get('/api/empleados/restauradores/:id_museo', async (req, res)=>{
+    let connection;
+    try{
+        const idMuseo = req.params.id_museo;
+        connection = await oracledb.getConnection(dbConfig);
+        const result = await connection.execute(
+            `SELECT ep.id_empleado, ep.primer_nombre, ep.primer_apellido, ep.doc_identidad, he.cargo
+            FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+            JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+            WHERE
+            he.id_museo = :idMuseo AND
+            he.cargo = 'RESTAURADOR' AND 
+            he.fecha_fin IS NULL`,
+            {idMuseo: idMuseo}
+        );
+        const empleados=result.rows.map(row=>({
+            id: row[0],
+            nombre: `${row[1]} ${row[2]}`,
+            doc_identidad: row[3],
+            cargo: row[4]
+        }));
+        res.json(empleados);
+    }catch(err){
+        console.error('Error al obtener empleados: ', err);
+        res.status(500).json({message: 'Error al obtener a los restauradores'});
+    }finally{
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+
 // Endpoint para obtener la lista de empleados profesionales
 app.get('/api/empleados', async (req, res) => {
     let connection;
