@@ -19,9 +19,12 @@
           <strong>Dirección ({{ node.jefes.length }})</strong>
         </div>
         <ul class="employee-list leadership-list">
-          <li v-for="jefe in node.jefes" :key="`jefe-${jefe.id_empleado}`" class="employee-item leadership-item">
+          <li v-for="jefe in node.jefes" :key="`jefe-${jefe.id_empleado}-${jefe.id_est_org}`" class="employee-item leadership-item">
             <div class="employee-info">
-              <span class="employee-name">{{ jefe.nombre_completo }}</span>
+              <span class="employee-name">
+                {{ jefe.nombre_completo }}
+                <span v-if="jefe.roles_multiples" class="multiple-roles-indicator" title="Esta persona ocupa múltiples cargos directivos simultáneamente en el museo">⭐</span>
+              </span>
               <span class="employee-role leadership-role">{{ jefe.cargo }}</span>
               <span class="employee-tenure">{{ formatFechaInicio(jefe.fecha_inicio) }}</span>
             </div>
@@ -39,9 +42,12 @@
           <strong>Personal ({{ node.personal.length }})</strong>
         </div>
         <ul class="employee-list staff-list">
-          <li v-for="empleado in node.personal" :key="`emp-${empleado.id_empleado}`" class="employee-item staff-item">
+          <li v-for="empleado in node.personal" :key="`emp-${empleado.id_empleado}-${empleado.id_est_org}`" class="employee-item staff-item">
             <div class="employee-info">
-              <span class="employee-name">{{ empleado.nombre_completo }}</span>
+              <span class="employee-name">
+                {{ empleado.nombre_completo }}
+                <span v-if="empleado.roles_multiples" class="multiple-roles-indicator" title="Esta persona ocupa múltiples cargos simultáneamente en el museo">⭐</span>
+              </span>
               <span class="employee-role">{{ empleado.cargo }}</span>
               <span class="employee-tenure">{{ formatFechaInicio(empleado.fecha_inicio) }}</span>
             </div>
@@ -293,6 +299,21 @@ export default {
   color: #1f2937;
   font-size: 0.9rem;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.multiple-roles-indicator {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  animation: twinkle 2s infinite;
+  cursor: help;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .employee-role {

@@ -1956,7 +1956,7 @@ CREATE OR REPLACE VIEW VW_MOVIMIENTOS_ACTIVOS AS
 SELECT 
     hom.id_catalogo_museo,
     hom.id_obra,
-    o.titulo as nombre_obra,
+    o.nombre as nombre_obra,
     m.nombre as museo,
     hom.fecha_entrada,
     hom.fecha_salida,
