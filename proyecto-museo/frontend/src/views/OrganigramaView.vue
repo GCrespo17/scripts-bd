@@ -141,10 +141,38 @@ export default {
           }
         };
         
+        // --- FUNCIONES HELPER PARA TEXTO SEGURO ---
+        const safeText = (text) => {
+          if (text === null || text === undefined) return '';
+          return String(text).trim();
+        };
+
+        const safeSplitText = (text, maxWidth) => {
+          const cleanText = safeText(text);
+          if (!cleanText) return [''];
+          try {
+            return pdf.splitTextToSize(cleanText, maxWidth);
+          } catch (error) {
+            console.warn('Error al dividir texto:', cleanText, error);
+            return [cleanText];
+          }
+        };
+
+        const safeDrawText = (text, x, y, options = {}) => {
+          const cleanText = safeText(text);
+          if (!cleanText) return;
+          
+          try {
+            pdf.text(cleanText, x, y, options);
+          } catch (error) {
+            console.warn('Error al dibujar texto:', cleanText, error);
+          }
+        };
+
         // --- INICIO CABECERA PDF ---
         pdf.setFontSize(18);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('REPORTE DE ESTRUCTURA ORGANIZACIONAL', pageWidth / 2, yPosition, { align: 'center' });
+        safeDrawText('REPORTE DE ESTRUCTURA ORGANIZACIONAL', pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 15;
         
         pdf.setLineWidth(0.5);
@@ -153,32 +181,44 @@ export default {
         
         pdf.setFontSize(12);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('MUSEO:', 20, yPosition);
+        safeDrawText('MUSEO:', 20, yPosition);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(this.museoInfo.nombre, 45, yPosition);
+        safeDrawText(this.museoInfo.nombre || 'Sin nombre', 45, yPosition);
         yPosition += 8;
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text('FUNDADO:', 20, yPosition);
+        safeDrawText('FUNDADO:', 20, yPosition);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(new Date(this.museoInfo.fecha_fundacion).getFullYear().toString(), 50, yPosition);
+        const anioFundacion = this.museoInfo.fecha_fundacion 
+          ? new Date(this.museoInfo.fecha_fundacion).getFullYear().toString()
+          : 'No disponible';
+        safeDrawText(anioFundacion, 50, yPosition);
         yPosition += 8;
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text('RANKING:', 20, yPosition);
+        safeDrawText('RANKING:', 20, yPosition);
         pdf.setFont('helvetica', 'normal');
-        pdf.text(this.museoInfo.ranking.categoria, 50, yPosition);
+        const rankingCategoria = this.museoInfo.ranking?.categoria || 'Sin ranking';
+        safeDrawText(rankingCategoria, 50, yPosition);
         yPosition += 8;
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text('MISIÓN:', 20, yPosition);
+        safeDrawText('MISIÓN:', 20, yPosition);
         yPosition += 6;
         
         pdf.setFont('helvetica', 'italic');
         pdf.setFontSize(10);
-        const missionLines = pdf.splitTextToSize(this.museoInfo.mision, pageWidth - 40);
-        pdf.text(missionLines, 20, yPosition);
-        yPosition += missionLines.length * (10 * 0.5);
+        const misionText = this.museoInfo.mision || 'No disponible';
+        const missionLines = safeSplitText(misionText, pageWidth - 50); // Más margen para la misión
+        
+        try {
+          pdf.text(missionLines, 20, yPosition);
+          yPosition += missionLines.length * (10 * 0.5);
+        } catch (error) {
+          console.warn('Error al dibujar misión:', error);
+          safeDrawText('Misión no disponible', 20, yPosition);
+          yPosition += 5;
+        }
         yPosition += 4;
         
         pdf.setLineWidth(0.3);
@@ -192,9 +232,14 @@ export default {
         // --- FIN CABECERA PDF ---
 
         const drawOrganigramaNode = (node, level = 0, parentNumber = '', siblingIndex = 0) => {
-          const indent = 20 + (level * 15);
+          const indent = 20 + (level * 12); // Reducir indentación para más espacio
           const nodeNumber = level === 0 ? (siblingIndex + 1).toString() : `${parentNumber}.${siblingIndex + 1}`;
-          const contentMaxWidth = pageWidth - indent - 28;
+          const contentMaxWidth = pageWidth - indent - 35; // Más margen para evitar desbordamiento
+
+          // Validaciones de datos de entrada
+          const nodeNombre = node.nombre || 'Sin nombre';
+          const nodeTipo = node.tipo || 'Sin tipo';
+          const nodeDescripcion = node.descripcion || '';
 
           const jefesArray = Array.isArray(node.jefes) ? node.jefes : [];
           const personalArray = Array.isArray(node.personal) ? node.personal : [];
@@ -202,30 +247,79 @@ export default {
 
           const lh = { tiny: 3, small: 4, medium: 5, large: 6 };
 
+          // Función helper para validar texto antes de usar splitTextToSize
+          const safeText = (text) => {
+            if (text === null || text === undefined) return '';
+            return String(text).trim();
+          };
+
+          // Función helper para dividir texto de forma segura
+          const safeSplitText = (text, maxWidth) => {
+            const cleanText = safeText(text);
+            if (!cleanText) return [''];
+            try {
+              return pdf.splitTextToSize(cleanText, maxWidth);
+            } catch (error) {
+              console.warn('Error al dividir texto:', cleanText, error);
+              return [cleanText];
+            }
+          };
+
+          // Función helper para dibujar texto de forma segura
+          const safeDrawText = (textLines, x, y, lineHeight = 5) => {
+            if (!Array.isArray(textLines)) {
+              textLines = [safeText(textLines)];
+            }
+            const validLines = textLines.filter(line => safeText(line));
+            if (validLines.length === 0) return 0;
+            
+            try {
+              // Dibujar línea por línea para mejor control del espaciado
+              validLines.forEach((line, index) => {
+                pdf.text(line, x, y + (index * lineHeight));
+              });
+              return validLines.length;
+            } catch (error) {
+              console.warn('Error al dibujar texto:', validLines, error);
+              return 0;
+            }
+          };
+
           // --- 1. Calcular Altura del Bloque ---
           let calculatedHeight = 0;
 
-          const titleText = `${nodeNumber}. ${node.nombre} (${node.tipo})`;
-          calculatedHeight += pdf.splitTextToSize(titleText, contentMaxWidth).length * lh.medium;
+          // Hacer wrapping del título en lugar de cortarlo
+          const titleText = `${nodeNumber}. ${nodeNombre}`;
+          const titleLines = safeSplitText(titleText, contentMaxWidth);
+          calculatedHeight += titleLines.length * lh.medium;
 
           calculatedHeight += lh.small; // Empleados asignados
 
-          if (node.descripcion) {
-            calculatedHeight += pdf.splitTextToSize(node.descripcion, contentMaxWidth).slice(0, 3).length * lh.small;
+          if (nodeDescripcion) {
+            const descLines = safeSplitText(nodeDescripcion, contentMaxWidth);
+            calculatedHeight += descLines.length * lh.small;
           }
 
           if (jefesArray.length > 0) {
             calculatedHeight += lh.large; // "DIRECCION:"
             jefesArray.forEach(jefe => {
-              calculatedHeight += pdf.splitTextToSize(`• ${jefe.nombre_completo}`, contentMaxWidth - 5).length * lh.small;
-              calculatedHeight += pdf.splitTextToSize(`  ${jefe.cargo}`, contentMaxWidth - 7).length * lh.tiny;
+              const jefeNombre = safeText(jefe.nombre_completo);
+              const jefeCargo = safeText(jefe.cargo);
+              if (jefeNombre) {
+                calculatedHeight += safeSplitText(`• ${jefeNombre}`, contentMaxWidth - 15).length * lh.small;
+                calculatedHeight += safeSplitText(`  ${jefeCargo}`, contentMaxWidth - 20).length * lh.tiny;
+              }
             });
           }
           
           if (personalArray.length > 0) {
             calculatedHeight += lh.large;
             personalArray.forEach(empleado => {
-              calculatedHeight += pdf.splitTextToSize(`• ${empleado.nombre_completo} - ${empleado.cargo}`, contentMaxWidth - 5).length * lh.small;
+              const empNombre = safeText(empleado.nombre_completo);
+              const empCargo = safeText(empleado.cargo);
+              if (empNombre) {
+                calculatedHeight += safeSplitText(`• ${empNombre} - ${empCargo}`, contentMaxWidth - 15).length * lh.small;
+              }
             });
           }
           
@@ -239,57 +333,70 @@ export default {
           // --- 2. Dibujar Contenedor ---
           const bgColors = [[230, 245, 255], [230, 255, 230], [255, 240, 230], [245, 230, 255]];
           const bgColor = bgColors[Math.min(level, bgColors.length - 1)];
+          const containerWidth = pageWidth - indent - 25; // Más conservador para evitar desbordamiento
           pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
-          pdf.rect(indent, startY - 4, pageWidth - indent - 20, nodeHeight, 'F');
+          pdf.rect(indent, startY - 4, containerWidth, nodeHeight, 'F');
           pdf.setDrawColor(150, 150, 150);
           pdf.setLineWidth(0.2);
-          pdf.rect(indent, startY - 4, pageWidth - indent - 20, nodeHeight);
+          pdf.rect(indent, startY - 4, containerWidth, nodeHeight);
 
           yPosition = startY;
 
-          // --- 3. Dibujar Contenido (con wrapping) ---
-          pdf.setFontSize(12);
+          // --- 3. Dibujar Contenido (con wrapping y validaciones) ---
+          // Ajustar tamaño de fuente según el nivel para evitar desbordamientos
+          const titleFontSize = Math.max(10, 12 - level);
+          pdf.setFontSize(titleFontSize);
           pdf.setFont('helvetica', 'bold');
           pdf.setTextColor(0, 0, 0);
-          const titleLines = pdf.splitTextToSize(titleText, contentMaxWidth);
-          pdf.text(titleLines, indent + 3, yPosition);
-          yPosition += titleLines.length * lh.medium;
+          
+          // Dibujar el título con espaciado adecuado entre líneas
+          const titleLineHeight = titleFontSize * 0.7; // Espaciado proporcional al tamaño de fuente
+          const drawnTitleLines = safeDrawText(titleLines, indent + 3, yPosition, titleLineHeight);
+          yPosition += drawnTitleLines * lh.medium;
 
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(100, 100, 100);
-          pdf.text(`${totalEmpleados} empleado${totalEmpleados > 1 ? 's' : ''} asignado${totalEmpleados > 1 ? 's' : ''}`, indent + 3, yPosition);
+          const empleadosText = `${totalEmpleados} empleado${totalEmpleados !== 1 ? 's' : ''} asignado${totalEmpleados !== 1 ? 's' : ''}`;
+          safeDrawText(empleadosText, indent + 3, yPosition, 4);
           yPosition += lh.small;
 
-          if (node.descripcion) {
+          if (nodeDescripcion) {
             pdf.setFontSize(8);
             pdf.setFont('helvetica', 'italic');
-            const descLines = pdf.splitTextToSize(node.descripcion, contentMaxWidth);
-            pdf.text(descLines.slice(0, 3), indent + 3, yPosition);
-            yPosition += descLines.slice(0, 3).length * lh.small;
+            const descLines = safeSplitText(nodeDescripcion, contentMaxWidth);
+            const drawnDescLines = safeDrawText(descLines, indent + 3, yPosition, 3.5);
+            yPosition += drawnDescLines * lh.small;
           }
 
           if (jefesArray.length > 0) {
             yPosition += 2;
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0,0,0);
-            pdf.text(`DIRECCION (${jefesArray.length}):`, indent + 5, yPosition);
+            pdf.setTextColor(0, 0, 0);
+            safeDrawText(`DIRECCION (${jefesArray.length}):`, indent + 5, yPosition, 4.5);
             yPosition += lh.medium;
             
             jefesArray.forEach(jefe => {
-              pdf.setFontSize(9);
-              pdf.setFont('helvetica', 'bold');
-              const jefeNameLines = pdf.splitTextToSize(`• ${jefe.nombre_completo}`, contentMaxWidth - 5);
-              pdf.text(jefeNameLines, indent + 8, yPosition);
-              yPosition += jefeNameLines.length * lh.small;
+              const jefeNombre = safeText(jefe.nombre_completo);
+              const jefeCargo = safeText(jefe.cargo);
               
-              pdf.setFontSize(8);
-              pdf.setFont('helvetica', 'normal');
-              pdf.setTextColor(80, 80, 80);
-              const cargoLines = pdf.splitTextToSize(`${jefe.cargo}`, contentMaxWidth - 7);
-              pdf.text(cargoLines, indent + 12, yPosition);
-              yPosition += cargoLines.length * lh.tiny + 1;
+                             if (jefeNombre) {
+                 pdf.setFontSize(9);
+                 pdf.setFont('helvetica', 'bold');
+                 const jefeNameLines = safeSplitText(`• ${jefeNombre}`, contentMaxWidth - 15);
+                 const drawnJefeLines = safeDrawText(jefeNameLines, indent + 8, yPosition, 4);
+                 yPosition += drawnJefeLines * lh.small;
+                 
+                 if (jefeCargo) {
+                   pdf.setFontSize(8);
+                   pdf.setFont('helvetica', 'normal');
+                   pdf.setTextColor(80, 80, 80);
+                   const cargoLines = safeSplitText(jefeCargo, contentMaxWidth - 20);
+                   const drawnCargoLines = safeDrawText(cargoLines, indent + 12, yPosition, 3);
+                   yPosition += drawnCargoLines * lh.tiny + 1;
+                 }
+              }
             });
           }
 
@@ -297,17 +404,23 @@ export default {
             yPosition += 2;
             pdf.setFontSize(10);
             pdf.setFont('helvetica', 'bold');
-            pdf.setTextColor(0,0,0);
-            pdf.text(`PERSONAL (${personalArray.length}):`, indent + 5, yPosition);
+            pdf.setTextColor(0, 0, 0);
+            safeDrawText(`PERSONAL (${personalArray.length}):`, indent + 5, yPosition, 4.5);
             yPosition += lh.medium;
             
             personalArray.forEach(empleado => {
-              pdf.setFontSize(8);
-              pdf.setFont('helvetica', 'normal');
-              pdf.setTextColor(50, 50, 50);
-              const empLines = pdf.splitTextToSize(`• ${empleado.nombre_completo} - ${empleado.cargo}`, contentMaxWidth - 5);
-              pdf.text(empLines, indent + 8, yPosition);
-              yPosition += empLines.length * lh.small;
+              const empNombre = safeText(empleado.nombre_completo);
+              const empCargo = safeText(empleado.cargo);
+              
+                             if (empNombre) {
+                 pdf.setFontSize(8);
+                 pdf.setFont('helvetica', 'normal');
+                 pdf.setTextColor(50, 50, 50);
+                 const empText = empCargo ? `• ${empNombre} - ${empCargo}` : `• ${empNombre}`;
+                 const empLines = safeSplitText(empText, contentMaxWidth - 15);
+                 const drawnEmpLines = safeDrawText(empLines, indent + 8, yPosition, 3.5);
+                 yPosition += drawnEmpLines * lh.small;
+              }
             });
           }
 
@@ -315,12 +428,12 @@ export default {
             pdf.setFontSize(9);
             pdf.setFont('helvetica', 'italic');
             pdf.setTextColor(150, 150, 150);
-            pdf.text('Sin personal asignado actualmente', indent + 5, yPosition);
+            safeDrawText('Sin personal asignado actualmente', indent + 5, yPosition, 4);
           }
           
           yPosition = startY + nodeHeight + 2;
 
-          if (node.children && node.children.length > 0) {
+          if (node.children && Array.isArray(node.children) && node.children.length > 0) {
             node.children.forEach((child, childIndex) => {
               drawOrganigramaNode(child, level + 1, nodeNumber, childIndex);
             });
@@ -339,12 +452,13 @@ export default {
           pdf.setFont('helvetica', 'normal');
           pdf.setTextColor(100, 100, 100);
           const fechaGeneracion = new Date().toLocaleString('es-ES');
-          pdf.text(`Generado el: ${fechaGeneracion}`, 20, pageHeight - 10);
-          pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 40, pageHeight - 10);
+          safeDrawText(`Generado el: ${fechaGeneracion}`, 20, pageHeight - 10);
+          safeDrawText(`Página ${i} de ${totalPages}`, pageWidth - 40, pageHeight - 10);
         }
         
         const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-');
-        const nombreArchivo = `Organigrama_${this.museoInfo.nombre.replace(/\s+/g, '_')}_${fecha}.pdf`;
+        const nombreMuseo = safeText(this.museoInfo.nombre).replace(/[^\w\s-]/g, '').replace(/\s+/g, '_') || 'Museo';
+        const nombreArchivo = `Organigrama_${nombreMuseo}_${fecha}.pdf`;
         
         pdf.save(nombreArchivo);
 
