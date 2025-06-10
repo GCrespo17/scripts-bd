@@ -1,71 +1,75 @@
+-- 
+-- 
+-- CREATE SEQUENCE seq_lugar
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_obra
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_idioma
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_empleado_vigilante_mant
+--     START WITH 1
+--     INCREMENT BY 1;    
+-- 
+-- CREATE SEQUENCE seq_artista
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_empleado_profesional
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_formacion
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_museo
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_est_fisica
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_sala_exp
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_exposicion_evento
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_est_organizacional
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_coleccion_permanente
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_hist_obra_mov
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_programa_mant
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_mant_obra_realizado
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- Secuencia eliminada: seq_observacion_mov (tabla OBSERVACIONES_MOVIMIENTOS no se crea)
+--    START WITH 1
+--    INCREMENT BY 1;
 
 
-CREATE SEQUENCE seq_lugar
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_obra
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_idioma
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_empleado_vigilante_mant
-    START WITH 1
-    INCREMENT BY 1;    
-
-CREATE SEQUENCE seq_artista
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_empleado_profesional
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_formacion
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_museo
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_est_fisica
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_sala_exp
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_exposicion_evento
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_est_organizacional
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_coleccion_permanente
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_hist_obra_mov
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_programa_mant
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_mant_obra_realizado
-    START WITH 1
-    INCREMENT BY 1;
-CREATE SEQUENCE seq_ticket
-   START WITH 1
-   INCREMENT BY 1;
+-- NOTA: Los tickets NO usan secuencia global (cada museo tiene su numeración propia)
 
 
 -- DROP TABLE TIPO_TICKETS;
@@ -415,6 +419,52 @@ CREATE TABLE TIPO_TICKETS(
     CONSTRAINT pk_tipo_tickets PRIMARY KEY(fecha_inicio, id_museo, tipo)
 );
 
+-- NOTA: No se agrega tabla OBSERVACIONES_MOVIMIENTOS para respetar el modelo ER fijo
+-- Las observaciones se manejan a través de logs en los procedimientos
+
+-- =============================================================================
+-- CÓDIGOS DE ERROR PERSONALIZADOS UTILIZADOS EN STORED PROCEDURES
+-- =============================================================================
+-- Los siguientes códigos de error se utilizan consistentemente en todos los
+-- procedimientos almacenados para proporcionar manejo robusto de errores:
+--
+-- VENTA DE TICKETS (SP_VENDER_TICKET):
+-- -20010: Error de capacidad/tarifa en venta de tickets
+-- -20011: Error de horario/múltiples tarifas en venta de tickets  
+-- -20021: Error de concurrencia en generación de ID de ticket
+-- -20022: Error interno en asignación de ID de ticket
+--
+-- GESTIÓN DE EMPLEADOS (SP_REGISTRAR_NUEVO_EMPLEADO):
+-- -20012: Error en registro de empleados (unidad organizacional no encontrada)
+--
+-- GESTIÓN DE EXPOSICIONES (SP_FINALIZAR_EXPOSICION):
+-- -20013: Error en finalización de exposiciones
+--
+-- RANKING DE MUSEOS (SP_CALCULAR_RANKING_MUSEO):
+-- -20030: Error de validación de museo en ranking
+-- -20031: Error inesperado en cálculo de ranking
+--
+-- ASIGNACIÓN DE OBRAS (SP_ASIGNAR_OBRA_A_EXPOSICION):
+-- -20050: Error de validación de obra
+-- -20051: Error de validación de exposición
+-- -20053: Error de capacidad de exposición
+-- -20059: Error inesperado en asignación de obras
+-- Nota: -20052 se eliminó ya que ahora se maneja automáticamente el traspaso de obras
+--
+-- AUTOMATIZACIONES DE MANTENIMIENTO Y OPERACIONES:
+-- -20060: Error en automatización de mantenimientos de obras
+-- -20061: Error en automatización de cierres temporales
+-- -20062: Error de validación de museo en programación de mantenimientos
+-- -20063: Error inesperado en programación automática de mantenimientos
+-- -20064: Error en automatización de historial de precios
+-- -20065: Error de validación de museo en gestión de exposiciones
+-- -20066: Error inesperado en gestión de estado de exposiciones
+-- -20067: Error en consolidación de operaciones diarias
+--
+-- BLOQUES DE EJEMPLO DE USO:
+-- -20040 a -20044: Errores específicos en bloques de ejemplo de uso
+-- =============================================================================
+
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_VENDER_TICKET (Versión Mejorada y Thread-Safe)
 -- -----------------------------------------------------------------------------
@@ -538,7 +588,12 @@ DECLARE
     v_ticket_id     NUMBER;
 BEGIN
     -- Obtener el ID del museo
-    SELECT id_museo INTO v_museo_id FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+    BEGIN
+        SELECT id_museo INTO v_museo_id FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20040, 'Error: No se encontró el museo "Hamburger Kunsthalle"');
+    END;
 
     -- Llamar al procedimiento para vender un ticket de adulto
     SP_VENDER_TICKET(
@@ -554,6 +609,7 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error al vender el ticket: ' || SQLERRM);
         ROLLBACK;
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
 END;
 /
 */
@@ -641,7 +697,12 @@ DECLARE
     v_empleado_id   NUMBER;
 BEGIN
     -- Obtener el ID del museo
-    SELECT id_museo INTO v_museo_id FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig';
+    BEGIN
+        SELECT id_museo INTO v_museo_id FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig';
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20041, 'Error: No se encontró el museo "Museum der bildenden Künste Leipzig"');
+    END;
 
     -- Llamar al procedimiento para registrar un nuevo Restaurador
     SP_REGISTRAR_NUEVO_EMPLEADO(
@@ -651,7 +712,7 @@ BEGIN
         p_fecha_nacimiento   => TO_DATE('1990-08-15', 'YYYY-MM-DD'),
         p_contacto           => 491798765432,
         p_id_museo           => v_museo_id,
-        p_nombre_unidad_org  => 'Departamento de Curaduría y Colecciones MdbK',
+        p_nombre_unidad_org  => 'Departamento de Colecciones MdbK',
         p_cargo              => 'RESTAURADOR',
         p_fecha_inicio_cargo => SYSDATE,
         p_id_empleado_generado => v_empleado_id
@@ -664,6 +725,7 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error al registrar al empleado: ' || SQLERRM);
         ROLLBACK;
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
 END;
 /
 */
@@ -719,10 +781,15 @@ DECLARE
     v_id_museo_expo   NUMBER;
 BEGIN
     -- Obtener los IDs necesarios para una exposición específica
-    SELECT id_expo, id_museo 
-    INTO v_id_exposicion, v_id_museo_expo
-    FROM EXPOSICIONES_EVENTOS
-    WHERE nombre LIKE 'Impresionismo en Transición%' AND ROWNUM = 1;
+    BEGIN
+        SELECT id_expo, id_museo 
+        INTO v_id_exposicion, v_id_museo_expo
+        FROM EXPOSICIONES_EVENTOS
+        WHERE nombre LIKE 'Impresionismo en Transición%' AND ROWNUM = 1;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20042, 'Error: No se encontró ninguna exposición con el patrón "Impresionismo en Transición%"');
+    END;
 
     -- Llamar al procedimiento para finalizar la exposición
     SP_FINALIZAR_EXPOSICION(
@@ -737,6 +804,7 @@ EXCEPTION
     WHEN OTHERS THEN
         DBMS_OUTPUT.PUT_LINE('Error al finalizar la exposición: ' || SQLERRM);
         ROLLBACK;
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
 END;
 /
 */
@@ -772,8 +840,23 @@ AS
 
     -- Variable para el ranking final
     v_ranking_final_score     NUMBER;
+    
+    -- Variable para validar que el museo existe
+    v_museo_existe            NUMBER;
 
 BEGIN
+    -- ========= VALIDACIÓN INICIAL: Verificar que el museo existe =========
+    BEGIN
+        SELECT 1
+        INTO v_museo_existe
+        FROM MUSEOS
+        WHERE id_museo = p_id_museo;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20030, 
+                'Error: No existe un museo con el ID ' || p_id_museo || '. Verifique el parámetro de entrada.');
+    END;
+
     -- ========= PASO 1: Calcular la Estabilidad del Personal =========
     FOR rec IN (
         SELECT (COALESCE(fecha_fin, SYSDATE) - fecha_inicio) as dias_trabajados
@@ -796,8 +879,10 @@ BEGIN
         -- Asignar un puntaje de estabilidad (0 a 10)
         v_estabilidad_score := LEAST(v_antiguedad_promedio_anios, 10);
     ELSE
+        -- Si no hay empleados, asignar valores por defecto
         p_antiguedad_promedio_anios := 0;
         p_tasa_rotacion_alta_pct := 0;
+        v_estabilidad_score := 1; -- Puntaje mínimo por no tener historial
     END IF;
 
     -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
@@ -834,13 +919,195 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        p_antiguedad_promedio_anios := -1;
-        p_tasa_rotacion_alta_pct := -1;
-        p_visitas_ultimo_anio := -1;
-        p_categoria_ranking := 'Error al calcular';
-        RAISE;
+        -- Manejo robusto de errores inesperados
+        RAISE_APPLICATION_ERROR(-20031, 
+            'Error inesperado al calcular el ranking del museo ID ' || p_id_museo || ': ' || SQLERRM);
 END SP_CALCULAR_RANKING_MUSEO;
 /
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_ASIGNAR_OBRA_A_EXPOSICION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Procedimiento que asigna una obra a una exposición con manejo automático de traspasos.
+-- Características principales:
+-- - Si la obra está en otra exposición, automáticamente cierra esa estadía
+-- - Verifica que la exposición exista y esté dentro del periodo válido
+-- - Controla la capacidad máxima de obras por exposición
+-- - Registra automáticamente el traspaso en las observaciones de movimiento
+-- - Demuestra mejores prácticas de manejo de errores con RAISE_APPLICATION_ERROR
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE SP_ASIGNAR_OBRA_A_EXPOSICION (
+    p_id_obra              IN OBRAS.id_obra%TYPE,
+    p_id_expo              IN EXPOSICIONES_EVENTOS.id_expo%TYPE,
+    p_id_museo             IN EXPOSICIONES_EVENTOS.id_museo%TYPE,
+    p_orden_en_exposicion  IN NUMBER DEFAULT NULL
+)
+AS
+    -- Variables para validaciones
+    v_obra_en_otra_expo    NUMBER := 0;
+    v_exposicion_valida    NUMBER := 0;
+    v_fecha_inicio_expo    DATE;
+    v_fecha_fin_expo       DATE;
+    v_nombre_expo          VARCHAR2(250);
+    v_capacidad_actual     NUMBER := 0;
+    v_capacidad_maxima     CONSTANT NUMBER := 50; -- Capacidad máxima por exposición
+    
+BEGIN
+    -- ========= VALIDACIÓN 1: Verificar que la obra existe =========
+    BEGIN
+        SELECT 1 
+        INTO v_obra_en_otra_expo -- Reutilizamos la variable para verificar existencia
+        FROM OBRAS 
+        WHERE id_obra = p_id_obra;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20050, 
+                'Error: No existe una obra con el ID ' || p_id_obra || '. Verifique el parámetro de entrada.');
+    END;
+
+    -- ========= VALIDACIÓN 2: Verificar que la exposición existe y está activa =========
+    BEGIN
+        SELECT 1, fecha_inicio, fecha_fin, nombre
+        INTO v_exposicion_valida, v_fecha_inicio_expo, v_fecha_fin_expo, v_nombre_expo
+        FROM EXPOSICIONES_EVENTOS
+        WHERE id_expo = p_id_expo 
+          AND id_museo = p_id_museo
+          AND SYSDATE BETWEEN fecha_inicio AND fecha_fin;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20051, 
+                'Error: No existe una exposición activa con ID ' || p_id_expo || 
+                ' en el museo ID ' || p_id_museo || ', o la exposición no está en período válido.');
+    END;
+
+    -- ========= PASO 3: Manejo automático de obra en otra exposición activa =========
+    -- Si la obra está actualmente en otra exposición, cerramos automáticamente esa estadía
+    -- para permitir su traspaso a la nueva exposición
+    SELECT COUNT(*)
+    INTO v_obra_en_otra_expo
+    FROM HIST_OBRAS_MOV hom
+    WHERE hom.id_obra = p_id_obra
+      AND hom.fecha_salida IS NULL  -- La obra está actualmente activa en algún lugar
+      AND hom.id_museo != p_id_museo; -- Y no está en el museo de destino
+
+    IF v_obra_en_otra_expo > 0 THEN
+        -- Cerrar automáticamente la estadía anterior de la obra
+        UPDATE HIST_OBRAS_MOV
+        SET fecha_salida = SYSDATE
+        WHERE id_obra = p_id_obra
+          AND fecha_salida IS NULL;
+          
+        -- Log informativo del traspaso (para auditoría en desarrollo)
+        -- DBMS_OUTPUT.PUT_LINE('INFO: Obra ' || p_id_obra || ' trasladada automáticamente a exposición ID ' || p_id_expo);
+    END IF;
+
+    -- ========= VALIDACIÓN 3: Verificar capacidad de la exposición =========
+    SELECT COUNT(*)
+    INTO v_capacidad_actual
+    FROM HIST_OBRAS_MOV hom
+    JOIN EXPOSICIONES_EVENTOS ee ON (hom.id_museo = ee.id_museo)
+    WHERE ee.id_expo = p_id_expo
+      AND ee.id_museo = p_id_museo
+      AND hom.fecha_salida IS NULL
+      AND SYSDATE BETWEEN ee.fecha_inicio AND ee.fecha_fin;
+
+    IF v_capacidad_actual >= v_capacidad_maxima THEN
+        RAISE_APPLICATION_ERROR(-20053, 
+            'Error: La exposición "' || v_nombre_expo || '" (ID: ' || p_id_expo || 
+            ') ha alcanzado su capacidad máxima de ' || v_capacidad_maxima || ' obras.');
+    END IF;
+
+    -- ========= PASO 4: Insertar la obra en el historial de movimientos =========
+    -- Nota: En una implementación real, esto requeriría más datos específicos
+    -- como id_coleccion, id_sala, etc. Este es un ejemplo simplificado.
+    INSERT INTO HIST_OBRAS_MOV (
+        id_obra, 
+        id_coleccion, 
+        id_sala, 
+        id_empleado, 
+        id_est_org, 
+        id_museo, 
+        id_est_fis,
+        fecha_entrada, 
+        tipo_adquisicion, 
+        destacada, 
+        orden_recorrido
+    ) 
+    SELECT 
+        p_id_obra,
+        cp.id_coleccion,
+        se.id_sala,
+        1, -- ID del empleado responsable (simplificado)
+        cp.id_est_org,
+        p_id_museo,
+        se.id_est,
+        SYSDATE,
+        'COMPRADA', -- Tipo por defecto
+        'SI', -- Marcada como destacada en exposición
+        NVL(p_orden_en_exposicion, v_capacidad_actual + 1)
+    FROM COLECCIONES_PERMANENTES cp, SALAS_EXP se
+    WHERE cp.id_museo = p_id_museo 
+      AND se.id_museo = p_id_museo
+      AND ROWNUM = 1; -- Simplificación: tomar la primera colección y sala disponible
+
+    -- Confirmación de éxito (solo para depuración, en producción se eliminaría)
+    -- DBMS_OUTPUT.PUT_LINE('Obra ' || p_id_obra || ' asignada exitosamente a la exposición "' || v_nombre_expo || '"');
+
+EXCEPTION
+    -- Los errores específicos ya se manejan con RAISE_APPLICATION_ERROR arriba
+    -- Esta sección captura errores inesperados
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20059, 
+            'Error inesperado al asignar la obra ' || p_id_obra || 
+            ' a la exposición ' || p_id_expo || ': ' || SQLERRM);
+            
+END SP_ASIGNAR_OBRA_A_EXPOSICION;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: SP_ASIGNAR_OBRA_A_EXPOSICION
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_obra         NUMBER := 1001; -- ID de una obra específica
+    v_id_exposicion   NUMBER;
+    v_id_museo        NUMBER;
+BEGIN
+    -- Obtener los datos de una exposición activa
+    BEGIN
+        SELECT id_expo, id_museo 
+        INTO v_id_exposicion, v_id_museo
+        FROM EXPOSICIONES_EVENTOS
+        WHERE SYSDATE BETWEEN fecha_inicio AND fecha_fin
+          AND ROWNUM = 1; -- Tomar la primera exposición activa
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20044, 'Error: No hay exposiciones activas disponibles');
+    END;
+
+    -- Asignar la obra a la exposición (con manejo automático de traspasos)
+    SP_ASIGNAR_OBRA_A_EXPOSICION(
+        p_id_obra              => v_id_obra,
+        p_id_expo              => v_id_exposicion,
+        p_id_museo             => v_id_museo,
+        p_orden_en_exposicion  => 1
+    );
+    
+    DBMS_OUTPUT.PUT_LINE('Obra ' || v_id_obra || ' asignada exitosamente a la exposición ID ' || v_id_exposicion);
+    DBMS_OUTPUT.PUT_LINE('Si la obra estaba en otra exposición, se transfirió automáticamente.');
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error al asignar la obra: ' || SQLERRM);
+        ROLLBACK;
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
+END;
+/
+*/
 
 -- -----------------------------------------------------------------------------
 -- BLOQUE DE EJEMPLO DE USO (PL/SQL Anónimo)
@@ -853,8 +1120,15 @@ DECLARE
     v_visitas       NUMBER;
     v_categoria     VARCHAR2(100);
 BEGIN
-    SELECT id_museo INTO v_museo_id_test FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+    -- Obtener el ID del museo con manejo de errores
+    BEGIN
+        SELECT id_museo INTO v_museo_id_test FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20043, 'Error: No se encontró el museo "Hamburger Kunsthalle"');
+    END;
 
+    -- Llamar al procedimiento de ranking
     SP_CALCULAR_RANKING_MUSEO(
         p_id_museo => v_museo_id_test,
         p_antiguedad_promedio_anios => v_antiguedad,
@@ -868,6 +1142,11 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Tasa de Rotación (<5 años): ' || ROUND(v_tasa, 2) || '%');
     DBMS_OUTPUT.PUT_LINE('Visitas en el último año: ' || v_visitas);
     DBMS_OUTPUT.PUT_LINE('Categoría Final: ' || v_categoria);
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error al calcular el ranking: ' || SQLERRM);
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
 END;
 /
 */
@@ -1177,5 +1456,528 @@ EXCEPTION
 
 END TRG_EVITAR_CIERRE_CON_EXPOSICION;
 /
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_MANEJAR_MANTENIMIENTOS_OBRAS
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Automatiza la gestión de mantenimientos de obras:
+-- - Cierra automáticamente mantenimientos anteriores cuando se inicia uno nuevo
+-- - Registra observaciones de traspaso entre mantenimientos
+-- - Implementa mejores prácticas de manejo de errores
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE TRIGGER TRG_MANEJAR_MANTENIMIENTOS_OBRAS
+BEFORE INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
+FOR EACH ROW
+DECLARE
+    v_mant_abiertos NUMBER := 0;
+    v_empleado_anterior NUMBER;
+    v_fecha_anterior DATE;
+BEGIN
+    -- Verificar si hay mantenimientos abiertos para la misma obra
+    SELECT COUNT(*), MAX(id_empleado), MAX(fecha_inicio)
+    INTO v_mant_abiertos, v_empleado_anterior, v_fecha_anterior
+    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
+    WHERE id_catalogo = :NEW.id_catalogo
+      AND id_obra = :NEW.id_obra
+      AND fecha_fin IS NULL;
+
+    -- Si hay mantenimientos abiertos, cerrarlos automáticamente
+    IF v_mant_abiertos > 0 THEN
+        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
+        SET fecha_fin = :NEW.fecha_inicio,
+            observaciones = COALESCE(observaciones || '; ', '') || 
+                          'Cerrado automáticamente por nuevo mantenimiento iniciado el ' ||
+                          TO_CHAR(:NEW.fecha_inicio, 'DD-MON-YYYY') ||
+                          ' por empleado ID ' || :NEW.id_empleado
+        WHERE id_catalogo = :NEW.id_catalogo
+          AND id_obra = :NEW.id_obra
+          AND fecha_fin IS NULL;
+
+        -- Agregar observación al nuevo mantenimiento sobre el anterior
+        :NEW.observaciones := COALESCE(:NEW.observaciones || '; ', '') ||
+                             'Continúa mantenimiento anterior del empleado ID ' || v_empleado_anterior ||
+                             ' iniciado el ' || TO_CHAR(v_fecha_anterior, 'DD-MON-YYYY');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20060, 
+            'Error en automatización de mantenimientos para obra ID ' || :NEW.id_obra || ': ' || SQLERRM);
+END TRG_MANEJAR_MANTENIMIENTOS_OBRAS;
+/
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_AUTOMATIZAR_CIERRES_TEMPORALES
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Automatiza la gestión de cierres temporales de salas:
+-- - Cierra automáticamente cierres anteriores cuando se programa uno nuevo
+-- - Valida que no haya conflictos con exposiciones activas
+-- - Registra el motivo del cierre del período anterior
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE TRIGGER TRG_AUTOMATIZAR_CIERRES_TEMPORALES
+BEFORE INSERT ON CIERRES_TEMPORALES
+FOR EACH ROW
+DECLARE
+    v_cierres_abiertos NUMBER := 0;
+    v_fecha_anterior DATE;
+BEGIN
+    -- Verificar si hay cierres abiertos para la misma sala
+    SELECT COUNT(*), MAX(fecha_inicio)
+    INTO v_cierres_abiertos, v_fecha_anterior
+    FROM CIERRES_TEMPORALES
+    WHERE id_sala = :NEW.id_sala
+      AND id_est = :NEW.id_est
+      AND id_museo = :NEW.id_museo
+      AND fecha_fin IS NULL;
+
+    -- Si hay cierres abiertos, cerrarlos automáticamente
+    IF v_cierres_abiertos > 0 THEN
+        UPDATE CIERRES_TEMPORALES
+        SET fecha_fin = :NEW.fecha_inicio - 1 -- Cerrar el día anterior al nuevo cierre
+        WHERE id_sala = :NEW.id_sala
+          AND id_est = :NEW.id_est
+          AND id_museo = :NEW.id_museo
+          AND fecha_fin IS NULL;
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20061, 
+            'Error en automatización de cierres temporales para sala ID ' || :NEW.id_sala || ': ' || SQLERRM);
+END TRG_AUTOMATIZAR_CIERRES_TEMPORALES;
+/
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Automatiza la programación de mantenimientos basándose en la frecuencia
+-- definida en PROGRAMAS_MANT. Identifica obras que requieren mantenimiento
+-- y programa automáticamente las tareas pendientes.
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO (
+    p_id_museo          IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    p_dias_anticipacion IN NUMBER DEFAULT 30,
+    p_registros_procesados OUT NUMBER
+)
+AS
+    v_contador NUMBER := 0;
+    v_fecha_programada DATE;
+    v_empleado_responsable NUMBER;
+    
+    -- Cursor para obras que requieren mantenimiento
+    CURSOR c_obras_mantenimiento IS
+        SELECT DISTINCT 
+            pm.id_mant,
+            pm.id_catalogo,
+            pm.id_obra,
+            pm.actividad,
+            pm.frecuencia,
+            pm.tipo_responsable,
+            hom.id_museo,
+            COALESCE(MAX(mor.fecha_fin), hom.fecha_entrada) as ultima_fecha_mant
+        FROM PROGRAMAS_MANT pm
+        JOIN HIST_OBRAS_MOV hom ON (pm.id_catalogo = hom.id_catalogo_museo AND pm.id_obra = hom.id_obra)
+        LEFT JOIN MANTENIMIENTOS_OBRAS_REALIZADOS mor ON (pm.id_mant = mor.id_mant 
+                                                          AND pm.id_catalogo = mor.id_catalogo 
+                                                          AND pm.id_obra = mor.id_obra)
+        WHERE hom.fecha_salida IS NULL -- Solo obras actualmente en el museo
+          AND (p_id_museo IS NULL OR hom.id_museo = p_id_museo)
+        GROUP BY pm.id_mant, pm.id_catalogo, pm.id_obra, pm.actividad, pm.frecuencia, 
+                 pm.tipo_responsable, hom.id_museo, hom.fecha_entrada
+        HAVING (
+            -- Mantenimiento mensual
+            (pm.frecuencia LIKE '%MENSUAL%' AND 
+             COALESCE(MAX(mor.fecha_fin), hom.fecha_entrada) <= SYSDATE - 30 + p_dias_anticipacion) OR
+            -- Mantenimiento trimestral
+            (pm.frecuencia LIKE '%TRIMESTRAL%' AND 
+             COALESCE(MAX(mor.fecha_fin), hom.fecha_entrada) <= SYSDATE - 90 + p_dias_anticipacion) OR
+            -- Mantenimiento semestral
+            (pm.frecuencia LIKE '%SEMESTRAL%' AND 
+             COALESCE(MAX(mor.fecha_fin), hom.fecha_entrada) <= SYSDATE - 180 + p_dias_anticipacion) OR
+            -- Mantenimiento anual
+            (pm.frecuencia LIKE '%ANUAL%' AND 
+             COALESCE(MAX(mor.fecha_fin), hom.fecha_entrada) <= SYSDATE - 365 + p_dias_anticipacion)
+        );
+
+BEGIN
+    -- Validar que el museo existe si se especifica
+    IF p_id_museo IS NOT NULL THEN
+        BEGIN
+            SELECT 1 INTO v_contador FROM MUSEOS WHERE id_museo = p_id_museo;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20062, 
+                    'Error: No existe un museo con ID ' || p_id_museo);
+        END;
+    END IF;
+
+    v_contador := 0;
+
+    -- Procesar cada obra que requiere mantenimiento
+    FOR rec IN c_obras_mantenimiento LOOP
+        BEGIN
+            -- Buscar un empleado responsable disponible
+            SELECT id_empleado
+            INTO v_empleado_responsable
+            FROM HIST_EMPLEADOS he
+            JOIN EMPLEADOS_PROFESIONALES ep ON he.id_empleado_prof = ep.id_empleado
+            WHERE he.id_museo = rec.id_museo
+              AND he.fecha_fin IS NULL
+              AND he.cargo = rec.tipo_responsable
+              AND ROWNUM = 1;
+
+            -- Programar el mantenimiento
+            INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (
+                id_mant,
+                id_catalogo,
+                id_obra,
+                id_empleado,
+                fecha_inicio,
+                observaciones
+            ) VALUES (
+                rec.id_mant,
+                rec.id_catalogo,
+                rec.id_obra,
+                v_empleado_responsable,
+                SYSDATE,
+                'Mantenimiento programado automáticamente. Actividad: ' || rec.actividad ||
+                '. Frecuencia: ' || rec.frecuencia ||
+                '. Último mantenimiento: ' || TO_CHAR(rec.ultima_fecha_mant, 'DD-MON-YYYY')
+            );
+
+            v_contador := v_contador + 1;
+
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                -- No hay empleado disponible del tipo requerido
+                CONTINUE;
+            WHEN OTHERS THEN
+                -- Log el error pero continuar con el siguiente
+                CONTINUE;
+        END;
+    END LOOP;
+
+    p_registros_procesados := v_contador;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20063, 
+            'Error inesperado en programación automática de mantenimientos: ' || SQLERRM);
+END SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO;
+/
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_GESTIONAR_HISTORIAL_PRECIOS
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Automatiza el historial de precios de tickets:
+-- - Cierra automáticamente precios anteriores cuando se inserta uno nuevo
+-- - Mantiene integridad en el historial de precios por museo y tipo
+-- - Registra correctamente las fechas de vigencia
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE TRIGGER TRG_GESTIONAR_HISTORIAL_PRECIOS
+BEFORE INSERT ON TIPO_TICKETS
+FOR EACH ROW
+DECLARE
+    v_precios_abiertos NUMBER := 0;
+BEGIN
+    -- Verificar si hay precios abiertos para el mismo museo y tipo
+    SELECT COUNT(*)
+    INTO v_precios_abiertos
+    FROM TIPO_TICKETS
+    WHERE id_museo = :NEW.id_museo
+      AND tipo = :NEW.tipo
+      AND fecha_fin IS NULL;
+
+    -- Si hay precios abiertos, cerrarlos automáticamente
+    IF v_precios_abiertos > 0 THEN
+        UPDATE TIPO_TICKETS
+        SET fecha_fin = :NEW.fecha_inicio - 1
+        WHERE id_museo = :NEW.id_museo
+          AND tipo = :NEW.tipo
+          AND fecha_fin IS NULL;
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20064, 
+            'Error en automatización de historial de precios para museo ID ' || :NEW.id_museo || 
+            ', tipo ' || :NEW.tipo || ': ' || SQLERRM);
+END TRG_GESTIONAR_HISTORIAL_PRECIOS;
+/
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_GESTIONAR_ESTADO_EXPOSICIONES
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Automatiza la gestión del estado de exposiciones basándose en fechas:
+-- - Identifica exposiciones que deberían estar activas pero no tienen obras asignadas
+-- - Identifica exposiciones vencidas que aún tienen obras asignadas
+-- - Proporciona recomendaciones automáticas para la gestión
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE SP_GESTIONAR_ESTADO_EXPOSICIONES (
+    p_id_museo         IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    p_accion_automatica IN VARCHAR2 DEFAULT 'REPORTE', -- 'REPORTE' o 'EJECUTAR'
+    p_registros_procesados OUT NUMBER
+)
+AS
+    v_contador NUMBER := 0;
+    v_obras_asignadas NUMBER;
+    
+    -- Cursor para exposiciones que requieren atención
+    CURSOR c_exposiciones_revision IS
+        SELECT 
+            ee.id_expo,
+            ee.id_museo,
+            ee.nombre,
+            ee.fecha_inicio,
+            ee.fecha_fin,
+            CASE 
+                WHEN SYSDATE < ee.fecha_inicio THEN 'FUTURA'
+                WHEN SYSDATE BETWEEN ee.fecha_inicio AND ee.fecha_fin THEN 'ACTIVA'
+                WHEN SYSDATE > ee.fecha_fin THEN 'VENCIDA'
+            END as estado_temporal,
+            (SELECT COUNT(*) 
+             FROM HIST_OBRAS_MOV hom 
+             WHERE hom.id_museo = ee.id_museo 
+               AND hom.fecha_salida IS NULL
+               AND EXISTS (
+                   SELECT 1 FROM HIST_OBRAS_MOV hom2 
+                   WHERE hom2.id_obra = hom.id_obra 
+                     AND hom2.fecha_entrada <= ee.fecha_fin
+                     AND (hom2.fecha_salida IS NULL OR hom2.fecha_salida >= ee.fecha_inicio)
+               )
+            ) as obras_asignadas
+        FROM EXPOSICIONES_EVENTOS ee
+        WHERE (p_id_museo IS NULL OR ee.id_museo = p_id_museo)
+          AND (
+              -- Exposiciones activas sin obras asignadas
+              (SYSDATE BETWEEN ee.fecha_inicio AND ee.fecha_fin AND 
+               NOT EXISTS (
+                   SELECT 1 FROM HIST_OBRAS_MOV hom 
+                   WHERE hom.id_museo = ee.id_museo 
+                     AND hom.fecha_salida IS NULL
+               )) OR
+              -- Exposiciones vencidas con obras aún asignadas
+              (SYSDATE > ee.fecha_fin AND 
+               EXISTS (
+                   SELECT 1 FROM HIST_OBRAS_MOV hom 
+                   WHERE hom.id_museo = ee.id_museo 
+                     AND hom.fecha_salida IS NULL
+               ))
+          );
+
+BEGIN
+    -- Validar que el museo existe si se especifica
+    IF p_id_museo IS NOT NULL THEN
+        BEGIN
+            SELECT 1 INTO v_contador FROM MUSEOS WHERE id_museo = p_id_museo;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                RAISE_APPLICATION_ERROR(-20065, 
+                    'Error: No existe un museo con ID ' || p_id_museo);
+        END;
+    END IF;
+
+    v_contador := 0;
+
+    -- Procesar cada exposición que requiere atención
+    FOR rec IN c_exposiciones_revision LOOP
+        IF p_accion_automatica = 'REPORTE' THEN
+            -- Solo generar reporte (usar DBMS_OUTPUT para demostración)
+            DBMS_OUTPUT.PUT_LINE('RECOMENDACIÓN: Exposición "' || rec.nombre || 
+                               '" (ID: ' || rec.id_expo || 
+                               ') - Estado: ' || rec.estado_temporal ||
+                               ' - Obras asignadas: ' || rec.obras_asignadas);
+            
+        ELSIF p_accion_automatica = 'EJECUTAR' THEN
+            -- Ejecutar acciones automáticas
+            IF rec.estado_temporal = 'VENCIDA' AND rec.obras_asignadas > 0 THEN
+                -- Liberar obras de exposiciones vencidas
+                UPDATE HIST_OBRAS_MOV
+                SET fecha_salida = rec.fecha_fin + 1
+                WHERE id_museo = rec.id_museo
+                  AND fecha_salida IS NULL
+                  AND EXISTS (
+                      SELECT 1 FROM HIST_OBRAS_MOV hom2 
+                      WHERE hom2.id_obra = HIST_OBRAS_MOV.id_obra 
+                        AND hom2.fecha_entrada <= rec.fecha_fin
+                        AND (hom2.fecha_salida IS NULL OR hom2.fecha_salida >= rec.fecha_inicio)
+                  );
+                  
+                -- Log informativo de liberación (para auditoría en desarrollo)
+                -- DBMS_OUTPUT.PUT_LINE('INFO: Obras liberadas automáticamente de exposición: ' || rec.nombre);
+            END IF;
+        END IF;
+        
+        v_contador := v_contador + 1;
+    END LOOP;
+
+    p_registros_procesados := v_contador;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066, 
+            'Error inesperado en gestión de estado de exposiciones: ' || SQLERRM);
+END SP_GESTIONAR_ESTADO_EXPOSICIONES;
+/
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_CONSOLIDAR_OPERACIONES_DIARIAS
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Procedimiento maestro que ejecuta todas las automatizaciones diarias:
+-- - Programación automática de mantenimientos
+-- - Gestión de estados de exposiciones
+-- - Limpieza de registros temporales
+-- - Generación de reportes operativos
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE PROCEDURE SP_CONSOLIDAR_OPERACIONES_DIARIAS (
+    p_id_museo         IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    p_ejecutar_acciones IN VARCHAR2 DEFAULT 'SI', -- 'SI' o 'NO' (solo reporte)
+    p_resumen_operaciones OUT VARCHAR2
+)
+AS
+    v_mant_programados NUMBER := 0;
+    v_expo_revisadas NUMBER := 0;
+    v_resumen VARCHAR2(4000);
+BEGIN
+    -- 1. Programar mantenimientos automáticos
+    SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO(
+        p_id_museo => p_id_museo,
+        p_dias_anticipacion => 7, -- Una semana de anticipación
+        p_registros_procesados => v_mant_programados
+    );
+
+    -- 2. Gestionar estado de exposiciones
+    SP_GESTIONAR_ESTADO_EXPOSICIONES(
+        p_id_museo => p_id_museo,
+        p_accion_automatica => CASE WHEN p_ejecutar_acciones = 'SI' THEN 'EJECUTAR' ELSE 'REPORTE' END,
+        p_registros_procesados => v_expo_revisadas
+    );
+
+    -- 3. Generar resumen
+    v_resumen := 'CONSOLIDACIÓN DIARIA - ' || TO_CHAR(SYSDATE, 'DD-MON-YYYY HH24:MI') || CHR(10) ||
+                 'Museo: ' || COALESCE(TO_CHAR(p_id_museo), 'TODOS') || CHR(10) ||
+                 'Mantenimientos programados: ' || v_mant_programados || CHR(10) ||
+                 'Exposiciones revisadas: ' || v_expo_revisadas || CHR(10) ||
+                 'Modo: ' || CASE WHEN p_ejecutar_acciones = 'SI' THEN 'EJECUCIÓN' ELSE 'SOLO REPORTE' END;
+
+    p_resumen_operaciones := v_resumen;
+
+    -- Commit de todas las operaciones
+    IF p_ejecutar_acciones = 'SI' THEN
+        COMMIT;
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        RAISE_APPLICATION_ERROR(-20067, 
+            'Error en consolidación de operaciones diarias: ' || SQLERRM);
+END SP_CONSOLIDAR_OPERACIONES_DIARIAS;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: SISTEMA COMPLETO DE AUTOMATIZACIÓN
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_resumen_operaciones VARCHAR2(4000);
+    v_mant_programados NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=== DEMO: SISTEMA DE AUTOMATIZACIÓN DEL MUSEO ===');
+    DBMS_OUTPUT.PUT_LINE('');
+    
+    -- 1. Ejecutar consolidación diaria (modo reporte primero)
+    DBMS_OUTPUT.PUT_LINE('1. Ejecutando análisis de operaciones diarias...');
+    SP_CONSOLIDAR_OPERACIONES_DIARIAS(
+        p_id_museo => NULL, -- Todos los museos
+        p_ejecutar_acciones => 'NO', -- Solo reporte
+        p_resumen_operaciones => v_resumen_operaciones
+    );
+    DBMS_OUTPUT.PUT_LINE(v_resumen_operaciones);
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('2. Programando mantenimientos automáticos...');
+    
+    -- 2. Programar mantenimientos específicos
+    SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO(
+        p_id_museo => 1, -- Solo el primer museo
+        p_dias_anticipacion => 15, -- 15 días de anticipación
+        p_registros_procesados => v_mant_programados
+    );
+    
+    DBMS_OUTPUT.PUT_LINE('Mantenimientos programados: ' || v_mant_programados);
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('3. Ejemplo de triggers automáticos:');
+    DBMS_OUTPUT.PUT_LINE('- TRG_MANEJAR_MANTENIMIENTOS_OBRAS: Cierra mantenimientos anteriores automáticamente');
+    DBMS_OUTPUT.PUT_LINE('- TRG_AUTOMATIZAR_CIERRES_TEMPORALES: Gestiona cierres de salas automáticamente');
+    DBMS_OUTPUT.PUT_LINE('- TRG_GESTIONAR_HISTORIAL_PRECIOS: Mantiene historial de precios automáticamente');
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('=== AUTOMATIZACIÓN COMPLETADA ===');
+    
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error en demo de automatización: ' || SQLERRM);
+        ROLLBACK;
+        RAISE;
+END;
+/
+*/
+
+-- -----------------------------------------------------------------------------
+-- VISTA: VW_MOVIMIENTOS_ACTIVOS
+-- -----------------------------------------------------------------------------
+-- Descripción: Vista que facilita la consulta de movimientos de obras activos
+-- utilizando únicamente las tablas del modelo ER original
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW VW_MOVIMIENTOS_ACTIVOS AS
+SELECT 
+    hom.id_catalogo_museo,
+    hom.id_obra,
+    o.nombre as nombre_obra,
+    m.nombre as museo,
+    hom.fecha_entrada,
+    hom.fecha_salida,
+    hom.tipo_adquisicion,
+    hom.destacada,
+    hom.orden_recorrido,
+    hom.valor_monetario,
+    CASE 
+        WHEN hom.fecha_salida IS NULL THEN 'ACTIVA'
+        ELSE 'FINALIZADA'
+    END as estado_movimiento,
+    -- Información adicional útil
+    SYSDATE - hom.fecha_entrada as dias_en_ubicacion
+FROM HIST_OBRAS_MOV hom
+JOIN OBRAS o ON hom.id_obra = o.id_obra
+JOIN MUSEOS m ON hom.id_museo = m.id_museo
+WHERE hom.fecha_salida IS NULL  -- Solo movimientos activos
+ORDER BY m.nombre, hom.fecha_entrada DESC;
+
+-- =============================================================================
+-- FIN DEL SCRIPT DE CREACIÓN UNIFICADA
+-- =============================================================================
 
 

@@ -951,6 +951,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), -- Dr. Stefan Weppelmann
  'DIRECTOR', NULL);
 
+-- Subdirección (Deputy Director - ACTIVO)
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2018-06-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
@@ -973,12 +974,20 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000004), -- Olga Vostretsova
  'ADMINISTRATIVO', NULL);
 
--- Departamento de Colecciones
+-- Departamento de Colecciones (Head of Collections - ACTIVO)
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2019-01-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Dr. Jeannette Stoschek (como Jefa de Colecciones)
+ 'CURADOR', NULL);
+
+-- Departamento de Colecciones Externas (Dr. Jeannette Stoschek también lidera este departamento)
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2020-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones Externas MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Dr. Jeannette Stoschek (como Jefa del Departamento de Colecciones Externas)
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
@@ -1025,6 +1034,168 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Educación Artística MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000019), -- Carolin Rothmund
+ 'ADMINISTRATIVO', NULL);
+
+-- Registros de historial faltantes para empleados de MdbK
+-- Sección de Curaduría (Asistentes)
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Curaduría MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000008), -- Julia Beckmann
+ 'CURADOR', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-09-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Curaduría MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000009), -- Anne Richter
+ 'CURADOR', NULL);
+
+-- Sección de Investigación de Procedencia
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-03-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Investigación de Procedencia MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000010), -- Dr. Ulrike Saß
+ 'CURADOR', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-06-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Investigación de Procedencia MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000011), -- Lina Frubrich
+ 'CURADOR', NULL);
+
+-- Sección de Documentación y Digitalización
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-05-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Documentación y Digitalización MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000012), -- Susanne Petri
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Registro y Gestión de Préstamos
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2016-11-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Registro y Gestión de Préstamos MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000013), -- Linda Wagner
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-08-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Registro y Gestión de Préstamos MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000014), -- Ulrike Milde
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Gestión de Colección Física
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Gestión de Colección Física MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000015), -- Marko Kloss
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-03-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Gestión de Colección Física MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000016), -- Uwe Wagner
+ 'ADMINISTRATIVO', NULL);
+
+-- Departamento de Relaciones Públicas, Marketing y Eventos
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-07-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Relaciones Públicas, Marketing y Eventos MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000020), -- Jörg Dittmer
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Prensa y Comunicación Online
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-04-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Prensa y Comunicación Online MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000021), -- Sonja Lucia Gatterwe
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-02-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Prensa y Comunicación Online MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000022), -- Ulrike Otto
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Nuevos Medios
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Nuevos Medios MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000023), -- Dirk Kuntze
+ 'ADMINISTRATIVO', NULL);
+
+-- Departamento de Recaudación de Fondos y Alquileres
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2016-09-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Recaudación de Fondos y Alquileres MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000024), -- Katrin Siegmeyer
+ 'ADMINISTRATIVO', NULL);
+
+-- Departamento de Administración
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2014-03-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Administración MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000025), -- Anne-Kathrin Herrmann
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Tienda del Museo
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-06-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Tienda del Museo MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000026), -- Janet Schirmer
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-08-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Tienda del Museo MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000027), -- Tim Sachse
+ 'ADMINISTRATIVO', NULL);
+
+-- Departamento de Seguridad y Gestión de Instalaciones
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2013-05-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Seguridad y Gestión de Instalaciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000028), -- Torsten Cech
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Mantenimiento de Instalaciones
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-10-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Mantenimiento de Instalaciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000029), -- Sven Hottenrott
+ 'ADMINISTRATIVO', NULL);
+
+-- Sección de Mantenimiento de Instalaciones (Servicios de Edificio)
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-07-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Mantenimiento de Instalaciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000030), -- Dennis Kuhn
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-12-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Mantenimiento de Instalaciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000031), -- Jens Wuttke
  'ADMINISTRATIVO', NULL);
 
 -- =============================================================================

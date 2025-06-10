@@ -520,16 +520,21 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
                 row[5]  // segundo_apellido
             ].filter(Boolean).join(' ');
             
-            const esJefe = row[6] && (
-                row[6].toLowerCase().includes('director') ||
-                row[6].toLowerCase().includes('jefe') ||
-                row[6].toLowerCase().includes('coordinador') ||
-                row[6].toLowerCase().includes('responsable') ||
-                row[6].toLowerCase().includes('gerente') ||
-                row[6].toLowerCase().includes('administrador') ||
-                row[6].toLowerCase().includes('curador') ||
-                row[6].toLowerCase().includes('superintendente') ||
-                row[6].toLowerCase().includes('supervisor')
+            // Mejorar la lógica de clasificación de jefes/directores
+            const cargo = row[6] ? row[6].toLowerCase() : '';
+            const esJefe = cargo.includes('director') || 
+                          cargo.includes('subdirector') ||
+                          cargo.includes('jefe') ||
+                          cargo.includes('coordinador') ||
+                          cargo.includes('responsable') ||
+                          cargo.includes('gerente') ||
+                          cargo.includes('superintendente') ||
+                          cargo.includes('supervisor');
+            
+            // Para curadores, solo considerarlos jefes si están en departamentos específicos de colecciones/curaduría
+            const esCuradorJefe = cargo.includes('curador') && (
+                row[6].includes('Jef') || // "Jefa de Colecciones", etc.
+                id_est_org // Si queremos aplicar lógica más específica por unidad
             );
             
             empleadosPorUnidad[id_est_org].push({
@@ -538,12 +543,13 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
                 cargo: row[6],
                 fecha_inicio: row[7],
                 doc_identidad: row[8],
+                id_est_org: id_est_org, // Añadimos esta información para contexto
                 // Determinar si es jefe/director de la unidad
-                es_jefe: esJefe
+                es_jefe: esJefe || esCuradorJefe
             });
             
             // DEBUG: Mostrar clasificación
-            console.log(`  -> ${nombreCompleto} en unidad ${id_est_org}: ${esJefe ? 'JEFE' : 'PERSONAL'}`);
+            console.log(`  -> ${nombreCompleto} en unidad ${id_est_org}: ${(esJefe || esCuradorJefe) ? 'JEFE' : 'PERSONAL'} (cargo: ${row[6]})`);
         });
 
         console.log('\n=== EMPLEADOS POR UNIDAD ===');
@@ -559,6 +565,21 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
             const jefes = empleados.filter(emp => emp.es_jefe);
             const personal = empleados.filter(emp => !emp.es_jefe);
             
+            // Añadir información adicional para empleados con múltiples roles
+            const jefesConInfo = jefes.map(jefe => ({
+                ...jefe,
+                roles_multiples: empleadosResult.rows
+                    .filter(row => row[1] === jefe.id_empleado && row[9] === null) // mismo empleado, activo
+                    .length > 1
+            }));
+            
+            const personalConInfo = personal.map(emp => ({
+                ...emp,
+                roles_multiples: empleadosResult.rows
+                    .filter(row => row[1] === emp.id_empleado && row[9] === null) // mismo empleado, activo
+                    .length > 1
+            }));
+            
             const nodo = {
                 id: row[0],
                 nombre: row[1],
@@ -566,8 +587,8 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
                 nivel: row[3],
                 descripcion: row[4],
                 padre_id: row[5],
-                jefes: jefes,
-                personal: personal,
+                jefes: jefesConInfo,
+                personal: personalConInfo,
                 total_empleados: empleados.length,
                 children: []
             };
@@ -575,6 +596,11 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
             // DEBUG: Mostrar cada nodo creado
             console.log(`\nNodo creado: ${nodo.nombre} (ID: ${nodo.id})`);
             console.log(`  - Jefes: ${nodo.jefes.length}, Personal: ${nodo.personal.length}, Total: ${nodo.total_empleados}`);
+            if (nodo.jefes.length > 0) {
+                nodo.jefes.forEach(jefe => {
+                    console.log(`    JEFE: ${jefe.nombre_completo} - ${jefe.cargo}${jefe.roles_multiples ? ' (ROLES MÚLTIPLES)' : ''}`);
+                });
+            }
             
             return nodo;
         });
