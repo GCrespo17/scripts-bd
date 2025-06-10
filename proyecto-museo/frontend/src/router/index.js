@@ -21,6 +21,11 @@ const router = createRouter({
       path: '/organigrama',
       name: 'organigrama',
       component: () => import('../views/OrganigramaView.vue')
+    },
+    {
+      path: '/empleados',
+      name: 'empleados',
+      component: ()=> import('../views/EmpleadosView.vue')
     }
   ]
 })
