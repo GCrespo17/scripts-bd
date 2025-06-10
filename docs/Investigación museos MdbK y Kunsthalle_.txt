@@ -1,0 +1,991 @@
+﻿Informe de Investigación de Museos para la Población de Base de Datos: MdbK Leipzig y Hamburger Kunsthalle
+1. Introducción
+El presente informe detalla los hallazgos de la investigación realizada sobre el Museum der bildenden Künste (MdbK) Leipzig y la Hamburger Kunsthalle. El objetivo principal de esta investigación es recopilar la información necesaria para poblar una base de datos, conforme al modelo lógico y la estructura de datos definidos en los documentos 'proySBD202525estSBD1.pdf' y 'Modelo Logico - ER_ARREGLADO_V2.csv'.
+La metodología empleada consistió en la revisión exhaustiva de los sitios web oficiales de ambos museos y el análisis de los documentos de proyecto proporcionados, que definen el contexto del modelo de negocio y la estructura de la base de datos.1 Este informe se estructura en secciones dedicadas a cada museo, abordando los datos institucionales generales, la estructura organizativa y física, las colecciones y obras de arte, las exposiciones y eventos, y la información del personal, en la medida en que la información pública disponible lo ha permitido. Se identificarán los datos pertinentes para cada tabla del modelo lógico y se señalarán las consideraciones relevantes para el proceso de población de la base de datos.
+2. Museum Investigation: Museum der bildenden Künste (MdbK) Leipzig
+2.1. Datos Institucionales Generales (MUSEO, LUGAR, HIST_MUSEO, HORARIO, TICKET, TIPO_TICKET)
+La recopilación de datos institucionales generales es fundamental para establecer la identidad y el contexto operativo de cada museo en la base de datos.
+Tabla MUSEO:
+Para el MdbK Leipzig, los datos identificados son:
+* nombre: Museum der bildenden Künste Leipzig (usualmente abreviado como MdbK Leipzig).2
+* fecha_fundacion: El museo actual fue inaugurado el 4 de diciembre de 2004.4 Sin embargo, sus orígenes se remontan a la fundación de la "Leipzig Art Association" en 1837, y la apertura del "Städtische Museum" el 10 de diciembre de 1848.3 Para el campo fecha_fundacion del museo como institución, se podría considerar 1848, mientras que la fecha de la edificación actual es 2004. El documento 1 (p.5) indica que "Cada museo tiene una historia particular, que da forma y justificación a su existencia".
+* mision: El MdbK aspira a ser un lugar de conexión e intercambio, inclusivo, sin barreras y antidiscriminatorio para experiencias sensoriales artísticas.2 Se considera uno de los museos de arte más antiguos de Alemania.2 Su objetivo es la divulgación de la cultura, la investigación y las actividades educativas, en línea con la función general de los museos descrita en 1 (p.4-5).
+* id_lugar: Corresponderá al identificador de Leipzig en la tabla LUGAR.
+Tabla LUGAR:
+Se identificarán dos entradas principales para contextualizar el MdbK Leipzig:
+1. Para Leipzig:
+   * nombre: Leipzig.2
+   * tipo: 'CIUDAD'.1
+   * id_lugar_padre: Referencia al id_lugar de Alemania.
+2. Para Alemania:
+   * nombre: Alemania.2
+   * tipo: 'PAIS'.1
+   * continente: 'EUROPA'.1
+   * id_lugar_padre: NULL (o referencia a una entidad continental si existiera y fuera relevante para el modelo).
+Tabla HIST_MUSEO:
+Se han identificado los siguientes hechos históricos clave para el MdbK Leipzig:
+* año: 1837, hechos: Fundación de la "Leipzig Art Association" por coleccionistas y promotores de arte de Leipzig con el objetivo de crear un museo de arte.3
+* año: 1848 (10 de diciembre), hechos: Apertura del "Städtische Museum" en la primera escuela pública en la Moritzbastei, con aproximadamente cien obras reunidas y donadas.3
+* año: 1853, hechos: El empresario y coleccionista Adolf Heinrich Schletter lega su colección al museo con la condición de que la ciudad construya un edificio municipal para el museo en cinco años.3
+* año: 1858 (18 de diciembre), hechos: Inauguración del nuevo edificio del museo en Augustusplatz, diseñado por Ludwig Lange en estilo renacentista italiano.3
+* año: 1880-1886, hechos: Ampliación del edificio en Augustusplatz por Hugo Licht debido al crecimiento de la colección.3
+* año: 1943 (noche del 3 al 4 de diciembre), hechos: El edificio del museo en Augustusplatz es destruido por un bombardeo durante la Segunda Guerra Mundial. Gran parte de las colecciones habían sido evacuadas previamente.5
+* año: 1945-2004, hechos: Las colecciones se albergan en diversas ubicaciones provisionales, incluyendo el antiguo Reichsgericht (Tribunal Imperial) y el Handelshof.5
+* año: 2004 (4 de diciembre), hechos: Inauguración del nuevo edificio del Museum der bildenden Künste Leipzig en Katharinenstraße 10.4
+Tabla HORARIO:
+Las horas de apertura del MdbK Leipzig son 5:
+* Lunes: Cerrado.
+* Martes, Jueves a Domingo: 10:00 - 18:00.
+* Miércoles: 12:00 - 20:00.
+* Festivos alemanes/sajones: 10:00 - 18:00 (incluye Lunes de Pascua, 1 de mayo, Día de la Ascensión, Lunes de Pentecostés, Día de Oración y Penitencia, 3 y 31 de octubre, 25 y 26 de diciembre).
+* Cerrado: 24 y 31 de diciembre.
+Estos datos se registrarán asociando cada día (dia) con su hora_inicio y hora_cierre correspondientes, vinculados al id_museo del MdbK.
+Tablas TICKET y TIPO_TICKET:
+La información sobre precios de entrada es la siguiente 5:
+* Exposición permanente de arte de los siglos XV al XIX: Entrada gratuita (a partir del 1 de enero de 2024).5 Esto implicaría un TIPO_TICKET con precio=0.
+* Exposiciones en el 3er piso (ej. "Bilderkosmos #2", "Evelyn Richter. Freundinnen"):
+   * Regular: 10 € (tipo='REGULAR_EXPO_ESP', precio=10).
+   * Reducida: 5 € (tipo='REDUCIDO_EXPO_ESP', precio=5). Elegibles: Estudiantes, aprendices, titulares de Leipzig-Card, personas en Servicio Voluntario Federal, servicio militar/civil, personas con discapacidad severa (grado 50%), titulares de pases de voluntariado.
+   * Grupo (a partir de 10 personas): 7,50 € por persona (tipo='GRUPO_EXPO_ESP', precio=7.50).
+* Ticket especial de tarde (1 hora antes del cierre): 50% del precio regular (tipo='ESPECIAL_TARDE_EXPO_ESP', precio=5).
+* Ticket anual: Regular 45 €, Reducida 22,50 € (tipo='ANUAL_REGULAR' / 'ANUAL_REDUCIDO').
+* Niños hasta 18 años: Entrada gratuita también para exposiciones especiales.5 Esto sugiere un tipo como 'NINO_EXPO_ESP' con precio=0.
+* Cada primer miércoles del mes: 3 € para las exposiciones especiales (tipo='MIERCOLES_ESPECIAL_EXPO_ESP', precio=3)..5
+La estructura de la tabla TIPO_TICKET en el modelo lógico proporcionado 1 incluye un campo tipo con una restricción CHECK ('ESTUDIANTE','NIÑO','MAYOR'). La variedad de tipos de entradas encontrados (Regular, Reducida, Grupo, Anual, Especial Tarde, Miércoles Especial) no se asigna directamente a estas categorías predefinidas. Para una correcta población de la base de datos, sería necesario considerar si los tipos existentes pueden mapearse (por ejemplo, 'Reducida' para estudiantes podría asignarse a 'ESTUDIANTE') o si la restricción CHECK debería revisarse para acomodar una gama más amplia de tipos de entradas que refleje la operativa real del museo. Esta divergencia entre el modelo y la realidad operativa es una consideración importante para la implementación. Si el modelo no se puede alterar, se requerirá una política clara de mapeo, aunque esto podría llevar a una pérdida de granularidad en la información almacenada sobre los tipos de ticket.
+2.2. Estructura Organizacional y Física (EST_ORGANIZACIONAL, EST_FISICA, SALAS_EXP)
+La definición de las estructuras organizacionales y físicas permite comprender la jerarquía interna y la disposición espacial del museo.
+Tabla EST_ORGANIZACIONAL:
+* nombre, tipo, nivel, descripcion:
+   * Director: Stefan Weppelmann.3 Esta sería una entrada de alto nivel, probablemente con tipo='DIRECCION' según el modelo 1 y el ejemplo en 1 (p.6).
+   * El documento del proyecto 1 muestra una estructura de ejemplo (DIRECCION, Gerencia, Prensa, etc.). Los fragmentos de investigación disponibles para el MdbK Leipzig no proporcionan este nivel de detalle sobre su estructura organizativa interna (departamentos, secciones por debajo de la dirección).
+   * La información pública sobre estructuras organizacionales detalladas (más allá de la dirección) suele ser limitada. Poblar la tabla EST_ORGANIZACIONAL de manera exhaustiva requeriría acceso a datos internos del museo. Sin estos, solo el nivel superior (Dirección) puede registrarse con certeza.
+Tabla EST_FISICA:
+* nombre (est_fisica), tipo (est_fisica), descripcion, direccion_edificio:
+   * Edificio: El nuevo museo es un cubo de vidrio de 36 metros de altura.5 Fue diseñado por los arquitectos berlineses Hufnagel / Pütz / Rafaelian 5 e inaugurado el 4 de diciembre de 2004.4
+   * direccion_edificio: Katharinenstraße 10, D-04109 Leipzig.4
+   * tipo (est_fisica): 'EDIFICIO'.
+   * Pisos: "El recorrido por la colección permanente se extiende a lo largo de cuatro plantas de variada configuración arquitectónica".10 El museo cuenta con 3 pisos de museo más una cafetería/restaurante público.8 El documento 1 (p.8) muestra un ejemplo de distribución de pisos (Planta baja, piso 1, piso 2). Para el MdbK:
+      * Planta Baja (Erdgeschoss): Probablemente alberga servicios como el CAFÉ TREFF.5 tipo='PISO'.
+      * Primer Piso (1. Obergeschoss): Exposiciones permanentes. Alberga pintura alemana antigua, holandesa, italiana y francesa de los siglos XV al XIX.6 tipo='PISO'.
+      * Segundo Piso (2. Obergeschoss): Exposiciones permanentes. También alberga pintura alemana antigua, holandesa, italiana y francesa de los siglos XV al XIX.6 El "Open Studio" se encuentra en este piso.6 tipo='PISO'.
+      * Tercer Piso (3. Obergeschoss): Dedicado a la pintura y escultura de los siglos XX y XXI.12 Se extiende por 9 12 o 14 13 salas de galería y el vestíbulo central. tipo='PISO'.
+   * Espacios Significativos (que podrían ser EST_FISICA de tipo 'AREA' o similar, o detallarse en descripcion):
+      * Patios y terrazas integrados en el estilo arquitectónico de la ciudad.5
+      * Interior caracterizado por vidrio, hormigón visto, piedra caliza y roble.5
+      * Biblioteca: Abierta los miércoles de 13:00 a 16:00 y con cita previa.5
+      * CAFÉ TREFF: Abierto durante el horario del museo.5
+      * Zündkerzenhalle (Sala de las Bujías): Utilizada para exposiciones como "Slippery Slope" de Anna Nero.13 Podría ser una SALAS_EXP específica.
+      * MdbK [next;raum]: Espacio participativo y de reflexión dentro de la exposición permanente.6
+Tabla SALAS_EXP:
+* nombre (sala), descripcion:
+   * El MdbK presenta pintura y escultura de los siglos XX y XXI en el tercer piso, distribuidas en 9 12 o 14 13 salas de galería y el vestíbulo central. Estas podrían ser entradas individuales en SALAS_EXP si se conocieran sus nombres específicos.
+   * Zündkerzenhalle (Sala de las Bujías) 13: Un espacio de exposición específico.
+   * Una sala de colección en el primer piso está dedicada a la Colección Gráfica.13
+   * Los nombres específicos de la mayoría de las salas de exposición individuales no se proporcionan en los fragmentos, lo que dificulta una población detallada de SALAS_EXP. Se menciona el "vestíbulo central" del tercer piso. Los planos de los museos suelen etiquetar las salas con números o nombres temáticos; este nivel de detalle falta en la información recopilada, lo que limita la granularidad para SALAS_EXP. El modelo de datos espera id_sala, id_est (piso), id_museo, nombre y descripcion.
+2.3. Colecciones y Obras de Arte (COLECCION_PERMANENTE, SALAS_COLECCIONES, OBRAS, ARTISTA, ARTISTAS_OBRAS, HIST_OBRAS_MOV)
+Esta sección aborda el núcleo del museo: sus colecciones y las obras que las componen.
+Tabla COLECCION_PERMANENTE:
+* nombre (coleccion), caracteristicas, palabra_clave, orden_recorrido:
+   * Colección General: Abarca siete siglos, principalmente de historia del arte europeo. Contiene más de 4,600 pinturas, 1,800 esculturas, medallas y placas, más de 5,000 fotografías y más de 70,000 obras sobre papel.2 Un foco importante es el arte de Leipzig de los siglos XX y XXI.2 Incluye Antiguos Maestros (Frans Hals, Lucas Cranach el Joven), Románticos (Caspar David Friedrich, Andreas Achenbach), arte de Leipzig (Max Beckmann, Max Klinger) y arte de la RDA.2
+      * caracteristicas: "Arte europeo desde la Baja Edad Media hasta la actualidad; importantes fondos de arte alemán antiguo, neerlandés temprano, holandés del siglo XVII, romanticismo alemán del siglo XIX, Escuela de Leipzig, arte de la RDA, arte contemporáneo de Leipzig."
+      * palabra_clave: "Antiguos Maestros, Romanticismo, Escuela de Leipzig, Arte RDA, Pintura Europea, Escultura, Artes Gráficas".
+   * Colección de Pintura (Gemäldesammlung): Aproximadamente 4,600 pinturas. Desde la Baja Edad Media hasta la actualidad.14
+      * Antiguos Maestros Alemanes y Holandeses (siglos XV-XVI): ~60 pinturas, 18 de Lucas Cranach.14
+      * Holandeses del siglo XVII: ~400 pinturas, con énfasis en especialistas.14
+      * Países Románicos (maestros italianos, franceses, españoles, siglos XV-XVIII): ~100 pinturas, obras de pequeño formato de temática cristiana.14
+      * Nuevos Maestros (siglo XIX): ~750 obras, desde el Clasicismo/Romanticismo alemán hasta el Impresionismo/Simbolismo.14 Colección especial de pintura francesa (Escuela de Barbizon).14
+      * Principios del siglo XX (Sajonia): Del Simbolismo (Max Klinger) a la crítica social. Pocas obras del Expresionismo/Nueva Objetividad.14
+      * Época de la RDA: >500 obras, foco en la pintura de Leipzig.14
+      * Arte Contemporáneo de Leipzig (posterior a 1990).14
+   * Colección Gráfica (Graphische Sammlung): >70,000 obras sobre papel.2 Iniciada en 1848. Alrededor de 55,000 dibujos y gráficos.14 Incluye Antiguos Maestros (colección Gehler), Alto Barroco italiano (ex-colección Reina Cristina de Suecia), rico fondo de dibujo alemán de los siglos XVIII-XX (360 dibujos de Max Beckmann), obra gráfica de Max Klinger, arte de la RDA.14
+   * Colección de Escultura (Skulpturensammlung): ~1,800 esculturas.2 Establecida en 1848. Reestructurada en 1912. Tercera más grande de Alemania Oriental.14 Incluye medallas/placas (400 piezas, artistas alemanes/franceses siglos XIX-XX).14 Destacan: madera medieval tardía, "Flora" de Adriaen de Vries, escultura barroca sajona de Balthasar Permoser, Clasicistas. Foco principal: segunda mitad siglo XIX y siglo XX (estatuillas). 70 obras de Klinger (vaciados en yeso, modelos, esculturas coloreadas).14 Esculturas de animales de la Fundación Paul Geipel (foco en August Gaul).14 Grupo de artistas franceses/belgas de fin de siglo. Modernismo Clásico (figurativo-objetivo). Escultura de la RDA (figurativa de Dresde, Berlín, Leipzig).14
+   * Colección de Fotografía: >5,000 fotografías.2
+   * Colección de la Fundación Maximilian Speck von Sternburg: (Préstamo permanente) >200 pinturas, 127 dibujos, 192 grabados, biblioteca. Arte europeo siglos XIV-XIX. Obras maestras de Francesco Francia, Cima da Conegliano, Lucas Cranach el Viejo, Pieter de Hooch, Peter Paul Rubens, Caspar David Friedrich, Johan Christian Dahl.6 Alojada en el MdbK desde la creación de la fundación en 1996.20 Transferida al MdbK en noviembre de 1945.20
+   * Archivo Evelyn Richter y Ursula Arnold: Proyecto conjunto con la Ostdeutsche Sparkassenstiftung. Obras conservadas, investigadas y expuestas.6
+* orden_recorrido: El documento del proyecto 1 (p.10) menciona "recomendar el itinerario de la visita". No se encontró un orden de visita general específico para el MdbK en los fragmentos disponibles. Sin embargo, la distribución por pisos implica un cierto orden: Antiguos Maestros/siglo XIX en los pisos 1º/2º, y arte de los siglos XX/XXI en el 3er piso.
+Tabla SALAS_COLECCIONES:
+La asignación de colecciones a pisos/salas específicos es la siguiente:
+* Pintura alemana antigua, holandesa, italiana y francesa (siglos XV-XIX): Pisos 1º y 2º.6
+* Colección Gráfica: Una sala dedicada en el 1er piso.13
+* Pintura y Escultura de los siglos XX y XXI: 3er piso (9 o 14 salas de galería y vestíbulo central).12
+* Open Studio: Segundo piso.6
+Tablas OBRAS, ARTISTA, ARTISTAS_OBRAS y HIST_OBRAS_MOV (Obras Seleccionadas):
+La información recopilada permite ejemplificar la población de estas tablas con varias obras destacadas del MdbK Leipzig. La selección busca variedad en tipo y período, basándose en la riqueza de detalles disponibles en los fragmentos de investigación.
+* Obra 1: Las Etapas de la Vida (Die Lebensstufen)
+   * Datos de la Obra (OBRAS):
+      * nombre: The Stages of Life (Die Lebensstufen) 21
+      * fecha_periodo: c. 1834 / 1835 21
+      * tipo_obra: 'PINTURA' 1
+      * dimensiones: 72.5 cm × 94 cm 22
+      * desc_materiales_tecnicas: Óleo sobre lienzo 21
+      * desc_estilos_generos: Romanticismo alemán, pintura de paisaje alegórica.221 (p.2) menciona "Paisaje y marina" como género y Romanticismo como estilo.
+   * Datos del Artista (ARTISTA): Caspar David Friedrich
+      * primer_nombre: Caspar David 21
+      * primer_apellido: Friedrich 21
+      * fecha_nacimiento: 1774 (Greifswald) 21
+      * fecha_difuncion: 1840 (Dresden) 21
+      * id_lugar (nacimiento): Referencia a Greifswald, Alemania.
+      * resumen_caracteristicas: Destacado pintor paisajista del Romanticismo alemán, conocido por sus paisajes alegóricos, meditaciones sobre la mortalidad y la fugacidad de la vida.22
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: 1217 (o G 1217).21
+      * tipo_adquisicion: Probablemente parte de los fondos generales del museo o adquisiciones tempranas; los detalles específicos no se encontraron en los fragmentos.
+* Obra 2: La Ninfa de la Fuente (Quellnymphe am Brunnen)
+   * Datos de la Obra (OBRAS):
+      * nombre: The Water Nymph at the Fountain (Quellnymphe am Brunnen) 14
+      * fecha_periodo: 1518 (datado en la obra) 14
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 59 x 91.5 cm (soporte); 53.0 cm x 86.0 cm (panel) 14
+      * desc_materiales_tecnicas: Pintura sobre madera de tilo 24
+      * desc_estilos_generos: Renacimiento alemán, desnudo mitológico.241 (p.2) menciona "pintura de mitología".
+   * Datos del Artista (ARTISTA): Lucas Cranach el Viejo
+      * primer_nombre: Lucas 24
+      * primer_apellido: Cranach (el Viejo) 24
+      * fecha_nacimiento: c. 1472 (Kronach) 26
+      * fecha_difuncion: 16 de octubre de 1553 (Weimar) 26
+      * id_lugar (nacimiento): Referencia a Kronach, Alemania.
+      * resumen_caracteristicas: Pintor y grabador del Renacimiento alemán, pintor de corte, conocido por retratos, retablos, composiciones alegóricas/mitológicas, desnudos femeninos distintivos, amigo de Martín Lutero.26
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: Inv. 757.24
+      * tipo_adquisicion: Adquirida por el Ayuntamiento de Leipzig en 1899 en la subasta de la Colección Schubart, Múnich. Transferida al MdbK en 1901.24
+      * destacada: Sí (implícito por su mención como obra destacada).
+* Obra 3: Bajo Fuego (Unter Feuer)
+   * Datos de la Obra (OBRAS):
+      * nombre: Under Fire (Unter Feuer) 14
+      * fecha_periodo: 2010 14
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 250 x 300 cm 14
+      * desc_materiales_tecnicas: Óleo sobre lienzo 29
+      * desc_estilos_generos: Pintura figurativa, Nueva Escuela de Leipzig, narrativas surrealistas y oníricas, elementos del Realismo Socialista y referencias históricas.30
+   * Datos del Artista (ARTISTA): Neo Rauch
+      * primer_nombre: Neo 30
+      * primer_apellido: Rauch 30
+      * fecha_nacimiento: 1960 (Leipzig) 30
+      * fecha_difuncion: Vivo.
+      * id_lugar (nacimiento): Referencia a Leipzig, Alemania.
+      * resumen_caracteristicas: Destacado pintor alemán contemporáneo, figura influyente de la Nueva Escuela de Leipzig. Conocido por pinturas narrativas enigmáticas y de gran formato, ricamente coloreadas, que mezclan realismo, surrealismo y alusiones históricas.30
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: La pintura figura como propiedad del Museum der bildenden Künste Leipzig.2937 indica que una pintura de Rauch, "Das Angebot" (2010, óleo sobre lienzo, 250x210cm), fue expuesta en el MdbK en 2010 y provenía de la Galerie Eigen + Art. Los detalles específicos de la adquisición de "Unter Feuer" por el MdbK no se encuentran en los fragmentos disponibles.18
+* Obra 4: Peeckelhaering (El Bebedor Alegre / Der lustige Zecher)
+   * Datos de la Obra (OBRAS):
+      * nombre: Peeckelhaering (The Merry Drinker / Der lustige Zecher / The 'mulatto') 14
+      * fecha_periodo: c. 1628 / 1628 14
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 72 cm x 57.5 cm.4114
+      * desc_materiales_tecnicas: Óleo sobre lienzo 41
+      * desc_estilos_generos: Pintura del Siglo de Oro holandés, arte de género, retrato (tronie).41
+   * Datos del Artista (ARTISTA): Frans Hals
+      * primer_nombre: Frans 43
+      * primer_apellido: Hals 43
+      * fecha_nacimiento: c. 1582/1583 (Amberes) 43
+      * fecha_difuncion: 26 de agosto de 1666 (Haarlem) 43
+      * id_lugar (nacimiento): Referencia a Amberes, Bélgica.
+      * resumen_caracteristicas: Pintor del Siglo de Oro holandés, conocido por sus vivaces retratos, individuales y de grupo, maestro en capturar la expresión momentánea y el carácter, pincelada libre.43
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: 1017 (Museum der bildenden Künste).41
+      * tipo_adquisicion: En la colección de Alfred Thieme en 1889; adquirida por el MdbK Leipzig en 1916.42
+* Obra 5: Beethoven (Escultura)
+   * Datos de la Obra (OBRAS):
+      * nombre: Beethoven 3
+      * fecha_periodo: Concebida c. 1885-86, modelo 1886, escultura final inaugurada en 1902.45 La versión del MdbK es la de 1902.
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: Altura 310 cm (monumento completo).48
+      * desc_materiales_tecnicas: Escultura policromada: variedad de mármol, bronce, marfil (cabezas de ángeles), azulejos, ámbar.45 Descrita como "piedra, jaspe y bronce" en 47 para la versión del Museo de Leipzig.
+      * desc_estilos_generos: Simbolismo, Jugendstil (Art Nouveau), escultura monumental, escultura policromada.49
+   * Datos del Artista (ARTISTA): Max Klinger
+      * primer_nombre: Max 49
+      * primer_apellido: Klinger 49
+      * fecha_nacimiento: 18 de febrero de 1857 (Leipzig) 49
+      * fecha_difuncion: 5 de julio de 1920 (cerca de Naumburg/Großjena) 49
+      * id_lugar (nacimiento): Referencia a Leipzig, Alemania.
+      * resumen_caracteristicas: Pintor, escultor, grabador y artista gráfico simbolista alemán. Conocido por sus grabados (ej. "Paráfrasis sobre el hallazgo de un guante"), esculturas monumentales y policromadas. Exploró temas de fantasía, situaciones oníricas y mitología.49
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Vendida por Klinger a la ciudad de Leipzig después de su exposición en la Secesión de Viena en 1902.48 Esto implica que fue adquirida por la ciudad y posteriormente pasó a formar parte de la colección del MdbK. La fecha exacta de adquisición por el MdbK no se especifica.18
+* Obra 6: Salomé (Escultura - versión en mármol en el MdbK)
+   * Datos de la Obra (OBRAS):
+      * nombre: Die neue Salome (La Nueva Salomé) 52
+      * fecha_periodo: Versión en mármol completada en 1893. Primer modelo en yeso 1887/88.52
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: La versión en yeso en el SKD Dresden mide Al: 86 cm, An: 53 cm, Pr: 40 cm.56 La reducción en bronce mide Al: 32 cm.54 Las dimensiones de la versión en mármol del MdbK no se encuentran explícitamente en estos fragmentos, pero 53 indica An: 530 x Al: 860 x Pr: 400 cm, lo cual parece excesivamente grande y probablemente sea un error tipográfico, debiendo ser mm, coincidiendo con el yeso. Se asume Al: 86 cm para la versión en mármol del MdbK por ahora.
+      * desc_materiales_tecnicas: Mármol tintado.54 La original era de mármol, paños de alabastro, ojos de ámbar, pedestal de mármol rojo, detalles pintados.57 También existe una versión en yeso.53
+      * desc_estilos_generos: Simbolismo, escultura policromada, tema de la femme fatale.52
+   * Datos del Artista (ARTISTA): Max Klinger (Detalles como los de Beethoven).
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: El MdbK Leipzig alberga la versión en mármol tintado completada en 1893.54 El método de adquisición por el MdbK no se detalla en estos fragmentos.18
+* Obra 7: Oso sobre una Esfera (Bär auf Kugel) (Escultura)
+   * Datos de la Obra (OBRAS):
+      * nombre: Bär auf Kugel (Bear on a Ball) 14
+      * fecha_periodo: Fuente original 1904.60 Versión sello "Um 1915".61
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: Existen varios tamaños. El "Stehender Bär, Petschaft" (oso de pie, sello) mide Al: 5.3 cm.61 El original de la fuente Wertheim era más grande. El que se encuentra en el Parque Clara-Zetkin (préstamo del MdbK) es una escultura de bronce.59 No se especifican las dimensiones de la versión propiedad del MdbK.
+      * desc_materiales_tecnicas: Bronce.59
+      * desc_estilos_generos: Escultura de animales, parte de un diseño de fuente.60
+   * Datos del Artista (ARTISTA): August Gaul
+      * primer_nombre: August 63
+      * primer_apellido: Gaul 63
+      * fecha_nacimiento: 22 de octubre de 1869 (Großauheim/Hanau) 63
+      * fecha_difuncion: 18 de octubre de 1921/1922 (Berlín) 63
+      * id_lugar (nacimiento): Referencia a Großauheim/Hanau, Alemania.
+      * resumen_caracteristicas: Escultor alemán, destacado escultor de animales, miembro fundador de la Secesión de Berlín. Conocido por formas reducidas, capturando la esencia característica de los animales.63
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: El MdbK posee versiones de las esculturas de animales de Gaul; "Bär auf Kugel" en el Parque Clara-Zetkin es un préstamo del MdbK.59 La Fundación Paul Geipel donó varios cientos de esculturas de animales al MdbK, organizadas en torno a las obras de August Gaul.14 Esta podría ser la vía de adquisición. No se encontró un número de inventario específico ni la fecha exacta de adquisición para un "Bär auf Kugel" en particular.18
+* Obra 8: Barcos en la playa de Étretat
+   * Datos de la Obra (OBRAS):
+      * nombre: Boats on the beach at Etretat 14
+      * fecha_periodo: 1883 14
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 65 x 92 cm (versión del MdbK14). La versión del Art Institute of Chicago mide 66 x 82.3 cm.66
+      * desc_materiales_tecnicas: Óleo sobre lienzo (presumido por la técnica general del artista y el Impresionismo).
+      * desc_estilos_generos: Impresionismo, paisaje, marina.66
+   * Datos del Artista (ARTISTA): Claude Monet
+      * primer_nombre: Claude (Oscar-Claude) 68
+      * primer_apellido: Monet 68
+      * fecha_nacimiento: 14 de noviembre de 1840 (París) 68
+      * fecha_difuncion: 5 de diciembre de 1926 (Giverny) 68
+      * id_lugar (nacimiento): Referencia a París, Francia.
+      * resumen_caracteristicas: Fundador de la pintura impresionista francesa, practicante constante de la expresión de las percepciones ante la naturaleza (plein-air), conocido por series de pinturas que capturan la luz y la atmósfera.68
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Donación Bühler-Brockhaus, 2004.14
+* Obra 9: El Milagro de Santa Walburga
+   * Datos de la Obra (OBRAS):
+      * nombre: The Miracle of St Walburga (Das Schiffswunder der hl. Walburga) 14
+      * fecha_periodo: c. 1610 / 1610/11 / um 1611 14
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 75.5 x 98.5 cm 14
+      * desc_materiales_tecnicas: Óleo sobre lienzo (presumido por la técnica general del artista y el período Barroco).
+      * desc_estilos_generos: Barroco, pintura religiosa, composición dinámica, claroscuro.70
+   * Datos del Artista (ARTISTA): Peter Paul Rubens
+      * primer_nombre: Peter Paul 72
+      * primer_apellido: Rubens 72
+      * fecha_nacimiento: 28 de junio de 1577 (Siegen, Alemania) 72
+      * fecha_difuncion: 30 de mayo de 1640 (Amberes, Bélgica) 72
+      * id_lugar (nacimiento): Referencia a Siegen, Alemania.
+      * resumen_caracteristicas: Pintor barroco flamenco, conocido por temas religiosos/mitológicos dinámicos y exuberantes, retratos, paisajes. Maestro de composiciones a gran escala.72
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Parte de la colección de la Fundación Maximilian Speck von Sternburg.14 Esta colección de la fundación está en préstamo permanente en el MdbK.
+
+
+
+
+
+
+Tabla: Obras de Arte Seleccionadas en el MdbK Leipzig
+nombre_obra
+	artista_nombre_completo
+	fecha_periodo
+	tipo_obra
+	dimensiones
+	desc_materiales_tecnicas
+	desc_estilos_generos
+	id_catalogo_museo
+	tipo_adquisicion (si se conoce)
+	The Stages of Life
+	Caspar David Friedrich
+	c. 1834/1835
+	PINTURA
+	72.5 x 94 cm
+	Óleo sobre lienzo
+	Romanticismo alemán, paisaje alegórico
+	1217 (G 1217)
+	(Probablemente fondos del museo/adquisiciones tempranas)
+	The Water Nymph at the Fountain
+	Lucas Cranach el Viejo
+	1518
+	PINTURA
+	59 x 91.5 cm
+	Pintura sobre madera de tilo
+	Renacimiento alemán, desnudo mitológico
+	Inv. 757
+	Adquirida 1899 vía subasta Col. Schubart, al MdbK 1901
+	Under Fire (Unter Feuer)
+	Neo Rauch
+	2010
+	PINTURA
+	250 x 300 cm
+	Óleo sobre lienzo
+	Nueva Escuela de Leipzig, figurativo, surreal
+	
+
+	(Detalles de adquisición no especificados en fragmentos)
+	Peeckelhaering
+	Frans Hals
+	c. 1628
+	PINTURA
+	72 x 57.5 cm
+	Óleo sobre lienzo
+	Siglo de Oro holandés, arte de género, tronie
+	1017
+	Adquirida 1916 (ex. col. Alfred Thieme)
+	Beethoven (Escultura)
+	Max Klinger
+	1902 (inaugurada)
+	ESCULTURA
+	Al: 310 cm (monumento)
+	Mármol, bronce, marfil, etc.
+	Simbolismo, Jugendstil, escultura policromada
+	
+
+	Adquirida por Ciudad de Leipzig post-1902, luego MdbK
+	Salome (Escultura en Mármol)
+	Max Klinger
+	1893
+	ESCULTURA
+	Al: c. 86 cm (est.)
+	Mármol tintado
+	Simbolismo, escultura policromada
+	
+
+	(Detalles de adquisición no especificados en fragmentos)
+	Bär auf Kugel (Bronce)
+	August Gaul
+	c. 1904 / c. 1915
+	ESCULTURA
+	Varía
+	Bronce
+	Escultura de animales
+	
+
+	Préstamo del MdbK; posiblem. de Fundación Paul Geipel
+	Boats on the beach at Etretat
+	Claude Monet
+	1883
+	PINTURA
+	65 x 92 cm
+	Óleo sobre lienzo
+	Impresionismo, paisaje
+	
+
+	Donación Bühler-Brockhaus, 2004
+	The Miracle of St Walburga
+	Peter Paul Rubens
+	c. 1610/1611
+	PINTURA
+	75.5 x 98.5 cm
+	Óleo sobre lienzo
+	Barroco, pintura religiosa
+	
+
+	Fundación Maximilian Speck von Sternburg (préstamo permanente)
+	Esta tabla resume la información clave de las obras seleccionadas del MdbK Leipzig, facilitando una visión estructurada de los datos recopilados y destacando la disponibilidad de información para los campos relevantes del modelo de datos.
+2.4. Exposiciones, Eventos y Operaciones (EXPOSICION_EVENTO, CIERRES_TEMPORALES)
+La actividad expositiva y los eventos son cruciales para la dinámica de un museo.
+Tabla EXPOSICION_EVENTO:
+La sección "Exhibitions" del sitio web del MdbK 13 enumera exposiciones actuales, futuras y pasadas.
+* Ejemplos de exposiciones actuales/recientes:
+   * "Picture Universe #2. Art from Leipzig": 12/12/2023 – 12/04/2026. Ubicación: Tercer piso (9 salas de galería y vestíbulo central). Pintura y escultura de los siglos XX/XXI.74 Costo: Parte del ticket de exposición especial si aplica (ej. 10€ regular para exposiciones del 3er piso 5).
+   * "Bernhard Heisig. Birthday Still Life with Icarus": 20/03/2025 – 09/06/2025. Exposición de gabinete.74 Costo: Probablemente tarifa de exposición especial.
+   * "Rediscovering Abraham Jaskiel": 07/05/2025 – 17/08/2025.74
+   * "Grafik im Fokus": 13/03/2025 – 22/06/2025. Ubicación: Sala de colección en el 1er piso. Obras sobre papel.13
+* Los campos cant_visitantes e institucion_educativa generalmente no están disponibles en estos resúmenes para exposiciones pasadas específicas. 1 (p.12) destaca la importancia de institucion_educativa para eventos dirigidos a colegios.
+Tabla CIERRES_TEMPORALES:
+* No se mencionan cierres temporales específicos de galerías en los fragmentos, más allá de períodos generales de renovación para otros museos o inaccesibilidad a corto plazo para instalaciones específicas (ej. instalación de Rosa Barba 13).
+* Los museos suelen anunciar de forma prominente los cierres temporales significativos. La ausencia de tal información para el MdbK sugiere que no había cierres importantes a largo plazo de las galerías de la colección permanente en el momento de la consulta, o que los fragmentos no lo capturaron.
+2.5. Información del Personal (EMPLEADO_PROFESIONAL, EMPLEADO_VIGILANTE_MANT, FORMACION, IDIOMA, HIST_EMPLEADO, ASIGNACIONES_MES)
+La información detallada sobre el personal es a menudo interna y no se divulga públicamente en su totalidad.
+* Director: Stefan Weppelmann.3 Esta sería una entrada en EMPLEADO_PROFESIONAL.
+* 1 (p.7) señala que los curadores a menudo se especializan en "Historia del Arte o Estética".
+* Las listas detalladas del personal, roles más allá del director, cualificaciones específicas (FORMACION), idiomas hablados (IDIOMAS), historial laboral (HIST_EMPLEADO) o asignaciones mensuales (ASIGNACIONES_MES) no están disponibles públicamente para el MdbK en estos fragmentos. Esto es típico para la mayoría de los museos debido a preocupaciones de privacidad y la naturaleza interna de dichos datos. Por lo tanto, la población de estas tablas será muy difícil de realizar a partir de fuentes públicas.
+3. Museum Investigation: Hamburger Kunsthalle
+3.1. Datos Institucionales Generales (MUSEO, LUGAR, HIST_MUSEO, HORARIO, TICKET, TIPO_TICKET)
+Tabla MUSEO:
+* nombre: Hamburger Kunsthalle.75
+* fecha_fundacion: Aunque el Kunstverein (Asociación de Arte) fue fundado en 1817 76, el primer edificio del museo abrió sus puertas en agosto de 1869.18 Para el campo fecha_fundacion en MUSEO, agosto de 1869 es la fecha más apropiada para la apertura del museo.
+* mision: "Todo Arte Ha Sido Contemporáneo." Este principio dicta cómo el museo ve, investiga, exhibe y comunica sus colecciones, relacionando las imágenes y valores sociales actuales con los del pasado para hacer comprensible el espíritu de una época para el público de hoy. Comprometido con una sociedad global, diversa y tolerante.76
+* id_lugar: Corresponderá al identificador de Hamburgo en la tabla LUGAR.
+Tabla LUGAR:
+1. Para Hamburgo:
+   * nombre: Hamburg.75
+   * tipo: 'CIUDAD'.1
+   * id_lugar_padre: Referencia al id_lugar de Alemania.
+2. Para Alemania (ya definido en la sección del MdbK).
+Tabla HIST_MUSEO:
+* año: 1817, hechos: Fundación del Kunstverein (Asociación de Arte).76
+* año: 1849, hechos: Origen de la colección del museo, establecida inicialmente por el Hamburg Kunstverein.77
+* año: 1850, hechos: La colección se abre al público como Städtische Gallerie (Galería Municipal de Pintura).77
+* año: 1863, hechos: Donaciones de Georg Ernst Harzen y Johann Matthias Commeter forman la base de la colección de la Kunsthalle. Comienza la construcción del primer edificio.76
+* año: 1869 (Agosto), hechos: Apertura del primer edificio del museo en la antigua Bastion Vincent (Alsterhöhe).18
+* año: 1912-1919, hechos: Construcción del segundo edificio de la Kunsthalle (Kuppelsaal).76
+* año: 1997 (Febrero), hechos: Apertura del edificio más reciente, la Galerie der Gegenwart (Galería de Arte Contemporáneo).76
+* año: 2014-2016, hechos: Renovación y modernización fundamental de la Kunsthalle gracias a una donación de la Dorit & Alexander Otto Foundation.76
+* año: Desde 2022, hechos: Proyecto de registro, investigación y digitalización de aproximadamente 6,000 monedas, medallas y pequeñas esculturas, con planes de exhibición a partir de 2026.76
+Tabla HORARIO:
+Las horas de apertura regulares de la Hamburger Kunsthalle son 78:
+* Lunes: Cerrado.
+* Martes, Miércoles, Viernes, Sábado, Domingo: 10:00 - 18:00.
+* Jueves: 10:00 - 21:00.
+* La taquilla cierra 30 minutos antes del cierre del museo (Mar-Dom 17:30, Jue 20:30).84
+Tablas TICKET y TIPO_TICKET:
+La información sobre precios de entrada es la siguiente 18:
+* TIPO_TICKET:
+   * Regular: 16 € (tipo='REGULAR', precio=16).
+   * Reducida: 8 € (tipo='REDUCIDO', precio=8). Elegibles: estudiantes, aprendices, etc.
+   * Entrada de tarde ("Kurz reingeschaut", desde las 17:00): Regular 8 €, Reducida 5 €.
+   * Niños y Jóvenes (<18 años): Gratis (tipo='NINO', precio=0).
+   * Ticket Familiar (1 Adulto + Niños): 14 €.
+   * Ticket Familiar (2 Adultos + Niños): 28 €.
+   * Grupos (8+ personas): 14 € por persona (requiere registro previo).
+   * Pase Kunstmeile (12 Meses): Regular 42 €, Reducida 27 €.
+   * Pase Kunstmeile (3 Días): Regular 35 €, Reducida 25 €.
+   * Viernes Dorado (Seniors 65+): 16 € (incluye pastel y café).
+   * Entrada gratuita: Cada primer jueves del mes de 18:00 a 21:00.
+Al igual que con el MdbK Leipzig, la restricción CHECK ('ESTUDIANTE','NIÑO','MAYOR') para TIPO_TICKET.tipo en el modelo de datos 1 es demasiado limitada para la diversidad de tipos de entradas ofrecidos por la Hamburger Kunsthalle. 'Reducida' podría mapearse a 'ESTUDIANTE', 'Niños <18' a 'NINO', y 'Viernes Dorado' (o la reducción general si aplica a seniors) a 'MAYOR'. Sin embargo, muchos tipos (Familiar, Grupo, Pase Kunstmeile, Entrada de Tarde) quedan fuera de estas categorías. Esto subraya la necesidad de flexibilidad en el modelo de datos o una estrategia de mapeo clara durante la población, aceptando una posible pérdida de granularidad si el modelo no puede modificarse.
+3.2. Estructura Organizacional y Física (EST_ORGANIZACIONAL, EST_FISICA, SALAS_EXP)
+Tabla EST_ORGANIZACIONAL:
+La Hamburger Kunsthalle proporciona una estructura de equipo detallada 85, lo que permite una población más granular de EST_ORGANIZACIONAL.
+* Consejo de Dirección (Vorstand): tipo='DIRECCION'
+   * Director: Prof. Dr. Alexander Klar.85
+   * Directora Comercial: Dr. Helga Huskamp.85
+* Departamentos Principales (Abteilungen): Pueden mapearse como entidades hijas de la Dirección. tipo='DEPARTAMENTO'. Ejemplos de 76:
+   * Colecciones y Gabinete de Grabados (Sammlungen & Kupferstichkabinett) - Jefes: Dr. Andreas Stolzenburg (Jefe Kupferstichkabinett), Dr. Sandra Pisot (Jefa Antiguos Maestros), Dr. Markus Bertsch (Jefe Siglo XIX), Toby Kamps (Jefe Arte Moderno), Dr. Brigitte Kölle (Jefa Arte Contemporáneo - Pintura/Escultura/Instalación/Media), Dr. Corinne Diserens (Jefa Arte Contemporáneo - Obras sobre Papel/Fotografía/Media), Dr. Annabelle Görgen-Lammers (Jefa Escultura y Plástica hasta 1960).
+   * Educación y Mediación (Bildung & Vermittlung) - Jefa: Dr. Andrea Weniger.
+   * Biblioteca, Archivo y Documentación (Bibliothek, Archiv & Dokumentation) - Jefa: Katharina Therese Gietkowski.
+   * Restauración y Tecnología del Arte (Restaurierung & Kunsttechnologie) - Jefa: Silvia Castro.
+   * Departamento de Registro y Coordinación de Exposiciones (Registratur & Ausstellungskoordination) - Jefa: Meike Wenck.
+   * Marketing y Relaciones con el Cliente (Marketing & Besucherservice) - Jefe: Dr. Jan Metzler.
+   * Comunicación Digital (Digitale Kommunikation) - Jefa: Martina Gschwilm.
+   * Prensa y Relaciones Públicas (Presse und Öffentlichkeitsarbeit) - Jefa: Mira Forte.
+   * Compromiso y Asociaciones (Engagement & Partnerschaften) - Jefas: Gesa-Thorid Huget, Dr. Anna Punke-Dresen.
+   * Gestión de Eventos (Veranstaltungsmanagement) - Jefas: Sina Fuhrmann, Marejke Fries.
+   * Servicio al Visitante (Aufsicht & Service) - Jefe: Hassan Daneschwar.
+   * Edificio y Tecnología (Gebäude & Technik) - Jefe: Ralf Suerbaum.
+   * Recursos Humanos (Personal) - Jefa: Marion Asmus.
+   * Control y Finanzas (Controlling & Finanzen) - Jefa: Kathrin von Gönner. La detallada lista de personal de la Hamburger Kunsthalle 85 es un activo significativo para poblar EST_ORGANIZACIONAL y potencialmente EMPLEADO_PROFESIONAL (para los jefes de departamento). Este nivel de detalle no suele ser público. El modelo de datos CSV 1 para EST_ORGANIZACIONAL incluye id_est_org_padre, lo que permite una representación jerárquica que se puede construir directamente a partir de la lista de personal.
+Tabla EST_FISICA:
+* nombre (est_fisica), tipo (est_fisica), descripcion, direccion_edificio:
+   * El museo consta de tres edificios conectados 77:
+      * Edificio Fundacional (Gründungsbau/Altbau): Inaugurado en agosto de 1869. Estructura de ladrillo ornamentada.76 Alberga Antiguos Maestros, Siglo XIX, Modernismo Clásico.76 Situado en la antigua Bastion Vincent (Alsterhöhe).76
+         * Lichtwarkgalerie (dentro del edificio fundacional).76 Las salas de colección para el Modernismo Clásico están en el 1er piso de la Lichtwark-Galerie; las salas de Antiguos Maestros y Siglo XIX también fueron renovadas aquí.86
+      * Edificio de Ampliación (Erweiterungsbau/Kuppelsaal): Construido entre 1912-1919.76 Neoclásico, de piedra caliza clara.78
+         * Hubertus Wald Forum.76
+         * Harzen-Kabinett (Sótano/Sockelgeschoss).87
+      * Galerie der Gegenwart (Galería de Arte Contemporáneo): Inaugurada en febrero de 1997. Diseñada por Oswald Mathias Ungers. Cubo blanco/fachada de arenisca.76 Alberga Arte Contemporáneo. 5,600 m².76 Pisos 1-2 mencionados en el plano del museo.87 El sótano también se utiliza para exposiciones temporales.79
+   * direccion_edificio: Glockengießerwall 5, 20095 Hamburg.75
+   * Espacio total de exposición: aprox. 13,000 m².76
+   * Espacios Significativos (que podrían ser EST_FISICA de tipo 'AREA' o similar, o detallarse en descripcion):
+      * Sala de Estudio Histórica (Kupferstichkabinett).76
+      * Café DAS LIEBERMANN (en la parte histórica).78
+      * Restaurante THE CUBE.8477
+      * Tienda del Museo.75
+      * Werner Otto Hall.91
+   * El plano del museo 87 muestra secciones de edificios (A, B, C, D, E, F, G) y niveles de piso (Untergeschoss, Erdgeschoss, 1. Etage, 2. Etage, Dachgeschoss). Esto es clave para la jerarquía en EST_FISICA.
+      * A: Altbau (Edificio Fundacional)
+      * B: Hubertus-Wald-Forum (Parte de la Ampliación)
+      * C: Sockelgeschoss (Sótano de la Ampliación, incl. Harzen-Kabinett)
+      * D: Altbau (Parte del Edificio Fundacional)
+      * E: (No claramente etiquetado, probablemente parte de la ampliación/conexión)
+      * F: Galerie der Gegenwart (Pisos 1-2)
+      * G: Galerie der Gegenwart (Dachgeschoss - Ático/Último piso)
+Tabla SALAS_EXP:
+* El plano del museo 87 proporciona salas numeradas para las colecciones. Estas pueden mapearse a SALAS_EXP. Por ejemplo, "Alte Meister" en las salas 1-6, 8-10 (1. Etage Altbau). "19. Jahrhundert" en las salas 14-23 (1. Etage Altbau). "Klassische Moderne" en las salas 24-31 (1. Etage Altbau & Hubertus-Wald-Forum). "Galerie der Gegenwart" salas 1-11 (Etage 1 & 2 de GdG).
+* La disponibilidad de un plano detallado 87 para la Hamburger Kunsthalle es una ventaja significativa, permitiendo una población más granular de EST_FISICA (para edificios y pisos individuales) y SALAS_EXP (para salas numeradas/nombradas), en contraste con la información más general disponible para el MdbK Leipzig.
+3.3. Colecciones y Obras de Arte (COLECCION_PERMANENTE, SALAS_COLECCIONES, OBRAS, ARTISTA, ARTISTAS_OBRAS, HIST_OBRAS_MOV)
+Tabla COLECCION_PERMANENTE:
+El museo cuenta con varias colecciones formalmente nombradas 76:
+* Alte Meister (Antiguos Maestros): Arte desde principios del siglo XV hasta finales del XVIII. Foco en pintura medieval del norte de Alemania (Bertram von Minden, Meister Francke), siglo XVI alemán (Cranach el Viejo, Holbein el Viejo), siglo XVII holandés (Rembrandt, de Hooch, van Dyck), Barroco italiano (Canaletto, Bellotto, Tiepolo), siglo XVIII francés (Boucher, Fragonard).76 Ubicación: 1er Piso, Altbau (Edificio Fundacional), Salas 1-6, 8-10.87
+   * caracteristicas: "Arte europeo siglos XV-XVIII; Medieval del Norte de Alemania, Renacimiento Alemán, Siglo de Oro Holandés, Barroco Italiano, Francés del siglo XVIII."
+   * palabra_clave: "Medieval, Renacimiento, Barroco, Siglo de Oro Holandés, Retablos, Pintura Religiosa, Retrato".
+* 19. Jahrhundert (Siglo XIX): Una de las mejores de Alemania. Romanticismo alemán (C.D. Friedrich, P.O. Runge), Realismo (Menzel, Leibl), Impresionismo (Liebermann). Pintura francesa del siglo XIX (Corot, Courbet, Manet, Monet, Renoir, Cézanne, Gauguin).76 Ubicación: 1er Piso, Altbau (Edificio Fundacional), Salas 14-23.87
+   * caracteristicas: "Arte alemán y francés del siglo XIX; Romanticismo, Realismo, Impresionismo, pintura de Salón, Simbolismo."
+   * palabra_clave: "Romanticismo, Impresionismo, Pintura Alemana, Pintura Francesa, Paisaje, Retrato".
+* Moderne (Modernismo Clásico): Pinturas 1900-1960. Expresionismo alemán (Die Brücke), École de Paris, Edvard Munch, Paula Modersohn-Becker, Max Beckmann, Bauhaus, Nueva Objetividad, Surrealismo, pintura abstracta.76 Ubicación: 1er Piso, Altbau & Hubertus-Wald-Forum, Salas 24-31.87
+   * caracteristicas: "Arte moderno alemán e internacional 1900-1960; Expresionismo, École de Paris, Bauhaus, Nueva Objetividad, Surrealismo, Abstracción."
+   * palabra_clave: "Expresionismo, Modernismo, Vanguardia, Arte Abstracto, Modernismo Alemán".
+* Kunst der Gegenwart (Arte Contemporáneo): Arte desde 1960 hasta la actualidad. Pintura, Pop Art, Arte Povera, Minimal Art, Arte Conceptual, Fotografía, Video/Media Art. Artistas como Polke, Richter, Baselitz, Warhol, Beuys, Nauman, Holzer, Kabakov, Serra.76 Ubicación: Galerie der Gegenwart, Pisos 1 y 2, Salas 1-11.87
+   * caracteristicas: "Arte contemporáneo internacional post-1960; Pintura, Escultura, Instalación, Fotografía, Videoarte; Pop Art, Arte Povera, Minimal Art, Arte Conceptual."
+   * palabra_clave: "Arte Contemporáneo, Post-1960, Instalación, Videoarte, Fotografía, Pop Art, Arte Conceptual".
+* Kupferstichkabinett (Gabinete de Grabados y Dibujos): >140,000 dibujos y grabados desde el siglo XV hasta la actualidad. Destacan: Francisco de Goya, Bartolomé Esteban Murillo, Alberto Durero, Pieter Bruegel el Viejo, Paul Cézanne, Philipp Otto Runge.76 Ubicación: Sótano (Sockelgeschoss), Harzen-Kabinett.87 Sala de estudio para consulta.76
+   * caracteristicas: "Dibujos y grabados europeos, siglo XV hasta la actualidad; importantes fondos de Goya, Durero, Rembrandt, gráfica italiana y francesa, expresionistas alemanes."
+   * palabra_clave: "Dibujos, Grabados, Aguafuertes, Litografías, Acuarelas, Dibujos Antiguos Maestros, Grabados Modernos".
+* Skulptur & Plastik (Colección de Escultura): >6,500 obras, desde la antigüedad hasta 1960. Medallas, placas, monedas, relieves, esculturas exentas. Materiales: mármol, bronce, oro, plata, madera, arcilla, yeso, etc. Foco en retratos/animales del siglo XIX, Clasicismo alemán (Schadow, Rauch), Simbolismo (Klinger), siglo XIX francés (Carpeaux, Rodin), principios del siglo XX (Maillol), Modernismo Clásico (Kollwitz, Barlach, Matisse, Picasso, Giacometti).79 Ubicación: Planta Baja, Altbau, Sala 11 (Skulpturen-Sammlung) en el plano.87 Algunas piezas también en la Rotonda.79 Una nueva presentación a partir de abril de 2026 ocupará toda la planta baja del edificio fundacional/antiguo.97
+   * caracteristicas: "Obras tridimensionales desde la antigüedad hasta 1960; medallas, monedas, relieves, esculturas exentas; materiales diversos; Clasicismo Alemán, Simbolismo, Francés Siglo XIX, Modernismo."
+   * palabra_clave: "Escultura, Medallas, Monedas, Bronce, Mármol, Escultura Clásica, Escultura Moderna".
+* Mediensammlung (Colección de Medios): >600 videos, películas, videoinstalaciones, obras de audio desde 1960 hasta la actualidad. Artistas: Vito Acconci, Joseph Beuys, Tracey Emin, Rebecca Horn, Bruce Nauman, Francis Alÿs, Rosa Barba.79 Ubicación: Parte del Arte Contemporáneo, Galerie der Gegenwart. Sala específica no identificada en el plano 87, pero probablemente dentro de los espacios de la GdG. Dirigida por Dr. Brigitte Kölle y Dr. Corinne Diserens.98
+   * caracteristicas: "Videoarte, cine, obras sonoras, instalaciones desde 1960 hasta la actualidad; artistas pioneros y contemporáneos de los medios."
+   * palabra_clave: "Media Art, Videoarte, Cine, Arte Sonoro, Arte Digital, Nuevos Medios".
+* orden_recorrido: El plano del museo 87 sugiere un posible recorrido por la numeración de las salas. 76 menciona que la pintura de Salón europea "abre el recorrido". El principio rector "Todo Arte Ha Sido Contemporáneo" 76 sugiere un enfoque temático/cronológico. No se establece explícitamente un único orden_recorrido para todo el museo.
+Tabla SALAS_COLECCIONES:
+Esta tabla puede poblarse extensamente utilizando el plano del museo 87, que asigna colecciones a salas numeradas en pisos específicos dentro de los diferentes edificios (Altbau, Hubertus-Wald-Forum, Galerie der Gegenwart). Por ejemplo:
+* Alte Meister: Altbau, 1. Etage, Salas 1-6, 8-10.
+*    19. Jahrhundert: Altbau, 1. Etage, Salas 14-23.
+* Klassische Moderne: Altbau & Hubertus-Wald-Forum, 1. Etage, Salas 24-31.
+* Galerie der Gegenwart: Edificio GdG, Etage 1 & 2, Salas 1-11.
+* Kupferstichkabinett: Sockelgeschoss, Harzen-Kabinett, Salas C01-C04.
+* Skulpturen-Sammlung: Altbau, Erdgeschoss, Sala 11.
+Tablas OBRAS, ARTISTA, ARTISTAS_OBRAS y HIST_OBRAS_MOV (Obras Seleccionadas):
+* Obra 1: Caminante sobre el mar de nubes (Wanderer über dem Nebelmeer)
+   * Datos de la Obra (OBRAS):
+      * nombre: Wanderer über dem Nebelmeer (Wanderer above the Sea of Fog) 94
+      * fecha_periodo: c. 1817 94
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 94.8 x 74.8 cm 94
+      * desc_materiales_tecnicas: Óleo sobre lienzo 101
+      * desc_estilos_generos: Romanticismo alemán, pintura de paisaje.101
+   * Datos del Artista (ARTISTA): Caspar David Friedrich (Detalles como en la sección del MdbK).
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: HK-5161.100
+      * tipo_adquisicion: Préstamo permanente de la Stiftung Hamburger Kunstsammlungen, adquirida en 1970.94
+      * destacada: Sí, obra icónica clave.94
+* Obra 2: Nana
+   * Datos de la Obra (OBRAS):
+      * nombre: Nana 79
+      * fecha_periodo: 1877 94
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 154 x 115 cm 94
+      * desc_materiales_tecnicas: Óleo sobre lienzo 103
+      * desc_estilos_generos: Impresionismo (asociado, Manet es precursor/figura de transición), retrato, escena de género (representación de una cortesana).103
+   * Datos del Artista (ARTISTA): Édouard Manet
+      * primer_nombre: Édouard 105
+      * primer_apellido: Manet 105
+      * fecha_nacimiento: 23 de enero de 1832 (París) 105
+      * fecha_difuncion: 30 de abril de 1883 (París) 105
+      * id_lugar (nacimiento): Referencia a París, Francia.
+      * resumen_caracteristicas: Pintor modernista francés, figura fundamental en la transición del Realismo al Impresionismo. Conocido por pintar la vida moderna y desafiar las convenciones artísticas.105
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: HK-2376.104
+      * tipo_adquisicion: Adquirida en 1924.94
+* Obra 3: Retablo de Grabow (Grabower Altar)
+   * Datos de la Obra (OBRAS):
+      * nombre: Retabel des ehemaligen Hochaltars der Petrikirche in Hamburg (Grabower Altar) 107
+      * fecha_periodo: 1379-1383 107
+      * tipo_obra: 'PINTURA' (es un retablo con paneles pintados y esculturas, pero el modelo OBRAS solo permite 'PINTURA' o 'ESCULTURA'. Se clasifica como pintura por sus extensos paneles pintados, aunque contiene elementos escultóricos).
+      * dimensiones: 217.5 x 726 x 19.5 cm (abierto, con 24 paneles de aprox. 80x51 cm cada uno).107
+      * desc_materiales_tecnicas: Óleo-temple sobre madera de roble, con interior esculpido.107
+      * desc_estilos_generos: Gótico tardío, arte religioso, retablo.108
+   * Datos del Artista (ARTISTA): Maestro Bertram von Minden
+      * primer_nombre: (Meister) Bertram 111
+      * primer_apellido: von Minden 111
+      * apodo: Meister Bertram
+      * fecha_nacimiento: c. 1340 (Minden?) 112
+      * fecha_difuncion: 1414-1415 (Hamburgo) 111
+      * id_lugar (nacimiento): Referencia a Minden, Alemania.
+      * resumen_caracteristicas: Pintor, iluminador y escultor alemán. Activo en Hamburgo. Estilo caracterizado por modelado suave de paños y figuras sólidas, con posible influencia bohemia. Importante figura del gótico tardío en el norte de Alemania.111
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: HK-500.107
+      * tipo_adquisicion: Adquirido por Alfred Lichtwark para la Kunsthalle en 1903 con fondos de la Carl-Heine-Stiftung, proveniente de la iglesia de Grabow (Mecklemburgo), donde había estado desde 1731/1734 tras ser retirado de St. Petri en Hamburgo.109
+* Obra 4: Simeón y Ana en el Templo (Simeon und Hanna im Tempel)
+   * Datos de la Obra (OBRAS):
+      * nombre: Simeon und Hanna im Tempel (Simeon and Anna in the Temple) 93
+      * fecha_periodo: 1627.93115 Se tomará 1627 por mayor consistencia en fuentes más detalladas.
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 55.5 x 44 cm.93
+      * desc_materiales_tecnicas: Óleo sobre madera de roble.93
+      * desc_estilos_generos: Barroco holandés, pintura religiosa.114
+   * Datos del Artista (ARTISTA): Rembrandt Harmensz. van Rijn
+      * primer_nombre: Rembrandt Harmensz. 116
+      * primer_apellido: van Rijn 116
+      * fecha_nacimiento: 15 de julio de 1606 (Leiden) 116
+      * fecha_difuncion: 4 de octubre de 1669 (Ámsterdam) 116
+      * id_lugar (nacimiento): Referencia a Leiden, Países Bajos.
+      * resumen_caracteristicas: Pintor y grabador barroco holandés, maestro del claroscuro, narrador excepcional en arte religioso, mitológico e histórico, retratista.116
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: HK-88.114
+      * tipo_adquisicion: Adquirida en 1912.114
+* Obra 5: Pierre De Wiessant (Escultura)
+   * Datos de la Obra (OBRAS):
+      * nombre: Pierre De Wiessant 97
+      * fecha_periodo: Modelado 1885.97 La versión de la Kunsthalle es de 1885. Otros bronces fundidos c. 1900-1907 (Met) 118 o 1979 (Brooklyn).120
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: 197 x 117 x 94 cm (versión Kunsthalle).97
+      * desc_materiales_tecnicas: Bronce.97
+      * desc_estilos_generos: Escultura moderna, parte del grupo "Los Burgueses de Calais".118
+   * Datos del Artista (ARTISTA): Auguste Rodin
+      * primer_nombre: Auguste (François-Auguste-René) 123
+      * primer_apellido: Rodin 123
+      * fecha_nacimiento: 12 de noviembre de 1840 (París) 123
+      * fecha_difuncion: 17 de noviembre de 1917 (Meudon) 123
+      * id_lugar (nacimiento): Referencia a París, Francia.
+      * resumen_caracteristicas: Escultor francés, considerado el progenitor de la escultura moderna. Infundió emoción y carácter, rompiendo con la tradición académica.123
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: No especificado para la versión de la Kunsthalle en los fragmentos.
+      * tipo_adquisicion: No especificado para la versión de la Kunsthalle en los fragmentos.113
+* Obra 6: Cabeza de un Pensador (Kopf eines Denkers) (Escultura)
+   * Datos de la Obra (OBRAS):
+      * nombre: Kopf eines Denkers (Head of a Thinker) 95
+      * fecha_periodo: 1918.27
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: 62.5 x 60 x 30 cm.27
+      * desc_materiales_tecnicas: Piedra artificial (Kunststein / cast stone).27
+      * desc_estilos_generos: Expresionismo (asociado), escultura moderna, retrato.127
+   * Datos del Artista (ARTISTA): Wilhelm Lehmbruck
+      * primer_nombre: Wilhelm 127
+      * primer_apellido: Lehmbruck 127
+      * fecha_nacimiento: 4 de enero de 1881 (Meiderich, Alemania) 127
+      * fecha_difuncion: 25 de marzo de 1919 (Berlín) 127
+      * id_lugar (nacimiento): Referencia a Meiderich (Duisburg), Alemania.
+      * resumen_caracteristicas: Escultor, grabador y pintor alemán, conocido por sus esculturas melancólicas de desnudos alargados. Influenciado por Rodin y Maillol, asociado con el Expresionismo.127
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Los detalles específicos de adquisición por la Hamburger Kunsthalle no están en los fragmentos.95 La colección de Arte Moderno se expandió a través de compras, donaciones y legados después de 1945.95
+* Obra 7: El Río (Der Fluss) (Escultura)
+   * Datos de la Obra (OBRAS):
+      * nombre: Der Fluss (La rivière étendue / The River) 97
+      * fecha_periodo: 1947 (versión Kunsthalle).97 Modelada 1938-39, completada 1943, fundida 1948 (MoMA).129
+      * tipo_obra: 'ESCULTURA'
+      * dimensiones: 124 x 230 x 163 cm (versión Kunsthalle).97
+      * desc_materiales_tecnicas: Plomo (Blei) (versión Kunsthalle).97
+      * desc_estilos_generos: Escultura moderna, desnudo femenino monumental, clasicismo purificado.131
+   * Datos del Artista (ARTISTA): Aristide Maillol
+      * primer_nombre: Aristide (Joseph Bonaventure) 131
+      * primer_apellido: Maillol 131
+      * fecha_nacimiento: 8 de diciembre de 1861 (Banyuls-sur-Mer, Francia) 131
+      * fecha_difuncion: 27 de septiembre de 1944 (cerca de Banyuls-sur-Mer) 131
+      * id_lugar (nacimiento): Referencia a Banyuls-sur-Mer, Francia.
+      * resumen_caracteristicas: Escultor, pintor y grabador francés. Conocido por sus estatuas monumentales de desnudos femeninos, con preocupación por la masa y el análisis formal riguroso, purificando la tradición clásica.131
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Adquirida en 1953 de la Galerie Dina Vierny, París, con fondos de la Campe'schen Historischen Kunststiftung y/o de la Exposición Internacional de Horticultura de 1953.130
+      * id_catalogo_museo: S-1953-12.130
+* Obra 8: S. mit Kind (S. con Niño)
+   * Datos de la Obra (OBRAS):
+      * nombre: S. mit Kind (S. and Child) 89
+      * fecha_periodo: 1995 89
+      * tipo_obra: 'PINTURA'
+      * dimensiones: 40.9 x 36.4 cm 89; otras dimensiones listadas en 133 (ej. 36 x 41 cm, 41 x 36.5 cm, 46 x 41.5 cm). Se usará 40.9 x 36.4 cm como una de las versiones.
+      * desc_materiales_tecnicas: Óleo sobre lienzo.89
+      * desc_estilos_generos: Fotorrealismo (con desenfoque característico), retrato contemporáneo.135
+   * Datos del Artista (ARTISTA): Gerhard Richter
+      * primer_nombre: Gerhard 135
+      * primer_apellido: Richter 135
+      * fecha_nacimiento: 9 de febrero de 1932 (Dresde, Alemania) 135
+      * fecha_difuncion: Vivo.
+      * id_lugar (nacimiento): Referencia a Dresde, Alemania.
+      * resumen_caracteristicas: Pintor alemán conocido por su diversidad de estilos, incluyendo pinturas abstractas y fotorrealistas, fotografías y piezas de vidrio. Figura clave del arte contemporáneo alemán.135
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * tipo_adquisicion: Préstamo permanente de la Stiftung für die Hamburger Kunstsammlungen.133 Adquisición específica por la fundación no detallada.
+* Obra 9: Balaklava (Sin título - Cinco Gorros de Lana Diferentes...)
+   * Datos de la Obra (OBRAS):
+      * nombre: Balaklava (Originalmente "Ohne Titel", la descripción coincide con "Balaklava Box - Uniqum" o "Fünf verschiedene Wollmützen...").89
+      * fecha_periodo: 1986 (obra base); 1986-1990 (Balaklava Box).137
+      * tipo_obra: 'ESCULTURA' (considerada instalación/objeto escultórico).
+      * dimensiones: "Balaklava Box - Uniqum" mide 34.5 x 154 x 32 cm.139 Las dimensiones de G-1993-5 no se especifican en.137
+      * desc_materiales_tecnicas: Cinco gorros de lana diferentes, cabezas de poliestireno.122 "Balaklava Box" incluye además vitrina de plexiglás.139
+      * desc_estilos_generos: Arte conceptual, crítica feminista, uso de textiles.141
+   * Datos del Artista (ARTISTA): Rosemarie Trockel
+      * primer_nombre: Rosemarie 141
+      * primer_apellido: Trockel 141
+      * fecha_nacimiento: 13 de noviembre de 1952 (Schwerte, Alemania) 141
+      * fecha_difuncion: Viva.
+      * id_lugar (nacimiento): Referencia a Schwerte, Alemania.
+      * resumen_caracteristicas: Artista conceptual alemana. Trabaja con diversos medios (dibujo, pintura, escultura, video, instalación). Conocida por sus "pinturas tejidas" y por desafiar nociones tradicionales de feminidad y producción artística.141
+   * Datos de Movimiento de la Obra (HIST_OBRAS_MOV):
+      * id_catalogo_museo: G-1993-5 (para "Fünf verschiedene Wollmützen...").137
+      * tipo_adquisicion: Adquirida del comercio de arte en 1993.122
+* Obra 10: Obra de Eva Hesse (Ejemplo: Sans II)
+   * La Hamburger Kunsthalle realizó una importante retrospectiva de Eva Hesse, "One More than One", concentrándose en su obra de 1966-1970, con préstamos de museos internacionales.144 No se especifica si la Kunsthalle posee obras permanentes de Hesse en su colección a partir de los fragmentos.113 El Allen Memorial Art Museum (Oberlin, OH) es el depositario del Archivo Eva Hesse y fue el primer museo en comprar una escultura suya.145 Si la Kunsthalle tuviera una obra permanente, se necesitarían detalles específicos de esa obra. Para fines ilustrativos, si tuvieran "Sans II":
+   * OBRAS:
+      * nombre: Sans II
+      * fecha_periodo: 1968 144
+      * tipo_obra: 'ESCULTURA' (instalación)
+      * dimensiones: Varía según instalación (obra de cinco partes).
+      * desc_materiales_tecnicas: Poliéster, fibra de vidrio, látex (materiales típicos de Hesse).144
+      * desc_estilos_generos: Postminimalismo, arte procesual, escultura excéntrica.146
+   * ARTISTA (Eva Hesse):
+      * primer_nombre: Eva 147
+      * primer_apellido: Hesse 147
+      * fecha_nacimiento: 11 de enero de 1936 (Hamburgo, Alemania) 147
+      * fecha_difuncion: 29 de mayo de 1970 (Nueva York, EE.UU.) 147
+      * id_lugar (nacimiento): Referencia a Hamburgo, Alemania.
+      * resumen_caracteristicas: Escultora germano-estadounidense conocida por su trabajo pionero con materiales como látex, fibra de vidrio y plásticos. Figura clave del movimiento postminimalista.147
+   * HIST_OBRAS_MOV:
+      * tipo_adquisicion: (Si fuera propiedad de la Kunsthalle) No especificado en los fragmentos.
+Tabla: Obras de Arte Seleccionadas en la Hamburger Kunsthalle
+nombre_obra
+	artista_nombre_completo
+	fecha_periodo
+	tipo_obra
+	dimensiones
+	desc_materiales_tecnicas
+	desc_estilos_generos
+	id_catalogo_museo
+	tipo_adquisicion (si se conoce)
+	Wanderer über dem Nebelmeer
+	Caspar David Friedrich
+	c. 1817
+	PINTURA
+	94.8 x 74.8 cm
+	Óleo sobre lienzo
+	Romanticismo alemán, paisaje
+	HK-5161
+	Préstamo perm. Stiftung Hamburger Kunstsammlungen, adq. 1970
+	Nana
+	Édouard Manet
+	1877
+	PINTURA
+	154 x 115 cm
+	Óleo sobre lienzo
+	Impresionismo (asoc.), retrato, escena de género
+	HK-2376
+	Adquirida en 1924
+	Grabower Altar
+	Meister Bertram von Minden
+	1379-1383
+	PINTURA
+	217.5 x 726 cm (abierto)
+	Óleo-temple sobre madera de roble
+	Gótico tardío, arte religioso, retablo
+	HK-500
+	Adquirida en 1903 (Fondos Carl-Heine-Stiftung)
+	Simeon und Hanna im Tempel
+	Rembrandt Harmensz. van Rijn
+	1627
+	PINTURA
+	55.5 x 44 cm
+	Óleo sobre madera de roble
+	Barroco holandés, pintura religiosa
+	HK-88
+	Adquirida en 1912
+	Pierre De Wiessant
+	Auguste Rodin
+	1885 (modelo)
+	ESCULTURA
+	197 x 117 x 94 cm
+	Bronce
+	Escultura moderna, "Los Burgueses de Calais"
+	
+
+	(Detalles de adquisición no especificados en fragmentos)
+	Kopf eines Denkers
+	Wilhelm Lehmbruck
+	1918
+	ESCULTURA
+	62.5 x 60 x 30 cm
+	Piedra artificial (Kunststein)
+	Expresionismo (asoc.), escultura moderna
+	
+
+	(Detalles de adquisición no especificados en fragmentos)
+	Der Fluss (La rivière étendue)
+	Aristide Maillol
+	1947 (fundición)
+	ESCULTURA
+	124 x 230 x 163 cm
+	Plomo (Blei)
+	Escultura moderna, desnudo monumental
+	S-1953-12
+	Adquirida en 1953 (Galerie Dina Vierny / Fondos Campe'schen)
+	S. mit Kind
+	Gerhard Richter
+	1995
+	PINTURA
+	40.9 x 36.4 cm (una versión)
+	Óleo sobre lienzo
+	Fotorrealismo (desenfocado), retrato contemporáneo
+	
+
+	Préstamo perm. Stiftung für die Hamburger Kunstsammlungen
+	Balaklava (Ohne Titel)
+	Rosemarie Trockel
+	1986
+	ESCULTURA
+	Varía (ej. caja 34.5x154x32cm)
+	Gorros de lana, cabezas de poliestireno
+	Arte conceptual, crítica feminista
+	G-1993-5
+	Adquirida en 1993 (comercio de arte)
+	Obra de Eva Hesse
+	Eva Hesse
+	1966-1970 (período)
+	ESCULTURA
+	Varía
+	Látex, fibra de vidrio, etc.
+	Postminimalismo, arte procesual
+	
+
+	(No se confirma obra permanente en los fragmentos)
+	Esta tabla resume la información clave de las obras seleccionadas de la Hamburger Kunsthalle, facilitando una visión estructurada de los datos recopilados y destacando la disponibilidad de información para los campos relevantes del modelo de datos.
+3.4. Exposiciones, Eventos y Operaciones (EXPOSICION_EVENTO, CIERRES_TEMPORALES)
+Tabla EXPOSICION_EVENTO:
+La Hamburger Kunsthalle tiene un programa activo de exposiciones especiales.
+* Ejemplos de exposiciones actuales/recientes/próximas 90:
+   * "RENDEZVOUS OF DREAMS. Surrealism and German Romanticism": A partir del 13.06.2025 (Preview) hasta el 12.10.2025.150
+   * "ANDERS ZORN. Swedish Superstar": A partir del 26.09.2025 hasta el 25.01.2026.150
+   * "Bas Jan Ader. I'm searching...": Película de la exposición disponible actualmente.75
+   * "THE EPHEMERAL LAKE. A digital installation by Jakob Kudsk Steensen": 12.04.2024 - 27.10.2024.150
+   * "Georges Adéagbo. has created a new work for the Hamburger Kunsthalle": 31.05.2024 - 29.09.2024.150
+   * "something new, something old, something desired": 18.02.2022 - 15.09.2024.150
+* Los costos específicos para estas exposiciones, si difieren de la entrada general, no se detallan en los fragmentos de nivel superior, pero la estructura de precios sugiere que las exposiciones especiales están incluidas en la entrada general o en pases como el Kunstmeile Pass.90
+Tabla CIERRES_TEMPORALES:
+* Se mencionan "Sanierungsmaßnahmen" (Medidas de renovación) con información importante para los visitantes.75 Sin embargo, los detalles específicos sobre cierres temporales de galerías o indisponibilidad de obras debido a estas medidas no se proporcionan en los fragmentos iniciales.153154 indica que el Museum für Hamburgische Geschichte (otro museo) estará cerrado por renovación hasta 2027, pero esto no aplica directamente a la Kunsthalle, aunque ilustra la posibilidad de cierres prolongados por reformas en museos de Hamburgo. La información de 84 indica que la taquilla y el museo tienen horarios regulares, lo que sugiere que no hay un cierre total actualmente.
+3.5. Información del Personal (EMPLEADO_PROFESIONAL, EMPLEADO_VIGILANTE_MANT, FORMACION, IDIOMA, HIST_EMPLEADO, ASIGNACIONES_MES)
+La Hamburger Kunsthalle proporciona una lista detallada de su personal 85, lo que permite una población más rica de la tabla EMPLEADO_PROFESIONAL en comparación con el MdbK.
+* Director (Vorstand): Prof. Dr. Alexander Klar.
+* Directora Comercial (Kaufmännischer Vorstand): Dr. Helga Huskamp.
+* Jefes de Departamento (Leitung): Se pueden registrar numerosos jefes de los departamentos listados en la sección 3.2 (Estructura Organizacional), como Dr. Andreas Stolzenburg (Kupferstichkabinett), Dr. Sandra Pisot (Alte Meister), Dr. Markus Bertsch (19. Jahrhundert), etc.
+* El documento 1 (p.7) indica que los curadores suelen tener especialidades en Historia del Arte o Estética. Esta información es relevante para el campo titulo o descripcion_espec en la tabla FORMACION.
+* Al igual que con el MdbK, la información detallada sobre todos los empleados, sus cualificaciones completas, idiomas, historial laboral completo o asignaciones mensuales no está disponible públicamente.
+4. Conclusiones y Consideraciones para la Población de la Base de Datos
+La investigación de los museos MdbK Leipzig y Hamburger Kunsthalle ha arrojado una cantidad significativa de datos relevantes para la población de la base de datos definida. No obstante, existen ciertas limitaciones y consideraciones importantes:
+1. Disponibilidad de Datos:
+   * Ambos museos proporcionan información general robusta sobre su historia, misión, ubicación y horarios.
+   * La Hamburger Kunsthalle ofrece una estructura organizativa y de personal mucho más detallada en sus fuentes públicas en comparación con el MdbK Leipzig, lo que permitirá una población más completa de las tablas EST_ORGANIZACIONAL y EMPLEADO_PROFESIONAL para dicho museo.
+   * La información sobre la estructura física (edificios, pisos, salas) es más detallada para la Hamburger Kunsthalle, especialmente gracias a su plano del museo 87, lo que facilitará la población de EST_FISICA y SALAS_EXP con mayor granularidad. Para el MdbK, la distribución por pisos es más general.
+   * Ambos museos listan sus colecciones permanentes principales. La información sobre características y palabras clave puede inferirse o extraerse directamente. Sin embargo, un orden_recorrido específico y universalmente prescrito para las colecciones no es explícito para ninguno de los dos, aunque la disposición física sugiere flujos lógicos.
+   * Se ha podido recopilar información detallada (nombre, artista, fecha, dimensiones, materiales, estilo) para varias obras de arte significativas de ambas instituciones, lo que permitirá una buena representación en las tablas OBRAS y ARTISTA. Los detalles de adquisición (HIST_OBRAS_MOV) son más esporádicos y a menudo se refieren a donaciones o legados importantes, o adquisiciones históricas clave. El id_catalogo_museo (número de inventario) solo se encontró para algunas obras.
+   * La información sobre exposiciones especiales (EXPOSICION_EVENTO) está disponible, pero datos como cant_visitantes para eventos pasados o institucion_educativa para todos los eventos relevantes para escuelas son difíciles de obtener de fuentes públicas.
+2. Adecuación del Modelo de Datos:
+   * La restricción CHECK en el campo TIPO_TICKET.tipo ('ESTUDIANTE','NIÑO','MAYOR') 1 resulta insuficiente para la variedad de tipos de entradas que ofrecen ambos museos (ej. Regular, Reducida, Familiar, Grupo, Pases combinados, Entradas de tarde/eventos especiales). Para una representación fiel, sería recomendable ampliar estas categorías o establecer una política de mapeo clara, aunque esto último podría implicar una pérdida de detalle. Por ejemplo, "Reducida" podría mapearse a "ESTUDIANTE" si la mayoría de los beneficiarios son estudiantes, pero esto no capturaría otros grupos elegibles para la tarifa reducida.
+   * La granularidad de la tabla EST_ORGANIZACIONAL (con id_est_org_padre) es adecuada, pero su población completa depende de la disponibilidad de organigramas detallados, que solo se insinúan para la Hamburger Kunsthalle.
+   * La tabla OBRAS y ARTISTA son centrales y pueden poblarse bien con los ejemplos seleccionados. La vinculación a través de ARTISTAS_OBRAS es directa.
+   * Campos como valor_monetario en HIST_OBRAS_MOV son, como se esperaba según 1 (p.12), información confidencial y no disponible públicamente.
+3. Desafíos en la Población:
+   * La información exhaustiva para tablas como EMPLEADO_VIGILANTE_MANT, FORMACION detallada para todos los profesionales, EMPLEADOS_IDIOMAS, HIST_EMPLEADO completa, y ASIGNACIONES_MES es inherentemente interna y no se espera que esté disponible en fuentes públicas. Su población requerirá acceso a los sistemas internos de los museos.
+   * Obtener un listado completo y detallado de todas las SALAS_EXP con sus nombres oficiales y descripciones para el MdbK Leipzig es un desafío con la información actual.
+   * La determinación del orden_recorrido para las colecciones y obras destacadas es subjetiva o no está formalmente documentada en muchos casos, más allá de la disposición física.
+4. Recomendaciones Implícitas para la Población:
+   * Priorizar la población de tablas con datos públicos robustos (MUSEO, LUGAR, OBRAS y ARTISTA para obras clave, COLECCION_PERMANENTE a nivel general, HORARIO).
+   * Para TIPO_TICKET, se debe tomar una decisión sobre cómo manejar la discrepancia con las categorías del modelo: mapear los tipos existentes a las categorías predefinidas (documentando las generalizaciones hechas) o proponer una modificación del CHECK constraint si el sistema lo permite y se busca mayor fidelidad.
+   * La población de estructuras organizacionales y físicas detalladas (EST_ORGANIZACIONAL, EST_FISICA, SALAS_EXP, SALAS_COLECCIONES) será más completa para la Hamburger Kunsthalle debido a la mayor disponibilidad de información pública detallada.
+   * Reconocer que una base de datos exhaustiva, especialmente en lo referente a personal, movimientos internos de obras, y finanzas detalladas, dependerá crucialmente de la colaboración y el suministro de datos por parte de las propias instituciones museísticas.
+En resumen, la investigación ha proporcionado una base sólida de información para iniciar la población de la base de datos. Se han identificado áreas donde los datos son abundantes y otras donde la información pública es limitada, así como puntos donde el modelo de datos presenta restricciones frente a la realidad operativa de los museos.
+Fuentes citadas
+1. Modelo Logico - ER_ARREGLADO_V2.csv
+2. Collections in the Museum of Fine Arts Leipzig, acceso: junio 4, 2025, https://www.leipzig.travel/en/event/collections-in-the-Museum-of-Fine-Arts-Leipzig
+3. Museum der bildenden Künste - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Museum_der_bildenden_K%C3%BCnste
+4. Museum der bildenden Künste Leipzig - Sachsens Museen entdecken, acceso: junio 4, 2025, https://www.sachsens-museen-entdecken.de/museum/376-museum-der-bildenden-kuenste-leipzig
+5. Museum — Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/museum/
+6. MdbK Leipzig - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/
+7. "MdbK Architektur. Das Museum der bildenden Künste Leipzig" online kaufen - Thalia, acceso: junio 4, 2025, https://www.thalia.de/shop/home/artikeldetails/A1073482672
+8. Besuch im Museum für Bildende Kunst in Leipzig, acceso: junio 4, 2025, https://vile-netzwerk.de/besuch-im-museum-fuer-bildende-kunst-in-leipzig/
+9. Museum der bildenden Künste - Mapy.com, acceso: junio 4, 2025, https://mapy.com/en/?source=osm&id=11983723
+10. Museum der bildenden Künste Leipzig - Öffnungszeiten, Eintrittspreise, Ausstellungen - LVZ, acceso: junio 4, 2025, https://www.lvz.de/kultur/regional/museum-der-bildenden-kuenste-leipzig-U7DY3EQD2PK5X2BR44SAZ5E4B4.html
+11. Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/
+12. Leipzig: A Universe of Images. 1905-2022 - Mutual Art, acceso: junio 4, 2025, https://www.mutualart.com/Exhibition/Leipzig--A-Universe-of-Images--1905-2022/E35B0FABE6A0D5B2
+13. Ausstellungen - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/ausstellungen/
+14. Collections - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/collections/
+15. Museum der bildenden Künste Leipzig - Museen.de, acceso: junio 4, 2025, https://museen.de/museum-der-bildenden-kuenste-leipzig.html
+16. Sammlungen - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/sammlungen/
+17. Museum of Fine Arts Leipzig Region, acceso: junio 4, 2025, https://www.leipzig.travel/en/then/Museum-of-Fine-Arts
+18. MdbK Leipzig: Sammlung-Online, acceso: junio 4, 2025, https://sammlung.mdbk.de/
+19. MdbK [digital] - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/mdbk-digital/
+20. Beethoven - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/sternburg-stiftung/
+21. Caspar David Friedrich | The Stages of Life | The Metropolitan Museum of Art, acceso: junio 4, 2025, https://www.metmuseum.org/art/collection/search/856854
+22. The Stages of Life - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/The_Stages_of_Life
+23. File:Leipzig, Museum der bildenden Künste, Caspar David Friedrich, die Lebensstufen.JPG, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Leipzig,_Museum_der_bildenden_K%C3%BCnste,_Caspar_David_Friedrich,_die_Lebensstufen.JPG
+24. cda :: Paintings :: A nymph at a Fountain - Cranach Digital Archive, acceso: junio 4, 2025, https://lucascranach.org/en/DE_MdbKL_757/
+25. The Nymph at the Fountain - Cranach, Lucas (the Elder). Museo Nacional Thyssen-Bornemisza, acceso: junio 4, 2025, https://www.museothyssen.org/en/collection/artists/cranach-lucas-elder/nymph-fountain
+26. Lucas Cranach | National Galleries of Scotland, acceso: junio 4, 2025, https://www.nationalgalleries.org/art-and-artists/artists/lucas-cranach
+27. Lucas Cranach, the Elder | EBSCO Research Starters, acceso: junio 4, 2025, https://www.ebsco.com/research-starters/history/lucas-cranach-elder
+28. Presenting a major acquisition - Bilbao Fine Arts Museum, acceso: junio 4, 2025, https://bilbaomuseoa.eus/en/presenting-a-major-acquisition/
+29. Neo Rauch-Ausstellung im Museum Frieder Burda - Kultur-Online.net, acceso: junio 4, 2025, https://kultur-online.net/inhalt/neo-rauch-ausstellung-im-museum-frieder-burda
+30. Neo Rauch - Bio | The Broad, acceso: junio 4, 2025, https://www.thebroad.org/art/neo-rauch
+31. Neo Rauch - Artworks & Biography | David Zwirner, acceso: junio 4, 2025, https://www.davidzwirner.com/artists/neo-rauch
+32. Neo Rauch's Antagonistic Art | David Zwirner, acceso: junio 4, 2025, https://www.davidzwirner.com/news/2021/neo-rauch-s-antagonistic-art
+33. ART CITIES: Hong Kong-Neo Rauch – dreamideamachine ART VIEW, acceso: junio 4, 2025, https://www.dreamideamachine.com/?p=92606
+34. FUNDATIE ACQUIRES KEY WORK BY NEO RAUCH, acceso: junio 4, 2025, https://www.museumdefundatie.nl/en/fundatie-acquires-key-work-by-neo-rauch/
+35. neo-rauch-paintings-from-2008-to-2019 | Uffizi Galleries, acceso: junio 4, 2025, https://www.uffizi.it/en/events/neo-rauch-paintings-from-2008-to-2019
+36. Neo Rauch - Rubell Museum, acceso: junio 4, 2025, https://rubellmuseum.org/2019-neo-rauch
+37. (#14) Neo Rauch - Sotheby's, acceso: junio 4, 2025, https://www.sothebys.com/en/auctions/ecatalogue/2014/contemporary-art-evening-auction-l14024/lot.14.html
+38. Exhibition Museum der bildenden Künste Leipzig April 18 – August 15, 2010 - Eigen + Art, acceso: junio 4, 2025, https://www.eigen-art.com/files/l_m_eng_ds_100520_72dpi.pdf
+39. Neo Rauch - artmap, acceso: junio 4, 2025, https://artmap.com/mbdk/exhibition/neo-rauch-2010
+40. Newsletter April 2025 - Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/newsletter/2025-03-27-newsletter-april-2025/
+41. File:Leipzig, Museum der bildenden Künste, Frans Hals, der Mulatte.JPG, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Leipzig,_Museum_der_bildenden_K%C3%BCnste,_Frans_Hals,_der_Mulatte.JPG
+42. File:Frans Hals 003.jpg - Wikimedia Commons, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Frans_Hals_003.jpg
+43. Frans Hals - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Frans_Hals
+44. Frans Hals Biography In Details, acceso: junio 4, 2025, https://frans-hals.org/biography.html
+45. Angel heads from Max Klinger's Beethoven monument - Factum Foundation, acceso: junio 4, 2025, https://factumfoundation.org/our-projects/digitisation/angel-heads-from-max-klingers-beethoven-monument/
+46. Max Klinger (1857-1920) - Mahler Foundation, acceso: junio 4, 2025, https://mahlerfoundation.org/mahler/contemporaries/max-klinger/
+47. Figure of Beethoven – Works - MFA Collection - Museum of Fine Arts Boston, acceso: junio 4, 2025, https://collections.mfa.org/objects/255560
+48. Beethoven by KLINGER, Max, acceso: junio 4, 2025, https://www.wga.hu/html_m/k/klinger/beethove.html
+49. Max Klinger | National Galleries of Scotland, acceso: junio 4, 2025, https://www.nationalgalleries.org/art-and-artists/artists/max-klinger
+50. Max Klinger | Realist painter, printmaker, sculptor - Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Max-Klinger
+51. Max Klinger - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Max_Klinger
+52. The New Salome - Leopold Museum Online Sammlung, acceso: junio 4, 2025, https://onlinecollection.leopoldmuseum.org/en/object/33800-the-new-salome/
+53. The New Salome - Max Klinger - Google Arts & Culture, acceso: junio 4, 2025, https://artsandculture.google.com/asset/the-new-salome/AQGRVWuaiyruaw?hl=en
+54. Max Klinger - Die Neue Salome (The New Salome) - Sotheby's, acceso: junio 4, 2025, https://www.sothebys.com/en/buy/auction/2021/19th-20th-century-sculpture-2/die-neue-salome-the-new-salome?locale=fr
+55. “The New Salome” by Max Klinger - The Victorian Web, acceso: junio 4, 2025, https://victorianweb.org/decadence/painting/klinger/5.html
+56. Die neue Salome - SKD | Online Collection - Staatliche Kunstsammlungen Dresden, acceso: junio 4, 2025, https://skd-online-collection.skd.museum/Details/Index/166688
+57. A GERMAN BRONZE FIGURE OF KASSANDRA, cast from a model by Max Klinger, the prophetess shown half length, wearing a classical robe held across one breast by a bejewelled strap, her hair held in a band and chignon, signed M. Klinger fec. and inscribed AKT. GES. GLADENBECK FRIEDRICHSHAGEN., on shaped striated black, acceso: junio 4, 2025, https://www.christies.com/en/lot/lot-2996976
+58. Cassandre - Max Klinger | Musée d'Orsay, acceso: junio 4, 2025, https://www.musee-orsay.fr/en/artworks/cassandre-25573
+59. „Bär auf Kugel“-Plastik wurde abgebaut - Sachsen Sonntag & Rundschau, acceso: junio 4, 2025, https://www.sachsen-sonntag.de/baer-auf-kugel-plastik-wurde-abgebaut/
+60. Bär balancierend auf einer Kugel - Bildhauerei in Berlin, acceso: junio 4, 2025, https://bildhauerei-in-berlin.de/bildwerk/baer-balancierend-auf-einer-kugel-7351/
+61. August Gaul Sold at Auction Prices - Invaluable.com, acceso: junio 4, 2025, https://www.invaluable.com/artist/gaul-august-sufru5h2nd/sold-at-auction-prices/?page=8
+62. August Gaul Sold at Auction Prices - Invaluable.com, acceso: junio 4, 2025, https://www.invaluable.com/artist/gaul-august-sufru5h2nd/sold-at-auction-prices/?page=7
+63. August Gaul - Sladmore Gallery, acceso: junio 4, 2025, https://sladmore.com/artists/august-gaul/
+64. August Gaul (Groß-Auheim bei Hanau 1869 - Berlin 1921) - Sell & Buy - Auktionshaus Stahl, acceso: junio 4, 2025, https://www.auktionshaus-stahl.de/en/artist/2217-august-gaul
+65. August Gaul - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/August_Gaul
+66. Boats on the Beach at Étretat | The Art Institute of Chicago, acceso: junio 4, 2025, https://www.artic.edu/artworks/59927/boats-on-the-beach-at-etretat
+67. Boats on the Beach at Etretat (1883) by Claude Monet - Artchive, acceso: junio 4, 2025, https://www.artchive.com/artwork/boats-on-the-beach-at-etretat-claude-monet-1883/
+68. Claude Monet Biography In Details, acceso: junio 4, 2025, https://claudemonetgallery.org/biography.html
+69. Claude Monet's Biography - his life, history and work - PARISCityVISION, acceso: junio 4, 2025, https://www.pariscityvision.com/en/giverny/claude-monet-biography
+70. The Miracle of St. Walburga (c.1610) by Peter Paul Rubens - Artchive, acceso: junio 4, 2025, https://www.artchive.com/artwork/the-miracle-of-st-walburga-peter-paul-rubens-c-1610/
+71. St. Walburga and the Storm, Peter Paul Rubens - Christian Iconography, acceso: junio 4, 2025, https://www.christianiconography.info/Wikimedia%20Commons/walburgaStormRubens.html
+72. Peter Paul Rubens (1577 - 1640) | National Gallery, London, acceso: junio 4, 2025, https://www.nationalgallery.org.uk/artists/peter-paul-rubens
+73. Peter Paul Rubens | Biography, Art, Paintings, Style, & Facts | Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Peter-Paul-Rubens
+74. Exhibitions — Museum der bildenden Künste Leipzig, acceso: junio 4, 2025, https://mdbk.de/en/exhibitions/
+75. Hamburger Kunsthalle: Willkommen, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de
+76. Über die Kunsthalle | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/ueber-die-kunsthalle
+77. en.wikipedia.org, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Hamburger_Kunsthalle
+78. Hamburg Kunsthalle Museum, acceso: junio 4, 2025, https://www.hamburg.com/visitors/museums/kunsthalle-18812
+79. Hamburger Kunsthalle - Wikipedia, acceso: junio 4, 2025, https://de.wikipedia.org/wiki/Hamburger_Kunsthalle
+80. About the Kunsthalle | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/about-kunsthalle
+81. Our collection | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/our-collection
+82. Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburg-travel.com/see-explore/culture-music/museums-galleries/hamburger-kunsthalle/
+83. www.hamburg.com, acceso: junio 4, 2025, https://www.hamburg.com/visitors/museums/kunsthalle-18812#:~:text=Highlights%20of%20the%20collection%20are,as%20international%20contemporary%20art%20(incl.
+84. FAQ | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/faq
+85. Team | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/team
+86. Hamburger Kunsthalle: Modernisierung im Einzelnen, acceso: junio 4, 2025, https://www.hamburg.de/resource/blob/223672/504f12edff1539bf4d78bf264c41af29/anlage-kunsthalle-data.pdf
+87. www.hamburger-kunsthalle.de, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/sites/default/files/2024-07/HK_Lageplan.pdf
+88. Das Digitalisierungsprojekt des Kupferstichkabinetts - Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/das-digitalisierungsprojekt-des-kupferstichkabinetts
+89. Kunst der Gegenwart - Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/kunst-der-gegenwart
+90. Hamburger Kunsthalle: Willkommen, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/
+91. Location | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/location
+92. Sammlung | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/sammlung
+93. Alte Meister | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/alte-meister
+94. 19. Jahrhundert | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/19-jahrhundert
+95. Moderne | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/moderne
+96. Kupferstichkabinett | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/kupferstichkabinett
+97. Skulptur & Plastik - Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/skulptur-plastik
+98. Media Collection | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/mediensammlung-der-hamburger-kunsthalle
+99. Caspar David Friedrich | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/de/caspar-david-friedrich
+100. Caspar David Friedrich. Der Wanderer über dem Nebelmeer - Hamburger Kunsthalle, acceso: junio 4, 2025, https://online-sammlung.hamburger-kunsthalle.de/de/objekt/HK-5161
+101. Caspar David Friedrich | Wanderer above the Sea of Fog | The Metropolitan Museum of Art, acceso: junio 4, 2025, https://www.metmuseum.org/art/collection/search/861187
+102. File:Caspar David Friedrich - Wanderer above the sea of fog.jpg - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/File:Caspar_David_Friedrich_-_Wanderer_above_the_sea_of_fog.jpg
+103. Nana, 1877 - Edouard Manet - WikiArt.org, acceso: junio 4, 2025, https://www.wikiart.org/en/edouard-manet/nana-1877
+104. File:Nana Manet 1877.jpg - Wikimedia Commons, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Nana_Manet_1877.jpg
+105. Edouard Manet 1832–1883 - Tate, acceso: junio 4, 2025, https://www.tate.org.uk/art/artists/edouard-manet-1567
+106. Edouard Manet - World History Encyclopedia, acceso: junio 4, 2025, https://www.worldhistory.org/Edouard_Manet/
+107. File:Meister Bertram von Minden - Grabow Altarpiece - WGA14309.jpg, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Meister_Bertram_von_Minden_-_Grabow_Altarpiece_-_WGA14309.jpg
+108. Grabow Altarpiece - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Grabow_Altarpiece
+109. Meister Bertram - Sammlung Online | Hamburger Kunsthalle, acceso: junio 4, 2025, https://online-sammlung.hamburger-kunsthalle.de/de/objekt/HK-500
+110. Grabower Altar - Wikipedia, acceso: junio 4, 2025, https://de.wikipedia.org/wiki/Grabower_Altar
+111. Master Bertram - Museo Thyssen, acceso: junio 4, 2025, https://www.museothyssen.org/en/collection/artists/master-bertram
+112. View Creator - The Index of Medieval Art - Princeton University, acceso: junio 4, 2025, https://theindex.princeton.edu/s/view/ViewCreator.action;jsessionid=2acc82e3b40a57c3421beddb98b0?id=A607240F-8BD0-4AF8-8BDC-16ACDD0F8564
+113. Hamburger Kunsthalle: Anmelden, acceso: junio 4, 2025, https://online-sammlung.hamburger-kunsthalle.de/
+114. File:Rembrandt Simeon and Anna in the Temple@Kunsthalle Hamburg.jpg, acceso: junio 4, 2025, https://commons.wikimedia.org/wiki/File:Rembrandt_Simeon_and_Anna_in_the_Temple@Kunsthalle_Hamburg.jpg
+115. Simeon in the Temple - Rembrandt | FeelTheArt, acceso: junio 4, 2025, https://app.fta.art/en/artwork/3b42f3e1a8fa522e8d29215b389538f5989f800d
+116. Rembrandt | Biography, Art, Paintings, Self-Portraits, & Facts - Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Rembrandt-van-Rijn
+117. Rembrandt | EBSCO Research Starters, acceso: junio 4, 2025, https://www.ebsco.com/research-starters/history/rembrandt
+118. Auguste Rodin | Pierre de Wiessant | French - The Metropolitan Museum of Art, acceso: junio 4, 2025, https://www.metmuseum.org/art/collection/search/204766
+119. Head of Pierre de Wissant - Rodin Museum, acceso: junio 4, 2025, https://rodinmuseum.org/collection/object/103452
+120. Pierre de Wiessant, Monumental (Pierre de Wissant, monumental) - Brooklyn Museum, acceso: junio 4, 2025, https://www.brooklynmuseum.org/objects/112146
+121. Pierre de Wiessant, Large Model (from the group sculpture The Burghers of Calais) | The Israel Museum, Jerusalem, acceso: junio 4, 2025, https://www.imj.org.il/en/collections/192864-0
+122. Sculpture Collection | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/sculpture-collection
+123. Biography of Auguste Rodin, Father of Modern Sculpture - ThoughtCo, acceso: junio 4, 2025, https://www.thoughtco.com/auguste-rodin-biography-4588319
+124. Auguste Rodin - Sculptures, Paintings & Quotes - Biography, acceso: junio 4, 2025, https://www.biography.com/artists/auguste-rodin
+125. Wilhelm Lehmbruck (1881-1919) , Kopf eines Denkers | Christie's, acceso: junio 4, 2025, https://www.christies.com/en/lot/lot-1037696
+126. Wilhelm Lehmbruck, Kopf eines Denkers - Ernst von Siemens Kunststiftung, acceso: junio 4, 2025, https://www.ernst-von-siemens-kunststiftung.de/objekt/wilhelm-lehmbruck-kopf-eines-denkers.html
+127. Wilhelm Lehmbruck | Expressionist, Sculptor, Monumental - Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Wilhelm-Lehmbruck
+128. Wilhelm Lehmbruck | National Galleries of Scotland, acceso: junio 4, 2025, https://www.nationalgalleries.org/art-and-artists/artists/wilhelm-lehmbruck
+129. Aristide Maillol. The River. Begun 1938-39; completed 1943 (cast 1948) | MoMA, acceso: junio 4, 2025, https://www.moma.org/collection/works/81798
+130. DE - Sammlung Online | Hamburger Kunsthalle, acceso: junio 4, 2025, https://online-sammlung.hamburger-kunsthalle.de/de/objekt/S-1953-12
+131. Aristide Maillol 1861–1944 - Tate, acceso: junio 4, 2025, https://www.tate.org.uk/art/artists/aristide-maillol-1555
+132. Aristide Maillol | Modernist, Symbolist, Nude Figures | Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Aristide-Maillol
+133. Gerhard Richter - Fondation Beyeler, acceso: junio 4, 2025, https://www.fondationbeyeler.ch/en/exhibitions/past-exhibitions/gerhard-richter
+134. Gerhard Richter, S. mit Kind, 1995 | Hamburger Kunsthalle - Meer, acceso: junio 4, 2025, https://www.meer.com/hamburgkunsthalle/artworks/108762
+135. Gerhard Richter: Biography, Art, & Facts | Britannica, acceso: junio 4, 2025, https://www.britannica.com/biography/Gerhard-Richter
+136. Gerhard Richter - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Gerhard_Richter
+137. Sammlung Online | Hamburger Kunsthalle, acceso: junio 4, 2025, https://online-sammlung.hamburger-kunsthalle.de/de/objekt/G-1993-5
+138. Rosemarie Trockel - Rubell Museum, acceso: junio 4, 2025, https://rubellmuseum.org/rosemarie-trockel
+139. (#18) Rosemarie Trockel - Sotheby's, acceso: junio 4, 2025, https://www.sothebys.com/en/auctions/ecatalogue/2007/contemporary-art-evening-auction-l07024/lot.18.html
+140. Rosemarie Trockel - Sprüth Magers, acceso: junio 4, 2025, https://spruethmagers.com/artists/rosemarie-trockel/
+141. Rosemarie Trockel born 1952 | Tate, acceso: junio 4, 2025, https://www.tate.org.uk/art/artists/rosemarie-trockel-2066
+142. Rosemarie Trockel - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Rosemarie_Trockel
+143. Rosemarie Trockel - Artists - Cahiers d'Art, acceso: junio 4, 2025, https://www.cahiersdart.com/en/artists/rosemarie-trockel/
+144. Eva Hesse | Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/eva-hesse
+145. Finding Aid for EVA HESSE ARCHIVE, 1941-1980 (BULK 1953-1970) - Allen Memorial Art Museum, acceso: junio 4, 2025, https://amam.oberlin.edu/files/assets/hessefindingaidoct2019.pdf
+146. Eva Hesse Sculptures, Bio, Ideas - The Art Story, acceso: junio 4, 2025, https://www.theartstory.org/artist/hesse-eva/
+147. Eva Hesse 1936–1970 | Tate, acceso: junio 4, 2025, https://www.tate.org.uk/art/artists/eva-hesse-1280
+148. Eva Hesse - Wikipedia, acceso: junio 4, 2025, https://en.wikipedia.org/wiki/Eva_Hesse
+149. Eva Hesse Diaries, acceso: junio 4, 2025, https://classroom.edopoly.edu.ng/public/detail/index.jsp/eva%20hesse%20diaries.pdf
+150. Our exhibitions - Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/our-exhibitions
+151. Press - Hamburger Kunsthalle, acceso: junio 4, 2025, https://www.hamburger-kunsthalle.de/en/press
+152. Opening and Closing in June - The Art Exhibitions Blog, acceso: junio 4, 2025, http://art-exhibitions.blogspot.com/2025/05/opening-and-closing-in-june.html
+153. acceso: diciembre 31, 1969, https://www.hamburger-kunsthalle.de/de/informationen-zu-den-sanierungsmassnahmen
+154. Museum für Hamburgische Geschichte, acceso: junio 4, 2025, https://www.hamburg-travel.com/see-explore/culture-music/museums-galleries/museum-fuer-hamburgische-geschichte/?L=0

@@ -1,100 +1,100 @@
-
-
-CREATE SEQUENCE seq_lugar
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_obra
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_idioma
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_empleado_vigilante_mant
-    START WITH 1
-    INCREMENT BY 1;    
-
-CREATE SEQUENCE seq_artista
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_empleado_profesional
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_formacion
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_museo
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_est_fisica
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_sala_exp
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_exposicion_evento
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_est_organizacional
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_coleccion_permanente
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_hist_obra_mov
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_programa_mant
-    START WITH 1
-    INCREMENT BY 1;
-
-CREATE SEQUENCE seq_mant_obra_realizado
-    START WITH 1
-    INCREMENT BY 1;
+-- 
+-- 
+-- CREATE SEQUENCE seq_lugar
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_obra
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_idioma
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_empleado_vigilante_mant
+--     START WITH 1
+--     INCREMENT BY 1;    
+-- 
+-- CREATE SEQUENCE seq_artista
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_empleado_profesional
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_formacion
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_museo
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_est_fisica
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_sala_exp
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_exposicion_evento
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_est_organizacional
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_coleccion_permanente
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_hist_obra_mov
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_programa_mant
+--     START WITH 1
+--     INCREMENT BY 1;
+-- 
+-- CREATE SEQUENCE seq_mant_obra_realizado
+--     START WITH 1
+--     INCREMENT BY 1;
 
 -- CREATE SEQUENCE seq_ticket
 --    START WITH 1
 --    INCREMENT BY 1;
 
 
--- DROP TABLE TIPO_TICKETS;
--- DROP TABLE HIST_MUSEOS;
--- DROP TABLE TICKETS;
--- DROP TABLE HORARIOS;
--- DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS;
--- DROP TABLE PROGRAMAS_MANT;
--- DROP TABLE HIST_OBRAS_MOV;
--- DROP TABLE HIST_EMPLEADOS;
--- DROP TABLE SALAS_COLECCIONES;
--- DROP TABLE COLECCIONES_PERMANENTES;
--- DROP TABLE EST_ORGANIZACIONAL;
--- DROP TABLE CIERRES_TEMPORALES;
--- DROP TABLE EXPOSICIONES_EVENTOS;
--- DROP TABLE SALAS_EXP;
--- DROP TABLE ASIGNACIONES_MES;
--- DROP TABLE EST_FISICA;
--- DROP TABLE MUSEOS;
--- DROP TABLE FORMACIONES;
--- DROP TABLE EMPLEADOS_IDIOMAS;
--- DROP TABLE EMPLEADOS_PROFESIONALES;
--- DROP TABLE ARTISTAS_OBRAS;
--- DROP TABLE ARTISTAS;
--- DROP TABLE EMPLEADOS_VIGILANTE_MANT;
--- DROP TABLE IDIOMAS;
--- DROP TABLE OBRAS;
--- DROP TABLE LUGARES;
+DROP TABLE TIPO_TICKETS;
+DROP TABLE HIST_MUSEOS;
+DROP TABLE TICKETS;
+DROP TABLE HORARIOS;
+DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS;
+DROP TABLE PROGRAMAS_MANT;
+DROP TABLE HIST_OBRAS_MOV;
+DROP TABLE HIST_EMPLEADOS;
+DROP TABLE SALAS_COLECCIONES;
+DROP TABLE COLECCIONES_PERMANENTES;
+DROP TABLE EST_ORGANIZACIONAL;
+DROP TABLE CIERRES_TEMPORALES;
+DROP TABLE EXPOSICIONES_EVENTOS;
+DROP TABLE SALAS_EXP;
+DROP TABLE ASIGNACIONES_MES;
+DROP TABLE EST_FISICA;
+DROP TABLE MUSEOS;
+DROP TABLE FORMACIONES;
+DROP TABLE EMPLEADOS_IDIOMAS;
+DROP TABLE EMPLEADOS_PROFESIONALES;
+DROP TABLE ARTISTAS_OBRAS;
+DROP TABLE ARTISTAS;
+DROP TABLE EMPLEADOS_VIGILANTE_MANT;
+DROP TABLE IDIOMAS;
+DROP TABLE OBRAS;
+DROP TABLE LUGARES;
 
 
 
@@ -980,49 +980,97 @@ END TRG_TICKETS_BEFORE_INSERT;
 
 
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_HIST_EMPLEADOS_FECHAS
+-- PAQUETE DE ESTADO PARA TRIGGERS
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Descripción: Este paquete previene errores de tabla mutante en triggers
+-- al mantener un estado global que puede ser consultado para evitar
+-- ejecuciones recursivas no deseadas.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PACKAGE trigger_state_pkg AS
+  g_is_updating BOOLEAN := FALSE;
+END trigger_state_pkg;
+/
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_MANEJAR_HIST_EMPLEADOS (Versión Final con Compound Trigger y Paquete de Estado)
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 09-JUN-2025 (Refactorización Final)
 -- Descripción:
--- Este trigger se dispara antes de insertar o actualizar una fila en HIST_EMPLEADOS.
--- Su propósito es prevenir el solapamiento de fechas para un mismo empleado,
--- asegurando que una persona no pueda tener dos cargos activos simultáneamente.
--- Si se detecta un conflicto de fechas, la operación se cancela con un error.
+-- Reemplaza la versión anterior con un Compound Trigger que utiliza un paquete
+-- de estado (trigger_state_pkg) para solucionar el error de tabla mutante (ORA-04091)
+-- que ocurría por llamadas recursivas.
 -- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_MANEJAR_HIST_EMPLEADOS
+FOR INSERT OR UPDATE ON HIST_EMPLEADOS
+COMPOUND TRIGGER
+    -- 1. Declaración de una colección para almacenar los datos de las filas insertadas
+    TYPE t_empleado_hist_rec IS RECORD (
+        id_empleado_prof HIST_EMPLEADOS.id_empleado_prof%TYPE,
+        fecha_inicio     HIST_EMPLEADOS.fecha_inicio%TYPE
+    );
+    TYPE t_empleado_hist_table IS TABLE OF t_empleado_hist_rec INDEX BY PLS_INTEGER;
+    g_new_empleados t_empleado_hist_table;
 
-CREATE OR REPLACE TRIGGER TRG_HIST_EMPLEADOS_FECHAS
-BEFORE INSERT OR UPDATE ON HIST_EMPLEADOS
-FOR EACH ROW
-DECLARE
-    -- Variable para contar los registros que se solapan.
-    v_overlap_count NUMBER;
-BEGIN
-    -- Contamos cuántos registros YA EXISTENTES para el mismo empleado
-    -- se solapan con el NUEVO rango de fechas que se está insertando o actualizando.
-    -- Un solapamiento ocurre si el rango de un registro existente (start1, end1)
-    -- y el nuevo rango (start2, end2) cumplen: start1 <= end2 AND start2 <= end1.
-    -- Se manejan los casos donde la fecha de fin es NULL (considerado como infinito).
-    SELECT COUNT(*)
-    INTO v_overlap_count
-    FROM HIST_EMPLEADOS
-    WHERE id_empleado_prof = :NEW.id_empleado_prof
-      -- Excluir la misma fila que estamos actualizando, para evitar que se compare consigo misma.
-      -- En un INSERT, :OLD.ROWID es NULL, por lo que esta condición siempre es verdadera.
-      AND (:OLD.ROWID IS NULL OR ROWID != :OLD.ROWID)
-      -- Condición de solapamiento de fechas
-      AND fecha_inicio <= NVL(:NEW.fecha_fin, TO_DATE('9999-12-31', 'YYYY-MM-DD'))
-      AND NVL(fecha_fin, TO_DATE('9999-12-31', 'YYYY-MM-DD')) >= :NEW.fecha_inicio;
+    -- 2. BEFORE EACH ROW: Se ejecuta antes de cada operación de fila.
+    BEFORE EACH ROW IS
+        v_overlap_count NUMBER;
+    BEGIN
+        -- Solo ejecutar la validación si NO estamos en medio del UPDATE del propio trigger.
+        IF UPDATING AND NOT trigger_state_pkg.g_is_updating THEN
+            -- Prevenir solapamiento de fechas al actualizar
+            SELECT COUNT(*)
+            INTO v_overlap_count
+            FROM HIST_EMPLEADOS
+            WHERE id_empleado_prof = :NEW.id_empleado_prof
+              AND ROWID != :OLD.ROWID -- Excluir la fila que se está actualizando
+              AND fecha_inicio <= NVL(:NEW.fecha_fin, TO_DATE('9999-12-31', 'YYYY-MM-DD'))
+              AND NVL(fecha_fin, TO_DATE('9999-12-31', 'YYYY-MM-DD')) >= :NEW.fecha_inicio;
 
-    -- Si se encuentra al menos un registro que se solapa, se lanza un error.
-    IF v_overlap_count > 0 THEN
-        RAISE_APPLICATION_ERROR(-20003,
-            'Error: El empleado con ID ' || :NEW.id_empleado_prof || 
-            ' ya tiene un cargo asignado en el período de ' || TO_CHAR(:NEW.fecha_inicio, 'YYYY-MM-DD') ||
-            ' a ' || TO_CHAR(NVL(:NEW.fecha_fin, SYSDATE), 'YYYY-MM-DD') || 
-            '. No se permiten cargos con fechas solapadas.');
-    END IF;
+            IF v_overlap_count > 0 THEN
+                RAISE_APPLICATION_ERROR(-20003, 'Error: La actualización crearía un solapamiento de fechas para el empleado ID ' || :NEW.id_empleado_prof || '.');
+            END IF;
+        END IF;
+    END BEFORE EACH ROW;
 
-END TRG_HIST_EMPLEADOS_FECHAS;
+    -- 3. AFTER EACH ROW: Recopila la información de las filas insertadas.
+    AFTER EACH ROW IS
+    BEGIN
+        IF INSERTING THEN
+            g_new_empleados(g_new_empleados.COUNT + 1).id_empleado_prof := :NEW.id_empleado_prof;
+            g_new_empleados(g_new_empleados.COUNT).fecha_inicio     := :NEW.fecha_inicio;
+        END IF;
+    END AFTER EACH ROW;
+
+    -- 4. AFTER STATEMENT: Se ejecuta una sola vez al final de la sentencia.
+    AFTER STATEMENT IS
+    BEGIN
+        IF INSERTING AND g_new_empleados.COUNT > 0 THEN
+            -- Establecer el flag para indicar que el trigger está actualizando la tabla
+            trigger_state_pkg.g_is_updating := TRUE;
+
+            FOR i IN 1..g_new_empleados.COUNT LOOP
+                -- Cerrar el registro de historial anterior para cada empleado insertado.
+                UPDATE HIST_EMPLEADOS
+                SET fecha_fin = g_new_empleados(i).fecha_inicio
+                WHERE id_empleado_prof = g_new_empleados(i).id_empleado_prof
+                  AND fecha_fin IS NULL
+                  AND fecha_inicio < g_new_empleados(i).fecha_inicio;
+            END LOOP;
+            
+            -- Restablecer el flag
+            trigger_state_pkg.g_is_updating := FALSE;
+        END IF;
+
+        g_new_empleados.DELETE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- Asegurarse de restablecer el flag y limpiar la colección en caso de error
+            trigger_state_pkg.g_is_updating := FALSE;
+            g_new_empleados.DELETE;
+            RAISE; -- Relanzar la excepción
+    END AFTER STATEMENT;
+
+END TRG_MANEJAR_HIST_EMPLEADOS;
 /
 
 

@@ -452,6 +452,8 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
 
+    console.log(`\n🔍 CONSULTANDO ORGANIGRAMA PARA MUSEO ID: ${id_museo}`);
+
     try {
         connection = await oracledb.getConnection(dbConfig);
 
@@ -459,51 +461,123 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
         const orgUnitsPromise = connection.execute(
             `SELECT id_est_org, nombre, tipo, nivel, descripcion, id_est_org_padre 
              FROM ${dbConfig.schema}.EST_ORGANIZACIONAL 
-             WHERE id_museo = :id_museo`,
+             WHERE id_museo = :id_museo
+             ORDER BY nivel ASC, nombre ASC`,
             [id_museo]
         );
 
         // 2. Obtener todos los empleados actualmente asignados en ese museo
+        // Incluimos información adicional para mejorar la presentación
         const empleadosPromise = connection.execute(
             `SELECT
                 he.id_est_org,
                 ep.id_empleado,
                 ep.primer_nombre,
+                ep.segundo_nombre,
                 ep.primer_apellido,
-                he.cargo
+                ep.segundo_apellido,
+                he.cargo,
+                he.fecha_inicio,
+                ep.doc_identidad,
+                he.fecha_fin
              FROM ${dbConfig.schema}.HIST_EMPLEADOS he
              JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON he.id_empleado_prof = ep.id_empleado
-             WHERE he.id_museo = :id_museo AND he.fecha_fin IS NULL`,
+             WHERE he.id_museo = :id_museo 
+             ORDER BY he.cargo DESC, ep.primer_apellido ASC`,
             [id_museo]
         );
 
         const [orgUnitsResult, empleadosResult] = await Promise.all([orgUnitsPromise, empleadosPromise]);
 
-        // Mapear empleados a su unidad organizacional
+        // DEBUG: Ver qué empleados estamos obteniendo
+        console.log(`\n=== EMPLEADOS ENCONTRADOS PARA MUSEO ${id_museo} ===`);
+        console.log(`Total empleados encontrados: ${empleadosResult.rows.length}`);
+        empleadosResult.rows.forEach((row, index) => {
+            const nombreCompleto = [row[2], row[3], row[4], row[5]].filter(Boolean).join(' ');
+            const fechaFin = row[9] ? ` (INACTIVO desde ${row[9].toISOString().split('T')[0]})` : ' (ACTIVO)';
+            console.log(`${index + 1}. ${nombreCompleto} - ${row[6]} (Est_Org: ${row[0]})${fechaFin}`);
+        });
+
+        // Mapear empleados a su unidad organizacional con mejor estructura
         const empleadosPorUnidad = {};
         empleadosResult.rows.forEach(row => {
+            // Solo incluir empleados ACTIVOS (fecha_fin IS NULL)
+            if (row[9] !== null) {
+                console.log(`  SALTANDO: ${[row[2], row[3], row[4], row[5]].filter(Boolean).join(' ')} - NO ACTIVO`);
+                return;
+            }
+            
             const id_est_org = row[0];
             if (!empleadosPorUnidad[id_est_org]) {
                 empleadosPorUnidad[id_est_org] = [];
             }
+            
+            // Construir nombre completo de forma más robusta
+            const nombreCompleto = [
+                row[2], // primer_nombre
+                row[3], // segundo_nombre
+                row[4], // primer_apellido
+                row[5]  // segundo_apellido
+            ].filter(Boolean).join(' ');
+            
+            const esJefe = row[6] && (
+                row[6].toLowerCase().includes('director') ||
+                row[6].toLowerCase().includes('jefe') ||
+                row[6].toLowerCase().includes('coordinador') ||
+                row[6].toLowerCase().includes('responsable') ||
+                row[6].toLowerCase().includes('gerente') ||
+                row[6].toLowerCase().includes('administrador') ||
+                row[6].toLowerCase().includes('curador') ||
+                row[6].toLowerCase().includes('superintendente') ||
+                row[6].toLowerCase().includes('supervisor')
+            );
+            
             empleadosPorUnidad[id_est_org].push({
                 id_empleado: row[1],
-                nombre: `${row[2]} ${row[3]}`,
-                cargo: row[4]
+                nombre_completo: nombreCompleto,
+                cargo: row[6],
+                fecha_inicio: row[7],
+                doc_identidad: row[8],
+                // Determinar si es jefe/director de la unidad
+                es_jefe: esJefe
             });
+            
+            // DEBUG: Mostrar clasificación
+            console.log(`  -> ${nombreCompleto} en unidad ${id_est_org}: ${esJefe ? 'JEFE' : 'PERSONAL'}`);
         });
 
-        // Construir la lista de nodos del árbol
-        const list = orgUnitsResult.rows.map(row => ({
-            id: row[0],
-            nombre: row[1],
-            tipo: row[2],
-            nivel: row[3],
-            descripcion: row[4],
-            padre_id: row[5],
-            empleados: empleadosPorUnidad[row[0]] || [], // Añadir empleados
-            children: []
-        }));
+        console.log('\n=== EMPLEADOS POR UNIDAD ===');
+        Object.keys(empleadosPorUnidad).forEach(unidadId => {
+            console.log(`Unidad ${unidadId}: ${empleadosPorUnidad[unidadId].length} empleados`);
+        });
+
+        // Construir la lista de nodos del árbol con mejor estructura
+        const list = orgUnitsResult.rows.map(row => {
+            const empleados = empleadosPorUnidad[row[0]] || [];
+            
+            // Separar jefes/directores del resto del personal
+            const jefes = empleados.filter(emp => emp.es_jefe);
+            const personal = empleados.filter(emp => !emp.es_jefe);
+            
+            const nodo = {
+                id: row[0],
+                nombre: row[1],
+                tipo: row[2],
+                nivel: row[3],
+                descripcion: row[4],
+                padre_id: row[5],
+                jefes: jefes,
+                personal: personal,
+                total_empleados: empleados.length,
+                children: []
+            };
+            
+            // DEBUG: Mostrar cada nodo creado
+            console.log(`\nNodo creado: ${nodo.nombre} (ID: ${nodo.id})`);
+            console.log(`  - Jefes: ${nodo.jefes.length}, Personal: ${nodo.personal.length}, Total: ${nodo.total_empleados}`);
+            
+            return nodo;
+        });
 
         // Construir el árbol jerárquico
         const map = {};
@@ -519,6 +593,15 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
                 roots.push(node);
             }
         }
+        
+        // DEBUG: Mostrar respuesta final
+        console.log('\n=== RESPUESTA FINAL DEL ORGANIGRAMA ===');
+        console.log('Número de nodos raíz:', roots.length);
+        roots.forEach((root, index) => {
+            console.log(`Raíz ${index + 1}: ${root.nombre}`);
+            console.log(`  - Jefes: ${root.jefes?.length || 'undefined'}, Personal: ${root.personal?.length || 'undefined'}, Total: ${root.total_empleados || 'undefined'}`);
+            console.log(`  - Hijos: ${root.children?.length || 0}`);
+        });
         
         res.json(roots);
     } catch (err) {

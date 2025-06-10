@@ -6,22 +6,56 @@
         <div class="node-badges">
           <span class="badge badge-type">{{ node.tipo }}</span>
           <span class="badge badge-level">Nivel {{ node.nivel }}</span>
+          <span v-if="node.total_empleados > 0" class="badge badge-staff">{{ node.total_empleados }} empleado{{ node.total_empleados > 1 ? 's' : '' }}</span>
         </div>
       </div>
       
       <p v-if="node.descripcion" class="node-description">{{ node.descripcion }}</p>
       
-      <div v-if="node.empleados && node.empleados.length > 0" class="employees-section">
-        <div class="employees-header">
-          <span class="employees-icon">👥</span>
-          <strong>Empleados ({{ node.empleados.length }})</strong>
+      <!-- Sección de Jefes/Directores -->
+      <div v-if="node.jefes && node.jefes.length > 0" class="leadership-section">
+        <div class="section-header leadership-header">
+          <span class="section-icon">👑</span>
+          <strong>Dirección ({{ node.jefes.length }})</strong>
         </div>
-        <div class="employees-grid">
-          <div v-for="empleado in node.empleados" :key="empleado.id_empleado" class="employee-card">
-            <div class="employee-name">{{ empleado.nombre }}</div>
-            <div class="employee-role">{{ empleado.cargo }}</div>
-          </div>
+        <ul class="employee-list leadership-list">
+          <li v-for="jefe in node.jefes" :key="`jefe-${jefe.id_empleado}`" class="employee-item leadership-item">
+            <div class="employee-info">
+              <span class="employee-name">{{ jefe.nombre_completo }}</span>
+              <span class="employee-role leadership-role">{{ jefe.cargo }}</span>
+              <span class="employee-tenure">{{ formatFechaInicio(jefe.fecha_inicio) }}</span>
+            </div>
+            <div class="employee-badge">
+              <span class="role-icon">🏛️</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sección de Personal -->
+      <div v-if="node.personal && node.personal.length > 0" class="employees-section">
+        <div class="section-header employees-header">
+          <span class="section-icon">👥</span>
+          <strong>Personal ({{ node.personal.length }})</strong>
         </div>
+        <ul class="employee-list staff-list">
+          <li v-for="empleado in node.personal" :key="`emp-${empleado.id_empleado}`" class="employee-item staff-item">
+            <div class="employee-info">
+              <span class="employee-name">{{ empleado.nombre_completo }}</span>
+              <span class="employee-role">{{ empleado.cargo }}</span>
+              <span class="employee-tenure">{{ formatFechaInicio(empleado.fecha_inicio) }}</span>
+            </div>
+            <div class="employee-badge">
+              <span class="role-icon">🧑‍💼</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Mensaje cuando no hay empleados -->
+      <div v-if="node.total_empleados === 0" class="no-employees">
+        <span class="no-employees-icon">📋</span>
+        <em>Sin personal asignado actualmente</em>
       </div>
     </div>
 
@@ -39,6 +73,21 @@ export default {
       type: Object,
       required: true
     }
+  },
+  methods: {
+    formatFechaInicio(fecha) {
+      if (!fecha) return '';
+      const fechaObj = new Date(fecha);
+      const hoy = new Date();
+      const meses = (hoy.getFullYear() - fechaObj.getFullYear()) * 12 + (hoy.getMonth() - fechaObj.getMonth());
+      
+      if (meses < 12) {
+        return `${meses} mes${meses !== 1 ? 'es' : ''} en el cargo`;
+      } else {
+        const años = Math.floor(meses / 12);
+        return `${años} año${años !== 1 ? 's' : ''} en el cargo`;
+      }
+    }
   }
 };
 </script>
@@ -48,6 +97,7 @@ export default {
   position: relative;
   margin: 0 0 1.5rem 0;
   list-style: none;
+  width: 100%;
 }
 
 .node-content {
@@ -60,6 +110,8 @@ export default {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .node-content:hover {
@@ -104,12 +156,14 @@ export default {
   margin: 0;
   flex: 1;
   line-height: 1.3;
+  min-width: 200px;
 }
 
 .node-badges {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .badge {
@@ -119,6 +173,7 @@ export default {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .badge-type {
@@ -132,6 +187,11 @@ export default {
   color: white;
 }
 
+.badge-staff {
+  background-color: #10b981;
+  color: white;
+}
+
 .node-description {
   color: #6b7280;
   font-style: italic;
@@ -140,50 +200,99 @@ export default {
   line-height: 1.5;
 }
 
+/* Secciones de empleados */
+.leadership-section {
+  background: linear-gradient(135deg, #fef3e2 0%, #ffffff 100%);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #f59e0b;
+  margin-bottom: 1rem;
+}
+
 .employees-section {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   border-radius: 8px;
   padding: 1rem;
   border: 1px solid #e2e8f0;
 }
 
-.employees-header {
+.section-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.75rem;
-  color: #374151;
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.employees-icon {
+.leadership-header {
+  color: #d97706;
+}
+
+.employees-header {
+  color: #374151;
+}
+
+.section-icon {
   font-size: 1.1rem;
 }
 
-.employees-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
+/* Listas de empleados */
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.employee-card {
-  background-color: white;
-  padding: 0.75rem;
+.employee-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid #e5e7eb;
   transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.employee-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-color: #3b82f6;
+.leadership-item {
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 80%);
+  border-color: #fbbf24;
+}
+
+.leadership-item:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  border-color: #f59e0b;
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.staff-item {
+  background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 80%);
+  border-color: #cbd5e1;
+}
+
+.staff-item:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  border-color: #94a3b8;
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(148, 163, 184, 0.15);
+}
+
+.employee-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1;
 }
 
 .employee-name {
   font-weight: 600;
   color: #1f2937;
   font-size: 0.9rem;
-  margin-bottom: 0.25rem;
+  line-height: 1.2;
 }
 
 .employee-role {
@@ -192,12 +301,54 @@ export default {
   font-style: italic;
 }
 
+.leadership-role {
+  color: #d97706;
+  font-weight: 500;
+}
+
+.employee-tenure {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.employee-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.role-icon {
+  font-size: 1rem;
+}
+
+/* Sin empleados */
+.no-employees {
+  background-color: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-employees-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
 .children-list {
   list-style: none;
   padding: 0;
   margin: 0;
   position: relative;
   padding-left: 2rem;
+  width: 100%;
 }
 
 .children-list::before {
@@ -237,12 +388,39 @@ export default {
     align-items: flex-start;
   }
   
-  .employees-grid {
-    grid-template-columns: 1fr;
+  .node-title {
+    min-width: unset;
+    margin-bottom: 0.5rem;
+  }
+  
+  .employee-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+  
+  .employee-info {
+    gap: 0.25rem;
+  }
+  
+  .employee-badge {
+    align-self: flex-end;
   }
   
   .children-list {
     padding-left: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .node-content {
+    padding: 1rem;
+  }
+  
+  .leadership-section,
+  .employees-section {
+    padding: 0.75rem;
   }
 }
 </style> 
