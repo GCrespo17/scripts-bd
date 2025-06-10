@@ -24,7 +24,19 @@ import { RouterLink, RouterView } from 'vue-router'
           <span class="nav-icon">📊</span>
           <span class="nav-text">Organigrama</span>
         </RouterLink>
-        <RouterLink to="/empleados" class="nav-link">
+        <RouterLink to="/estructura" class="nav-link">
+          <span class="nav-icon">🏗️</span>
+          <span class="nav-text">Estructura Física</span>
+        </RouterLink>
+        <RouterLink to="/reporte-estructura" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Reporte Estructura</span>
+        </RouterLink>
+        <RouterLink to="/ficha-museo" class="nav-link">
+          <span class="nav-icon">📄</span>
+          <span class="nav-text">Ficha de Museo</span>
+        </RouterLink>
+                <RouterLink to="/empleados" class="nav-link">
           <span class="nav-icon">👤</span>
           <span class="nav-text">Empleados</span>
         </RouterLink>

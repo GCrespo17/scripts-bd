@@ -452,6 +452,8 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
 
+    console.log(`\n🔍 CONSULTANDO ORGANIGRAMA PARA MUSEO ID: ${id_museo}`);
+
     try {
         connection = await oracledb.getConnection(dbConfig);
 
@@ -459,51 +461,149 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
         const orgUnitsPromise = connection.execute(
             `SELECT id_est_org, nombre, tipo, nivel, descripcion, id_est_org_padre 
              FROM ${dbConfig.schema}.EST_ORGANIZACIONAL 
-             WHERE id_museo = :id_museo`,
+             WHERE id_museo = :id_museo
+             ORDER BY nivel ASC, nombre ASC`,
             [id_museo]
         );
 
         // 2. Obtener todos los empleados actualmente asignados en ese museo
+        // Incluimos información adicional para mejorar la presentación
         const empleadosPromise = connection.execute(
             `SELECT
                 he.id_est_org,
                 ep.id_empleado,
                 ep.primer_nombre,
+                ep.segundo_nombre,
                 ep.primer_apellido,
-                he.cargo
+                ep.segundo_apellido,
+                he.cargo,
+                he.fecha_inicio,
+                ep.doc_identidad,
+                he.fecha_fin
              FROM ${dbConfig.schema}.HIST_EMPLEADOS he
              JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON he.id_empleado_prof = ep.id_empleado
-             WHERE he.id_museo = :id_museo AND he.fecha_fin IS NULL`,
+             WHERE he.id_museo = :id_museo 
+             ORDER BY he.cargo DESC, ep.primer_apellido ASC`,
             [id_museo]
         );
 
         const [orgUnitsResult, empleadosResult] = await Promise.all([orgUnitsPromise, empleadosPromise]);
 
-        // Mapear empleados a su unidad organizacional
+        // DEBUG: Ver qué empleados estamos obteniendo
+        console.log(`\n=== EMPLEADOS ENCONTRADOS PARA MUSEO ${id_museo} ===`);
+        console.log(`Total empleados encontrados: ${empleadosResult.rows.length}`);
+        empleadosResult.rows.forEach((row, index) => {
+            const nombreCompleto = [row[2], row[3], row[4], row[5]].filter(Boolean).join(' ');
+            const fechaFin = row[9] ? ` (INACTIVO desde ${row[9].toISOString().split('T')[0]})` : ' (ACTIVO)';
+            console.log(`${index + 1}. ${nombreCompleto} - ${row[6]} (Est_Org: ${row[0]})${fechaFin}`);
+        });
+
+        // Mapear empleados a su unidad organizacional con mejor estructura
         const empleadosPorUnidad = {};
         empleadosResult.rows.forEach(row => {
+            // Solo incluir empleados ACTIVOS (fecha_fin IS NULL)
+            if (row[9] !== null) {
+                console.log(`  SALTANDO: ${[row[2], row[3], row[4], row[5]].filter(Boolean).join(' ')} - NO ACTIVO`);
+                return;
+            }
+            
             const id_est_org = row[0];
             if (!empleadosPorUnidad[id_est_org]) {
                 empleadosPorUnidad[id_est_org] = [];
             }
+            
+            // Construir nombre completo de forma más robusta
+            const nombreCompleto = [
+                row[2], // primer_nombre
+                row[3], // segundo_nombre
+                row[4], // primer_apellido
+                row[5]  // segundo_apellido
+            ].filter(Boolean).join(' ');
+            
+            // Mejorar la lógica de clasificación de jefes/directores
+            const cargo = row[6] ? row[6].toLowerCase() : '';
+            const esJefe = cargo.includes('director') || 
+                          cargo.includes('subdirector') ||
+                          cargo.includes('jefe') ||
+                          cargo.includes('coordinador') ||
+                          cargo.includes('responsable') ||
+                          cargo.includes('gerente') ||
+                          cargo.includes('superintendente') ||
+                          cargo.includes('supervisor');
+            
+            // Para curadores, solo considerarlos jefes si están en departamentos específicos de colecciones/curaduría
+            const esCuradorJefe = cargo.includes('curador') && (
+                row[6].includes('Jef') || // "Jefa de Colecciones", etc.
+                id_est_org // Si queremos aplicar lógica más específica por unidad
+            );
+            
             empleadosPorUnidad[id_est_org].push({
                 id_empleado: row[1],
-                nombre: `${row[2]} ${row[3]}`,
-                cargo: row[4]
+                nombre_completo: nombreCompleto,
+                cargo: row[6],
+                fecha_inicio: row[7],
+                doc_identidad: row[8],
+                id_est_org: id_est_org, // Añadimos esta información para contexto
+                // Determinar si es jefe/director de la unidad
+                es_jefe: esJefe || esCuradorJefe
             });
+            
+            // DEBUG: Mostrar clasificación
+            console.log(`  -> ${nombreCompleto} en unidad ${id_est_org}: ${(esJefe || esCuradorJefe) ? 'JEFE' : 'PERSONAL'} (cargo: ${row[6]})`);
         });
 
-        // Construir la lista de nodos del árbol
-        const list = orgUnitsResult.rows.map(row => ({
-            id: row[0],
-            nombre: row[1],
-            tipo: row[2],
-            nivel: row[3],
-            descripcion: row[4],
-            padre_id: row[5],
-            empleados: empleadosPorUnidad[row[0]] || [], // Añadir empleados
-            children: []
-        }));
+        console.log('\n=== EMPLEADOS POR UNIDAD ===');
+        Object.keys(empleadosPorUnidad).forEach(unidadId => {
+            console.log(`Unidad ${unidadId}: ${empleadosPorUnidad[unidadId].length} empleados`);
+        });
+
+        // Construir la lista de nodos del árbol con mejor estructura
+        const list = orgUnitsResult.rows.map(row => {
+            const empleados = empleadosPorUnidad[row[0]] || [];
+            
+            // Separar jefes/directores del resto del personal
+            const jefes = empleados.filter(emp => emp.es_jefe);
+            const personal = empleados.filter(emp => !emp.es_jefe);
+            
+            // Añadir información adicional para empleados con múltiples roles
+            const jefesConInfo = jefes.map(jefe => ({
+                ...jefe,
+                roles_multiples: empleadosResult.rows
+                    .filter(row => row[1] === jefe.id_empleado && row[9] === null) // mismo empleado, activo
+                    .length > 1
+            }));
+            
+            const personalConInfo = personal.map(emp => ({
+                ...emp,
+                roles_multiples: empleadosResult.rows
+                    .filter(row => row[1] === emp.id_empleado && row[9] === null) // mismo empleado, activo
+                    .length > 1
+            }));
+            
+            const nodo = {
+                id: row[0],
+                nombre: row[1],
+                tipo: row[2],
+                nivel: row[3],
+                descripcion: row[4],
+                padre_id: row[5],
+                jefes: jefesConInfo,
+                personal: personalConInfo,
+                total_empleados: empleados.length,
+                children: []
+            };
+            
+            // DEBUG: Mostrar cada nodo creado
+            console.log(`\nNodo creado: ${nodo.nombre} (ID: ${nodo.id})`);
+            console.log(`  - Jefes: ${nodo.jefes.length}, Personal: ${nodo.personal.length}, Total: ${nodo.total_empleados}`);
+            if (nodo.jefes.length > 0) {
+                nodo.jefes.forEach(jefe => {
+                    console.log(`    JEFE: ${jefe.nombre_completo} - ${jefe.cargo}${jefe.roles_multiples ? ' (ROLES MÚLTIPLES)' : ''}`);
+                });
+            }
+            
+            return nodo;
+        });
 
         // Construir el árbol jerárquico
         const map = {};
@@ -520,6 +620,15 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
             }
         }
         
+        // DEBUG: Mostrar respuesta final
+        console.log('\n=== RESPUESTA FINAL DEL ORGANIGRAMA ===');
+        console.log('Número de nodos raíz:', roots.length);
+        roots.forEach((root, index) => {
+            console.log(`Raíz ${index + 1}: ${root.nombre}`);
+            console.log(`  - Jefes: ${root.jefes?.length || 'undefined'}, Personal: ${root.personal?.length || 'undefined'}, Total: ${root.total_empleados || 'undefined'}`);
+            console.log(`  - Hijos: ${root.children?.length || 0}`);
+        });
+        
         res.json(roots);
     } catch (err) {
         console.error(`Error al obtener estructura organizacional para el museo ${id_museo}:`, err);
@@ -535,7 +644,7 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener la ficha detallada de un museo (OPTIMIZADO con SP para Ranking)
+// Endpoint para obtener la ficha detallada de un museo (OPTIMIZADO con Ranking Comparativo)
 app.get('/api/museos/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
@@ -565,16 +674,32 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             [id_museo]
         );
 
-        // --- Llamada al Stored Procedure para el Ranking ---
+        // --- Nueva consulta para el Ranking Comparativo usando la Vista ---
         const rankingPromise = connection.execute(
-            `BEGIN ${dbConfig.schema}.SP_CALCULAR_RANKING_MUSEO(:id, :antiguedad, :tasa, :visitas, :categoria); END;`,
-            {
-                id: id_museo,
-                antiguedad: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                tasa: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                visitas: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-                categoria: { type: oracledb.STRING, dir: oracledb.BIND_OUT, maxSize: 100 }
-            }
+            `WITH Rankings AS (
+                SELECT
+                    id_museo,
+                    nombre_museo,
+                    ciudad,
+                    pais,
+                    antiguedad_promedio_anios,
+                    tasa_rotacion_alta_pct,
+                    visitas_ultimo_anio,
+                    score_final,
+                    categoria_ranking,
+                    RANK() OVER (PARTITION BY id_pais ORDER BY score_final DESC) as ranking_nacional,
+                    COUNT(*) OVER (PARTITION BY id_pais) as total_nacional,
+                    RANK() OVER (ORDER BY score_final DESC) as ranking_mundial,
+                    COUNT(*) OVER () as total_mundial
+                FROM ${dbConfig.schema}.V_MUSEOS_RANKING_SCORES
+            )
+            SELECT 
+                ciudad, pais, antiguedad_promedio_anios, tasa_rotacion_alta_pct, 
+                visitas_ultimo_anio, score_final, categoria_ranking,
+                ranking_nacional, total_nacional, ranking_mundial, total_mundial
+            FROM Rankings
+            WHERE id_museo = :id`,
+            [id_museo]
         );
         
         // --- Ejecución y Procesamiento ---
@@ -589,18 +714,44 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             return res.status(404).json({ message: 'Museo no encontrado' });
         }
 
+        // --- Procesamiento del Ranking ---
+        let rankingData = null;
+        if (rankingResult.rows.length > 0) {
+            const r = rankingResult.rows[0];
+            console.log('Raw ranking data:', r); // Debug logging
+            
+            rankingData = {
+                ubicacion: {
+                    ciudad: r[0],
+                    pais: r[1]
+                },
+                metricas: {
+                    antiguedad_promedio_anios: parseFloat((r[2] || 0).toFixed(2)),
+                    tasa_rotacion_alta_pct: parseFloat((r[3] || 0).toFixed(2)),
+                    visitas_ultimo_anio: r[4] || 0
+                },
+                ranking: {
+                    score_final: parseFloat((r[5] || 0).toFixed(2)),
+                    categoria: r[6] || 'Sin clasificar',
+                    posicion_nacional: r[7] || null,
+                    total_nacional: r[8] || null,
+                    posicion_mundial: r[9] || null,
+                    total_mundial: r[10] || null
+                }
+            };
+            
+            console.log('Processed ranking data:', JSON.stringify(rankingData, null, 2)); // Debug logging
+        } else {
+            console.log(`No ranking data found for museum ${id_museo}`); // Debug logging
+        }
+
         // --- Ensamblaje de la Respuesta ---
         const museoData = {
             id: museoResult.rows[0][0],
             nombre: museoResult.rows[0][1],
             fecha_fundacion: museoResult.rows[0][2],
             mision: museoResult.rows[0][3],
-            ranking: {
-                antiguedad_promedio_anios: parseFloat((rankingResult.outBinds.antiguedad[0] || 0).toFixed(2)),
-                tasa_rotacion_alta_pct: parseFloat((rankingResult.outBinds.tasa[0] || 0).toFixed(2)),
-                visitas_ultimo_anio: rankingResult.outBinds.visitas[0] || 0,
-                categoria: rankingResult.outBinds.categoria[0]
-            },
+            ranking: rankingData,
             historia: historiaResult.rows.map(r => ({ anio: r[0], hecho: r[1] })),
             colecciones: coleccionesResult.rows.map(r => ({
                 id: r[0],
@@ -614,7 +765,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
 
     } catch (err) {
         console.error(`Error al obtener la ficha del museo ${id_museo}:`, err);
-        res.status(500).json({ message: 'Error al obtener la ficha del museo' });
+        res.status(500).json({ message: 'Error al obtener la ficha del museo', error: err.message });
     } finally {
         if (connection) {
             try {
@@ -1033,6 +1184,355 @@ app.get('/api/obras/:id_obra', async (req, res) => {
                 await connection.close();
             } catch (err) {
                 console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para generar el reporte de estructura física
+app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // 1. Información básica del museo
+        const museoPromise = connection.execute(
+            `SELECT nombre, fecha_fundacion, mision FROM ${dbConfig.schema}.MUSEOS WHERE id_museo = :id`,
+            [id_museo]
+        );
+
+        // 2. Estructura física jerárquica con información detallada
+        const estructuraPromise = connection.execute(
+            `SELECT 
+                ef.id_est, 
+                ef.nombre, 
+                ef.tipo, 
+                ef.descripcion, 
+                ef.direccion_edificio, 
+                ef.id_est_padre,
+                COUNT(se.id_sala) as total_salas
+             FROM ${dbConfig.schema}.EST_FISICA ef
+             LEFT JOIN ${dbConfig.schema}.SALAS_EXP se ON ef.id_est = se.id_est AND ef.id_museo = se.id_museo
+             WHERE ef.id_museo = :id
+             GROUP BY ef.id_est, ef.nombre, ef.tipo, ef.descripcion, ef.direccion_edificio, ef.id_est_padre
+             ORDER BY ef.tipo DESC, ef.nombre ASC`,
+            [id_museo]
+        );
+
+        // 3. Salas de exposición con sus colecciones
+        const salasColeccionesPromise = connection.execute(
+            `SELECT 
+                se.id_sala,
+                se.nombre as nombre_sala,
+                se.descripcion as desc_sala,
+                se.id_est,
+                cp.nombre as nombre_coleccion,
+                cp.caracteristicas as caracteristicas_coleccion,
+                sc.orden as orden_coleccion,
+                COUNT(hom.id_obra) as total_obras
+             FROM ${dbConfig.schema}.SALAS_EXP se
+             LEFT JOIN ${dbConfig.schema}.SALAS_COLECCIONES sc ON se.id_sala = sc.id_sala 
+                 AND se.id_est = sc.id_est_fisica AND se.id_museo = sc.id_museo
+             LEFT JOIN ${dbConfig.schema}.COLECCIONES_PERMANENTES cp ON sc.id_coleccion = cp.id_coleccion 
+                 AND sc.id_est_org = cp.id_est_org AND sc.id_museo = cp.id_museo
+             LEFT JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON sc.id_coleccion = hom.id_coleccion 
+                 AND hom.fecha_salida IS NULL
+             WHERE se.id_museo = :id
+             GROUP BY se.id_sala, se.nombre, se.descripcion, se.id_est, cp.nombre, cp.caracteristicas, sc.orden
+             ORDER BY se.id_est, se.nombre, sc.orden`,
+            [id_museo]
+        );
+
+        // 4. Exposiciones y eventos actuales/futuros
+        const exposicionesPromise = connection.execute(
+            `SELECT 
+                ee.nombre as nombre_evento,
+                ee.fecha_inicio,
+                ee.fecha_fin,
+                se.nombre as nombre_sala,
+                se.id_est,
+                ee.costo_persona,
+                ee.cant_visitantes
+             FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS ee
+             JOIN ${dbConfig.schema}.SALAS_EXP se ON ee.id_sala = se.id_sala 
+                 AND ee.id_est = se.id_est AND ee.id_museo = se.id_museo
+             WHERE ee.id_museo = :id 
+                 AND ee.fecha_fin >= SYSDATE
+             ORDER BY ee.fecha_inicio ASC`,
+            [id_museo]
+        );
+
+        const [museoResult, estructuraResult, salasResult, exposicionesResult] = await Promise.all([
+            museoPromise,
+            estructuraPromise,
+            salasColeccionesPromise,
+            exposicionesPromise
+        ]);
+
+        if (museoResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Museo no encontrado' });
+        }
+
+        // Procesar estructura física en formato jerárquico
+        const estructura = estructuraResult.rows.map(row => ({
+            id: row[0],
+            nombre: row[1],
+            tipo: row[2],
+            descripcion: row[3],
+            direccion: row[4],
+            padre_id: row[5],
+            total_salas: row[6],
+            children: []
+        }));
+
+        // Construir jerarquía
+        const map = {}, roots = [];
+        estructura.forEach((node, i) => {
+            map[node.id] = i;
+        });
+
+        for (const node of estructura) {
+            if (node.padre_id && estructura[map[node.padre_id]]) {
+                estructura[map[node.padre_id]].children.push(node);
+            } else {
+                roots.push(node);
+            }
+        }
+
+        // Procesar salas y colecciones
+        const salasPorEstructura = {};
+        salasResult.rows.forEach(row => {
+            const id_est = row[3];
+            if (!salasPorEstructura[id_est]) {
+                salasPorEstructura[id_est] = [];
+            }
+            
+            const salaExistente = salasPorEstructura[id_est].find(s => s.id_sala === row[0]);
+            if (salaExistente) {
+                // Agregar colección a sala existente
+                if (row[4]) { // nombre_coleccion
+                    salaExistente.colecciones.push({
+                        nombre: row[4],
+                        caracteristicas: row[5],
+                        orden: row[6],
+                        total_obras: row[7]
+                    });
+                }
+            } else {
+                // Nueva sala
+                const nuevaSala = {
+                    id_sala: row[0],
+                    nombre: row[1],
+                    descripcion: row[2],
+                    colecciones: []
+                };
+                
+                if (row[4]) { // nombre_coleccion
+                    nuevaSala.colecciones.push({
+                        nombre: row[4],
+                        caracteristicas: row[5],
+                        orden: row[6],
+                        total_obras: row[7]
+                    });
+                }
+                
+                salasPorEstructura[id_est].push(nuevaSala);
+            }
+        });
+
+        // Asignar salas a elementos de estructura
+        const asignarSalas = (nodos) => {
+            nodos.forEach(nodo => {
+                nodo.salas = salasPorEstructura[nodo.id] || [];
+                if (nodo.children.length > 0) {
+                    asignarSalas(nodo.children);
+                }
+            });
+        };
+        asignarSalas(roots);
+
+        // Datos del reporte final
+        const reporte = {
+            museo: {
+                nombre: museoResult.rows[0][0],
+                fecha_fundacion: museoResult.rows[0][1],
+                mision: museoResult.rows[0][2]
+            },
+            estructura_fisica: roots,
+            exposiciones_actuales: exposicionesResult.rows.map(r => ({
+                nombre: r[0],
+                fecha_inicio: r[1],
+                fecha_fin: r[2],
+                sala: r[3],
+                id_est: r[4],
+                costo_persona: r[5],
+                visitantes: r[6]
+            })),
+            resumen: {
+                total_elementos: estructura.length,
+                total_edificios: estructura.filter(e => e.tipo === 'EDIFICIO').length,
+                total_pisos: estructura.filter(e => e.tipo === 'PISO').length,
+                total_areas: estructura.filter(e => e.tipo === 'AREA').length,
+                total_salas: Object.values(salasPorEstructura).flat().length,
+                total_exposiciones_activas: exposicionesResult.rows.length
+            }
+        };
+        
+        res.json(reporte);
+
+    } catch (err) {
+        console.error(`Error al generar reporte de estructura física para museo ${id_museo}:`, err);
+        res.status(500).json({ message: 'Error al generar el reporte de estructura física' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para generar el reporte de estructura física
+app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // 1. Información básica del museo
+        const museoResult = await connection.execute(
+            `SELECT nombre, fecha_fundacion, mision FROM ${dbConfig.schema}.MUSEOS WHERE id_museo = :id`,
+            [id_museo]
+        );
+
+        if (museoResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Museo no encontrado' });
+        }
+
+        const museo = {
+            nombre: museoResult.rows[0][0],
+            fecha_fundacion: museoResult.rows[0][1],
+            mision: museoResult.rows[0][2]
+        };
+
+        // 2. Estructura física jerárquica con información detallada
+        const estructuraResult = await connection.execute(
+            `SELECT 
+                ef.id_est, 
+                ef.nombre, 
+                ef.tipo, 
+                ef.descripcion, 
+                ef.direccion_edificio,
+                ef.id_est_padre,
+                CASE 
+                    WHEN ef.tipo = 'AREA' THEN 
+                        (SELECT COUNT(*) FROM ${dbConfig.schema}.COLECCIONES c WHERE c.id_est_fisica = ef.id_est)
+                    ELSE 0
+                END as total_colecciones,
+                CASE 
+                    WHEN ef.tipo = 'AREA' THEN 
+                        (SELECT COUNT(*) FROM ${dbConfig.schema}.EVENTOS e WHERE e.id_est_fisica = ef.id_est AND e.fecha_fin >= SYSDATE)
+                    ELSE 0
+                END as exposiciones_activas
+             FROM ${dbConfig.schema}.EST_FISICA ef 
+             WHERE ef.id_museo = :id 
+             ORDER BY ef.id_est_padre NULLS FIRST, ef.id_est`,
+            [id_museo]
+        );
+
+        // 3. Resumen ejecutivo
+        const resumenResult = await connection.execute(
+            `SELECT 
+                COUNT(CASE WHEN tipo = 'EDIFICIO' THEN 1 END) as total_edificios,
+                COUNT(CASE WHEN tipo = 'PISO' THEN 1 END) as total_pisos,
+                COUNT(CASE WHEN tipo = 'AREA' THEN 1 END) as total_areas,
+                COUNT(CASE WHEN tipo = 'AREA' AND UPPER(nombre) LIKE '%SALA%' THEN 1 END) as total_salas
+             FROM ${dbConfig.schema}.EST_FISICA 
+             WHERE id_museo = :id`,
+            [id_museo]
+        );
+
+        // 4. Exposiciones actuales
+        const exposicionesResult = await connection.execute(
+            `SELECT 
+                e.nombre,
+                ef.nombre as sala,
+                e.fecha_inicio,
+                e.fecha_fin,
+                e.costo_persona,
+                (SELECT COUNT(*) FROM ${dbConfig.schema}.VENTAS_EVENTO ve WHERE ve.id_evento = e.id_evento) as visitantes
+             FROM ${dbConfig.schema}.EVENTOS e
+             JOIN ${dbConfig.schema}.EST_FISICA ef ON e.id_est_fisica = ef.id_est
+             WHERE ef.id_museo = :id 
+             AND e.fecha_fin >= SYSDATE
+             ORDER BY e.fecha_inicio`,
+            [id_museo]
+        );
+
+        // Construir estructura jerárquica
+        const estructuraFlat = estructuraResult.rows.map(row => ({
+            id: row[0],
+            nombre: row[1],
+            tipo: row[2],
+            descripcion: row[3],
+            direccion_edificio: row[4],
+            id_est_padre: row[5],
+            total_colecciones: row[6],
+            exposiciones_activas: row[7],
+            children: []
+        }));
+
+        const buildTree = (items, parentId = null) => {
+            return items
+                .filter(item => item.id_est_padre === parentId)
+                .map(item => ({
+                    ...item,
+                    children: buildTree(items, item.id)
+                }));
+        };
+
+        const estructuraJerarquica = buildTree(estructuraFlat);
+
+        // Preparar datos del reporte
+        const reporteData = {
+            museo,
+            resumen: {
+                total_edificios: resumenResult.rows[0][0],
+                total_pisos: resumenResult.rows[0][1],
+                total_areas: resumenResult.rows[0][2],
+                total_salas: resumenResult.rows[0][3],
+                total_exposiciones_activas: exposicionesResult.rows.length
+            },
+            estructura_fisica: estructuraJerarquica,
+            exposiciones_actuales: exposicionesResult.rows.map(row => ({
+                nombre: row[0],
+                sala: row[1],
+                fecha_inicio: row[2],
+                fecha_fin: row[3],
+                costo_persona: row[4],
+                visitantes: row[5]
+            }))
+        };
+
+        res.json(reporteData);
+
+    } catch (error) {
+        console.error('Error al generar reporte de estructura física:', error);
+        res.status(500).json({ 
+            message: 'Error interno del servidor',
+            error: error.message 
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (closeErr) {
+                console.error('Error al cerrar conexión:', closeErr);
             }
         }
     }

@@ -23,6 +23,21 @@ const router = createRouter({
       component: () => import('../views/OrganigramaView.vue')
     },
     {
+      path: '/estructura',
+      name: 'estructura',
+      component: () => import('../views/EstructuraFisica.vue')
+    },
+    {
+      path: '/reporte-estructura',
+      name: 'reporte-estructura',
+      component: () => import('../views/ReporteEstructuraFisica.vue')
+    },
+    {
+      path: '/ficha-museo',
+      name: 'ficha-museo',
+      component: () => import('../views/FichaMuseoView.vue')
+    },
+    {
       path: '/empleados',
       name: 'empleados',
       component: ()=> import('../views/EmpleadosView.vue')
