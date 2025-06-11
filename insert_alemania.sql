@@ -1483,7 +1483,221 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     TO_DATE('1975-09-01', 'YYYY-MM-DD'), 
     'COMPRADA', 'NO', NULL, 3, 800000.00);
 
-PROMPT Data inserted into HIST_OBRAS_MOV table.
+-- -----------------------------------------------------------------------------
+-- REGISTROS FALTANTES DE HIST_OBRAS_MOV
+-- Agregando los registros de adquisición inicial para las 18 obras que carecían de historial
+-- -----------------------------------------------------------------------------
+
+-- Obras de Caspar David Friedrich para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Felsenlandschaft im Elbsandsteingebirge'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000005), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1823-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'SI', NULL, 2, 450000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000005), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1824-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'SI', NULL, 3, 600000.00);
+
+-- Obra de Carl Spitzweg para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Der Schmetterlingsjäger'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1840-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'NO', NULL, 4, 180000.00);
+
+-- Obra de Arnold Böcklin para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Selbstporträt mit fiedelndem Tod'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1872-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'NO', NULL, 5, 320000.00);
+
+-- Obras de Ernst Ludwig Kirchner para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Selbstbildnis mit Modell'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1910-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'SI', NULL, 6, 850000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Mädchenkopf'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000007), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1918-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'NO', NULL, 7, 280000.00);
+
+-- Obra de Paul Klee para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Arabische Stadt'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000007), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1928-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'SI', NULL, 8, 750000.00);
+
+-- Esculturas de Max Klinger para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Adam und Eva'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000005), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1897-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'SI', NULL, 11, 1800000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Prometheus'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000005), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1886-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'NO', NULL, 12, 950000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Kassandra'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1886-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'NO', NULL, 13, 1200000.00);
+
+-- Esculturas de Wilhelm Lehmbruck para MdbK Leipzig
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Die große Sinnende'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1908-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'NO', NULL, 14, 680000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Kniende'), 
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000007), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
+    TO_DATE('1913-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'NO', NULL, 15, 520000.00);
+
+-- Esculturas de Eva Hesse para Hamburger Kunsthalle
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Repetition Nineteen III'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Galerie der Gegenwart (Colección Contemporánea)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Espacio Contemporáneo Nivel 0' AND ef.nombre = 'Sammlung Zeitgenössische Kunst GdG KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000056), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Sammlung Zeitgenössische Kunst GdG KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1968-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'NO', NULL, 4, 650000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Ohne Titel (Wolken)'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Galerie der Gegenwart (Colección Contemporánea)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Espacio Contemporáneo Nivel 0' AND ef.nombre = 'Sammlung Zeitgenössische Kunst GdG KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000057), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Sammlung Zeitgenössische Kunst GdG KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1985-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'NO', NULL, 6, 400000.00);
+
+-- Obras de Auguste Rodin para Hamburger Kunsthalle
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Der Kuss'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte del Siglo XIX (Kunsthalle)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Gran Salón Hubertus Wald' AND ef.nombre = 'Hubertus-Wald-Forum KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000054), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Hubertus-Wald-Forum KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1882-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'SI', NULL, 7, 8500000.00);
+
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Pierre De Wiessant'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte del Siglo XIX (Kunsthalle)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Gran Salón Hubertus Wald' AND ef.nombre = 'Hubertus-Wald-Forum KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000054), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Hubertus-Wald-Forum KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1885-01-01', 'YYYY-MM-DD'), 
+    'DONADA POR MUSEO', 'NO', NULL, 8, 4200000.00);
+
+-- Obra de Édouard Manet para Hamburger Kunsthalle
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Nana, eine Studie'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte del Siglo XIX (Kunsthalle)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Salas Caspar David Friedrich' AND ef.nombre = 'Galerien 19. Jahrhundert KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000054), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerien 19. Jahrhundert KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1877-01-01', 'YYYY-MM-DD'), 
+    'COMPRADA', 'NO', NULL, 2, 1850000.00);
+
+-- Obra de Pablo Picasso para Hamburger Kunsthalle
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Die Absinthtrinkerin'),
+    (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte del Siglo XIX (Kunsthalle)' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Salas Caspar David Friedrich' AND ef.nombre = 'Galerien 19. Jahrhundert KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000055), 
+    (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Hamburger Kunsthalle'),
+    (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerien 19. Jahrhundert KH' AND m.nombre = 'Hamburger Kunsthalle'),
+    TO_DATE('1901-01-01', 'YYYY-MM-DD'), 
+    'DONADA', 'SI', NULL, 9, 25000000.00);
+
+PROMPT Data inserted into HIST_OBRAS_MOV table (MISSING RECORDS ADDED).
 PROMPT -----------------------------------------------------------------------------
 
 -- -----------------------------------------------------------------------------
