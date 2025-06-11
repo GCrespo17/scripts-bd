@@ -199,21 +199,21 @@
           <div class="stat-item">
             <div class="stat-icon">🎭</div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.exposiciones_activas }}</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.exposicionesActivas }}</div>
               <div class="stat-label">Exposiciones Activas</div>
             </div>
           </div>
           <div class="stat-item">
             <div class="stat-icon">📅</div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.eventos_programados }}</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.eventosProgramados }}</div>
               <div class="stat-label">Eventos Programados</div>
             </div>
           </div>
           <div class="stat-item">
             <div class="stat-icon">🏛️</div>
             <div class="stat-content">
-              <div class="stat-number">{{ stats.salas_disponibles }}</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.salasDisponibles }}</div>
               <div class="stat-label">Salas Disponibles</div>
             </div>
           </div>
@@ -247,10 +247,11 @@ export default {
         institucion_educativa: ''
       },
       stats: {
-        exposiciones_activas: 12,
-        eventos_programados: 8,
-        salas_disponibles: 24
-      }
+        exposicionesActivas: 0,
+        eventosProgramados: 0,
+        salasDisponibles: 0,
+      },
+      loadingStats: true,
     };
   },
   computed: {
@@ -260,6 +261,21 @@ export default {
     }
   },
   methods: {
+    async fetchStats() {
+      this.loadingStats = true;
+      try {
+        const response = await fetch('http://localhost:3000/api/estadisticas/exposiciones');
+        if (response.ok) {
+          this.stats = await response.json();
+        } else {
+          console.error('Error al cargar estadísticas de exposiciones');
+        }
+      } catch (error) {
+        console.error('Error de red al cargar estadísticas:', error);
+      } finally {
+        this.loadingStats = false;
+      }
+    },
     async fetchMuseos() {
       try {
         const response = await fetch('http://localhost:3000/api/museos');
@@ -397,8 +413,8 @@ export default {
         this.resetForm();
         
         // Actualizar estadísticas (simulado)
-        this.stats.exposiciones_activas++;
-        this.stats.eventos_programados++;
+        this.stats.exposicionesActivas++;
+        this.stats.eventosProgramados++;
         
       } catch (error) {
         this.showMessage('Error: ' + error.message, 'error');
@@ -434,6 +450,7 @@ export default {
   },
   created() {
     this.fetchMuseos();
+    this.fetchStats();
   }
 }
 </script>

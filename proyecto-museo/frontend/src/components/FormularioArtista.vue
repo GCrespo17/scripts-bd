@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 
-// Campos del formulario
+// Campos del formulario de artista
 const primer_nombre = ref('');
 const segundo_nombre = ref('');
 const primer_apellido = ref('');
@@ -21,6 +21,19 @@ const ciudades = ref([]);
 const loading = ref(false);
 const error = ref('');
 
+// Estados del modal de nuevo lugar
+const mostrarModalLugar = ref(false);
+const loadingLugar = ref(false);
+const errorLugar = ref('');
+
+// Campos del formulario de nuevo lugar
+const nuevoLugar = ref({
+  nombre: '',
+  tipo: 'PAIS',
+  continente: '',
+  id_lugar_padre: ''
+});
+
 // Cargar lugares al montar el componente
 onMounted(async () => {
   await cargarLugares();
@@ -38,6 +51,76 @@ async function cargarLugares() {
     }
   } catch (error) {
     console.error('Error al cargar lugares:', error);
+  }
+}
+
+// Funciones del modal de lugar
+function abrirModalLugar() {
+  mostrarModalLugar.value = true;
+  errorLugar.value = '';
+  nuevoLugar.value = {
+    nombre: '',
+    tipo: 'PAIS',
+    continente: '',
+    id_lugar_padre: ''
+  };
+}
+
+function cerrarModalLugar() {
+  mostrarModalLugar.value = false;
+  errorLugar.value = '';
+}
+
+async function crearLugar() {
+  if (!nuevoLugar.value.nombre.trim()) {
+    errorLugar.value = 'El nombre del lugar es obligatorio';
+    return;
+  }
+
+  if (nuevoLugar.value.tipo === 'PAIS' && !nuevoLugar.value.continente.trim()) {
+    errorLugar.value = 'El continente es obligatorio para países';
+    return;
+  }
+
+  if (nuevoLugar.value.tipo === 'CIUDAD' && !nuevoLugar.value.id_lugar_padre) {
+    errorLugar.value = 'El país es obligatorio para ciudades';
+    return;
+  }
+
+  loadingLugar.value = true;
+  errorLugar.value = '';
+
+  try {
+    const response = await fetch('http://localhost:3000/api/lugares', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(nuevoLugar.value),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Recargar la lista de lugares
+      await cargarLugares();
+      
+      // Seleccionar automáticamente el nuevo lugar
+      id_lugar.value = result.lugar.id;
+      
+      // Cerrar el modal
+      cerrarModalLugar();
+      
+      alert('Lugar creado exitosamente!');
+    } else {
+      const data = await response.json();
+      errorLugar.value = data.message || 'Error al crear el lugar';
+    }
+  } catch (err) {
+    console.error('Error de conexión:', err);
+    errorLugar.value = 'Error de conexión con el servidor';
+  } finally {
+    loadingLugar.value = false;
   }
 }
 
@@ -201,30 +284,40 @@ function limpiarFormulario() {
       </div>
     </div>
     
-    <!-- Lugar de origen -->
+    <!-- Lugar de origen con botón para agregar -->
     <div class="form-group">
       <label for="id_lugar">Lugar de Origen:</label>
-      <select v-model="id_lugar" id="id_lugar">
-        <option value="">Seleccione un lugar</option>
-        <optgroup label="Países">
-          <option 
-            v-for="pais in paises" 
-            :key="pais.id" 
-            :value="pais.id"
-          >
-            {{ pais.nombre }} ({{ pais.continente }})
-          </option>
-        </optgroup>
-        <optgroup label="Ciudades">
-          <option 
-            v-for="ciudad in ciudades" 
-            :key="ciudad.id" 
-            :value="ciudad.id"
-          >
-            {{ ciudad.nombre }}
-          </option>
-        </optgroup>
-      </select>
+      <div class="lugar-selector-container">
+        <select v-model="id_lugar" id="id_lugar" class="lugar-select">
+          <option value="">Seleccione un lugar</option>
+          <optgroup label="Países">
+            <option 
+              v-for="pais in paises" 
+              :key="pais.id" 
+              :value="pais.id"
+            >
+              {{ pais.nombre }} ({{ pais.continente }})
+            </option>
+          </optgroup>
+          <optgroup label="Ciudades">
+            <option 
+              v-for="ciudad in ciudades" 
+              :key="ciudad.id" 
+              :value="ciudad.id"
+            >
+              {{ ciudad.nombre }}
+            </option>
+          </optgroup>
+        </select>
+        <button 
+          type="button" 
+          @click="abrirModalLugar"
+          class="btn-add-lugar"
+          title="Agregar nuevo lugar"
+        >
+          ➕
+        </button>
+      </div>
     </div>
     
     <!-- Resumen de características (obligatorio) -->
@@ -260,6 +353,88 @@ function limpiarFormulario() {
       </button>
     </div>
   </form>
+
+  <!-- Modal para agregar nuevo lugar -->
+  <div v-if="mostrarModalLugar" class="modal-overlay" @click="cerrarModalLugar">
+    <div class="modal-content" @click.stop>
+      <div class="modal-header">
+        <h3>Agregar Nuevo Lugar</h3>
+        <button @click="cerrarModalLugar" class="btn-close">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Mensaje de error del modal -->
+        <div v-if="errorLugar" class="error-message">
+          {{ errorLugar }}
+        </div>
+        
+        <!-- Formulario de nuevo lugar -->
+        <div class="form-group">
+          <label for="lugar-nombre">Nombre del Lugar *</label>
+          <input 
+            id="lugar-nombre"
+            v-model="nuevoLugar.nombre" 
+            type="text" 
+            placeholder="Ej: Francia, París"
+            required
+          />
+        </div>
+        
+        <div class="form-group">
+          <label for="lugar-tipo">Tipo *</label>
+          <select id="lugar-tipo" v-model="nuevoLugar.tipo">
+            <option value="PAIS">País</option>
+            <option value="CIUDAD">Ciudad</option>
+          </select>
+        </div>
+        
+        <div v-if="nuevoLugar.tipo === 'PAIS'" class="form-group">
+          <label for="lugar-continente">Continente *</label>
+          <select id="lugar-continente" v-model="nuevoLugar.continente">
+            <option value="">Seleccione un continente</option>
+            <option value="Europa">Europa</option>
+            <option value="Asia">Asia</option>
+            <option value="África">África</option>
+            <option value="América del Norte">América del Norte</option>
+            <option value="América del Sur">América del Sur</option>
+            <option value="Oceanía">Oceanía</option>
+            <option value="Antártida">Antártida</option>
+          </select>
+        </div>
+        
+        <div v-if="nuevoLugar.tipo === 'CIUDAD'" class="form-group">
+          <label for="lugar-pais">País *</label>
+          <select id="lugar-pais" v-model="nuevoLugar.id_lugar_padre">
+            <option value="">Seleccione un país</option>
+            <option 
+              v-for="pais in paises" 
+              :key="pais.id" 
+              :value="pais.id"
+            >
+              {{ pais.nombre }} ({{ pais.continente }})
+            </option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button 
+          @click="cerrarModalLugar" 
+          class="btn-secondary"
+          :disabled="loadingLugar"
+        >
+          Cancelar
+        </button>
+        <button 
+          @click="crearLugar" 
+          class="btn-primary"
+          :disabled="loadingLugar"
+        >
+          {{ loadingLugar ? 'Creando...' : 'Crear Lugar' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -329,6 +504,37 @@ function limpiarFormulario() {
   min-height: 100px;
 }
 
+/* Estilo para el selector de lugar con botón */
+.lugar-selector-container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.lugar-select {
+  flex: 1;
+}
+
+.btn-add-lugar {
+  padding: 0.75rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  min-width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-add-lugar:hover {
+  background-color: #059669;
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
@@ -370,12 +576,101 @@ function limpiarFormulario() {
   cursor: not-allowed;
 }
 
+/* Estilos del modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.25rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.btn-close:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
 @media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
   }
   
   .form-actions {
+    flex-direction: column;
+  }
+  
+  .lugar-selector-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-add-lugar {
+    min-width: auto;
+    height: auto;
+    padding: 0.75rem 1rem;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+  }
+  
+  .modal-footer {
     flex-direction: column;
   }
 }

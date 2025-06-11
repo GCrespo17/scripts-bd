@@ -1,5 +1,34 @@
 <script setup>
 import FormularioArtista from '../components/FormularioArtista.vue'
+import { ref, onMounted } from 'vue';
+
+const stats = ref({
+  totalArtistas: 0,
+  paisesRepresentados: 0,
+  artistasDestacados: 0
+});
+const loadingStats = ref(true);
+
+const fetchStats = async () => {
+  loadingStats.value = true;
+  try {
+    const response = await fetch('http://localhost:3000/api/estadisticas/artistas');
+    if (response.ok) {
+      const data = await response.json();
+      stats.value = data;
+    } else {
+      console.error('Error fetching stats');
+    }
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+  } finally {
+    loadingStats.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStats();
+});
 </script>
 
 <template>
@@ -41,21 +70,21 @@ import FormularioArtista from '../components/FormularioArtista.vue'
           <div class="stat-item">
             <div class="stat-icon">📈</div>
             <div class="stat-content">
-              <div class="stat-number">247</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.totalArtistas }}</div>
               <div class="stat-label">Artistas Registrados</div>
             </div>
           </div>
           <div class="stat-item">
             <div class="stat-icon">🎭</div>
             <div class="stat-content">
-              <div class="stat-number">18</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.paisesRepresentados }}</div>
               <div class="stat-label">Países Representados</div>
             </div>
           </div>
           <div class="stat-item">
             <div class="stat-icon">⭐</div>
             <div class="stat-content">
-              <div class="stat-number">89</div>
+              <div class="stat-number">{{ loadingStats ? '...' : stats.artistasDestacados }}</div>
               <div class="stat-label">Artistas Destacados</div>
             </div>
           </div>

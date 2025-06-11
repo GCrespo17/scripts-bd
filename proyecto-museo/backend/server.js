@@ -2354,6 +2354,219 @@ app.get('/api/debug/tables', async (req, res) => {
     }
 });
 
+// Endpoint para estadísticas de artistas
+app.get('/api/estadisticas/artistas', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        const totalArtistasPromise = connection.execute(
+            `SELECT COUNT(*) FROM ${dbConfig.schema}.ARTISTAS`
+        );
+
+        const paisesQuery = `
+            SELECT COUNT(DISTINCT pais_id)
+            FROM (
+                SELECT 
+                    CASE 
+                        WHEN l.tipo = 'PAIS' THEN l.id_lugar
+                        ELSE l.id_lugar_padre 
+                    END as pais_id
+                FROM ${dbConfig.schema}.ARTISTAS a
+                JOIN ${dbConfig.schema}.LUGARES l ON a.id_lugar = l.id_lugar
+                WHERE a.id_lugar IS NOT NULL
+            )
+        `;
+        const paisesRepresentadosPromise = connection.execute(paisesQuery);
+
+        const artistasDestacadosPromise = connection.execute(
+            `SELECT COUNT(*) FROM ${dbConfig.schema}.ARTISTAS WHERE apodo IS NOT NULL`
+        );
+
+        const [
+            totalArtistasResult,
+            paisesRepresentadosResult,
+            artistasDestacadosResult
+        ] = await Promise.all([
+            totalArtistasPromise,
+            paisesRepresentadosPromise,
+            artistasDestacadosPromise
+        ]);
+
+        const stats = {
+            totalArtistas: totalArtistasResult.rows[0][0],
+            paisesRepresentados: paisesRepresentadosResult.rows[0][0],
+            artistasDestacados: artistasDestacadosResult.rows[0][0]
+        };
+
+        res.json(stats);
+
+    } catch (err) {
+        console.error('Error al obtener estadísticas de artistas:', err);
+        res.status(500).json({ message: 'Error al obtener estadísticas de artistas', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para estadísticas de exposiciones
+app.get('/api/estadisticas/exposiciones', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        const exposicionesActivasPromise = connection.execute(
+            `SELECT COUNT(*) FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS WHERE SYSDATE BETWEEN fecha_inicio AND fecha_fin`
+        );
+        
+        const eventosProgramadosPromise = connection.execute(
+            `SELECT COUNT(*) FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS WHERE fecha_inicio > SYSDATE`
+        );
+
+        const salasDisponiblesPromise = connection.execute(
+            `SELECT 
+                (SELECT COUNT(*) FROM ${dbConfig.schema}.SALAS_EXP) - 
+                (SELECT COUNT(DISTINCT id_sala) FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS WHERE SYSDATE BETWEEN fecha_inicio AND fecha_fin) 
+             FROM DUAL`
+        );
+        
+        const [
+            exposicionesActivasResult,
+            eventosProgramadosResult,
+            salasDisponiblesResult
+        ] = await Promise.all([
+            exposicionesActivasPromise,
+            eventosProgramadosPromise,
+            salasDisponiblesPromise
+        ]);
+
+        const stats = {
+            exposicionesActivas: exposicionesActivasResult.rows[0][0],
+            eventosProgramados: eventosProgramadosResult.rows[0][0],
+            salasDisponibles: salasDisponiblesResult.rows[0][0]
+        };
+
+        res.json(stats);
+
+    } catch (err) {
+        console.error('Error al obtener estadísticas de exposiciones:', err);
+        res.status(500).json({ message: 'Error al obtener estadísticas de exposiciones', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para crear un nuevo lugar
+app.post('/api/lugares', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        const { nombre, tipo, continente, id_lugar_padre } = req.body;
+
+        // Validaciones básicas
+        if (!nombre || !tipo) {
+            return res.status(400).json({ message: 'Nombre y tipo son obligatorios' });
+        }
+
+        if (!['PAIS', 'CIUDAD'].includes(tipo)) {
+            return res.status(400).json({ message: 'Tipo debe ser PAIS o CIUDAD' });
+        }
+
+        if (tipo === 'PAIS' && !continente) {
+            return res.status(400).json({ message: 'Continente es obligatorio para países' });
+        }
+
+        if (tipo === 'CIUDAD' && !id_lugar_padre) {
+            return res.status(400).json({ message: 'País padre es obligatorio para ciudades' });
+        }
+
+        // Verificar si el lugar ya existe
+        const existeResult = await connection.execute(
+            `SELECT COUNT(*) FROM ${dbConfig.schema}.LUGARES WHERE UPPER(nombre) = UPPER(:nombre) AND tipo = :tipo`,
+            { nombre, tipo }
+        );
+
+        if (existeResult.rows[0][0] > 0) {
+            return res.status(409).json({ message: `Ya existe un ${tipo.toLowerCase()} con ese nombre` });
+        }
+
+        // Insertar el nuevo lugar
+        const insertQuery = `
+            INSERT INTO ${dbConfig.schema}.LUGARES (
+                id_lugar, nombre, tipo, continente, id_lugar_padre
+            ) VALUES (
+                SEQ_LUGARES.NEXTVAL, :nombre, :tipo, :continente, :id_lugar_padre
+            ) RETURNING id_lugar INTO :id_lugar
+        `;
+
+        const insertParams = {
+            nombre,
+            tipo,
+            continente: tipo === 'PAIS' ? continente : null,
+            id_lugar_padre: tipo === 'CIUDAD' ? id_lugar_padre : null,
+            id_lugar: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+        };
+
+        const result = await connection.execute(insertQuery, insertParams);
+        await connection.commit();
+
+        const nuevoId = result.outBinds.id_lugar[0];
+
+        // Obtener el lugar completo insertado
+        const lugarResult = await connection.execute(
+            `SELECT id_lugar, nombre, tipo, continente, id_lugar_padre 
+             FROM ${dbConfig.schema}.LUGARES 
+             WHERE id_lugar = :id`,
+            { id: nuevoId }
+        );
+
+        const nuevoLugar = {
+            id: lugarResult.rows[0][0],
+            nombre: lugarResult.rows[0][1],
+            tipo: lugarResult.rows[0][2],
+            continente: lugarResult.rows[0][3],
+            id_lugar_padre: lugarResult.rows[0][4]
+        };
+
+        res.status(201).json({
+            message: 'Lugar creado exitosamente',
+            lugar: nuevoLugar
+        });
+
+    } catch (err) {
+        console.error('Error al crear lugar:', err);
+        if (connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackErr) {
+                console.error('Error en rollback:', rollbackErr);
+            }
+        }
+        res.status(500).json({ message: 'Error al crear el lugar', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
