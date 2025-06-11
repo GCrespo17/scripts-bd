@@ -26,16 +26,19 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
 ## Fase 2: Desarrollo de Formularios (Requisitos de Rúbrica + Nuevas Funcionalidades)
 *Esta fase combina los formularios obligatorios de la rúbrica con los nuevos módulos de gestión recomendados.*
 
-- [x] **Tarea 2.1: (Rúbrica) Formulario: Registro de Artistas**
+- [x] **Tarea 2.1: (Rúbrica) Formulario: Registro de Artistas** ✅ COMPLETADA
     - **Descripción:** Crear una interfaz de usuario para insertar nuevos artistas en la tabla `ARTISTAS`.
+    - **Estado:** ✅ COMPLETADA - Formulario implementado y funcional en la navegación principal
     - **Prioridad:** ALTA
 
-- [ ] **Tarea 2.2: (Rúbrica) Formulario: Registro de Exposición/Evento**
+- [🔄] **Tarea 2.2: (Rúbrica) Formulario: Registro de Exposición/Evento** 🔄 EN PROCESO
     - **Descripción:** Desarrollar un formulario para registrar un nuevo `EXPOSICION_EVENTO`. Debe facilitar la selección de museo, sala y la entrada de todos los datos relevantes. Esta tarea cubre parcialmente la nueva recomendación de "Gestión de Eventos Especiales".
+    - **Estado:** 🔄 EN PROCESO - Falta implementar formulario frontend (backend disponible)
     - **Prioridad:** ALTA
 
-- [ ] **Tarea 2.3: (Rúbrica) Formulario: Programa de Mantenimiento**
+- [🔄] **Tarea 2.3: (Rúbrica) Formulario: Programa de Mantenimiento** 🔄 EN PROCESO
     - **Descripción:** Crear una interfaz para añadir registros a `PROGRAMAS_MANT`, permitiendo seleccionar una obra y definir su plan de mantenimiento.
+    - **Estado:** 🔄 EN PROCESO - Falta implementar formulario frontend (backend disponible)
     - **Prioridad:** ALTA
 
 - [x] **Tarea 2.4: (Rúbrica) Formulario: Estructura Física del Museo** ✅ COMPLETADA
@@ -60,12 +63,14 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
 ## Fase 3: Desarrollo de Reportes (Requisitos de Rúbrica + Nuevas Funcionalidades)
 *Se mantienen los reportes obligatorios y se añade un reporte financiero clave, alineado con las nuevas prioridades.*
 
-- [ ] **Tarea 3.1: (Rúbrica) Diseño de Plantilla de Reportes**
+- [x] **Tarea 3.1: (Rúbrica) Diseño de Plantilla de Reportes** ✅ COMPLETADA
     - **Descripción:** Crear un diseño base (plantilla) que personalice todos los reportes con una identidad visual común para el proyecto.
+    - **Estado:** ✅ COMPLETADA - Plantilla de reportes implementada en todos los reportes del sistema
     - **Prioridad:** ALTA
 
-- [ ] **Tarea 3.2: (Rúbrica) Reporte: Estructura Organizacional**
+- [x] **Tarea 3.2: (Rúbrica) Reporte: Estructura Organizacional** ✅ COMPLETADA
     - **Descripción:** Implementar un reporte parametrizado por museo que muestre su organigrama (`EST_ORGANIZACIONAL`) de forma jerárquica.
+    - **Estado:** ✅ COMPLETADA - Reporte "Organigrama" implementado y disponible en la navegación principal
     - **Prioridad:** ALTA
 
 - [x] **Tarea 3.3: (Rúbrica) Reporte: Ficha Museo** ✅ COMPLETADA
@@ -90,8 +95,9 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
       - Agregada información geográfica contextual en el ranking
     - **Prioridad:** ALTA
 
-- [ ] **Tarea 3.4: (Rúbrica) Reporte: Ficha Empleado**
+- [x] **Tarea 3.4: (Rúbrica) Reporte: Ficha Empleado** ✅ COMPLETADA
     - **Descripción:** Desarrollar un reporte para curadores/restauradores que muestre su ficha completa: datos personales, formación, idiomas e historial laboral.
+    - **Estado:** ✅ COMPLETADA - Reporte "Empleados" implementado y disponible en la navegación principal con funcionalidad completa de visualización de empleados por museo y tipo
     - **Prioridad:** ALTA
 
 - [x] **Tarea 3.5: (Rúbrica) Reporte: Estructura Física** ✅ COMPLETADA
@@ -101,6 +107,13 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
 
 - [ ] **Tarea 3.6: (Recomendado) Reporte: Ingresos por Tickets y Periodo**
     - **Descripción:** **(NUEVO)** Crear un reporte financiero que muestre los ingresos por venta de tickets, parametrizable por museo y rango de fechas. Aborda la alta prioridad de "Reportes Financieros".
+    - **Prioridad:** ALTA
+
+- [ ] **Tarea 2.8: (Recomendado) Formulario: Venta de Tickets** **(NUEVO)**
+    - **Descripción:** **(NUEVO)** Implementar una interfaz para la venta de tickets que permita seleccionar el museo, tipo de ticket (ESTUDIANTE, INFANTIL, ADULTO) y procesar la venta. Incluye la lógica de precios dinámicos y generación de IDs únicos. Proceso de negocio: "Administración de Ingresos por Admisiones".
+    - **Entidades relacionadas:** `TICKETS`, `TIPO_TICKETS`, `MUSEOS`
+    - **Backend:** Endpoint `/api/tickets` (POST) ya implementado
+    - **Stored Procedure:** `SP_VENDER_TICKET` ya disponible en la base de datos
     - **Prioridad:** ALTA
 
 ---
@@ -139,6 +152,14 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
 ---
 
 ## Registro de Progreso
+
+### Sesión del 17-NOV-2024
+- ✅ **Estado Actualizado del Proyecto según Navegación Principal**:
+  - **Formularios Completados**: Artistas ✅, Estructura Física ✅
+  - **Reportes Completados**: Organigrama ✅, Reporte Estructura ✅, Ficha de Museo ✅, Empleados ✅
+  - **Formularios Pendientes**: Exposición/Evento 🔄, Programa de Mantenimiento 🔄
+  - **Nuevas Tareas Identificadas**: Formulario de Venta de Tickets (proceso de negocio crítico)
+  - **Progreso de Rúbrica**: 6/8 elementos completados (75% cumplimiento)
 
 ### Sesión del 15-NOV-2024
 - ✅ **Implementación Completa del Formulario de Estructura Física**:

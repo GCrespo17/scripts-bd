@@ -1,7 +1,7 @@
 <template>
   <div class="employee-professional-card" @click="$emit('employee-selected', empleado)">
     <div class="card-header">
-      <h4 class="employee-name">{{ empleado.nombre }} {{ empleado.apellido }}</h4>
+      <h4 class="employee-name">{{ empleado.nombre }}</h4>
       <span class="badge badge-role">{{ empleado.cargo}}</span>
     </div>
     <div class="card-body">
@@ -18,13 +18,11 @@ export default {
       type: Object,
       required: true,
       // Se puede añadir un validador para asegurar que tenga las propiedades básicas
-      validator: function(obj) {
-        return obj.hasOwnProperty('nombre') &&
-               obj.hasOwnProperty('apellido') &&
-               obj.hasOwnProperty('doc_identidad') &&
-               obj.hasOwnProperty('cargo');
-               // Asegúrate de que tu API retorne 'cargo' si lo necesitas, o ajusta el default
-      }
+              validator: function(obj) {
+          return obj.hasOwnProperty('nombre') &&
+                 obj.hasOwnProperty('doc_identidad') &&
+                 obj.hasOwnProperty('cargo');
+        }
     }
   }
 };

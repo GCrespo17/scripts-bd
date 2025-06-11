@@ -29,10 +29,22 @@
         <h2>{{ museoInfo.nombre }}</h2>
         <div class="header-details">
           <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
-          <span><strong>Ranking:</strong> {{ museoInfo.ranking.categoria }}</span>
+          <span v-if="museoInfo.ranking && museoInfo.ranking.categoria" class="rank">{{ museoInfo.ranking.categoria }}</span>
+          <span v-if="museoInfo.ranking && museoInfo.ranking.ubicacion" class="location">
+            📍 {{ museoInfo.ranking.ubicacion.ciudad }}, {{ museoInfo.ranking.ubicacion.pais }}
+          </span>
         </div>
         <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
-        <small><em>(El ranking se calcula basado en la estabilidad del personal y el volumen de visitas anuales)</em></small>
+        <div v-if="museoInfo.ranking && museoInfo.ranking.metricas" class="museo-stats">
+          <div class="stat">
+            <span class="stat-number">{{ museoInfo.ranking.metricas.total_empleados || 0 }}</span>
+            <span class="stat-label">Empleados Activos</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">{{ formatNumber(museoInfo.ranking.metricas.visitas_ultimo_anio) || 0 }}</span>
+            <span class="stat-label">Visitas Anuales</span>
+          </div>
+        </div>
       </div>
 
 
@@ -237,6 +249,10 @@ export default {
     clearDetallesEmpleado() {
       this.detallesEmpleado = null; 
       this.errorEmpleado = null;
+    },
+    formatNumber(num) {
+      if (!num) return '0';
+      return new Intl.NumberFormat('es-ES').format(num);
     }
   },
   watch: {
@@ -455,6 +471,46 @@ select:focus {
   color: #c0392b;
 }
 
+/* Estilos para el ranking y estadísticas del museo */
+.museo-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding: 1rem 0;
+}
+
+.stat {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  min-width: 120px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.location {
+  background: rgba(255,255,255,0.15);
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 /* Responsive mejoras */
 @media (max-width: 768px) {
   .empleados-view {
@@ -482,6 +538,15 @@ select:focus {
   .report-header {
     padding: 1.5rem;
     margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  }
+
+  .museo-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .stat {
+    min-width: auto;
   }
 }
 </style>

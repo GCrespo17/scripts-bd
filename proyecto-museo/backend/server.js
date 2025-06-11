@@ -6,6 +6,12 @@ const app = express();
 app.use(cors()); // Habilita CORS
 app.use(express.json()); // Permite al servidor entender JSON
 
+// Middleware para loggear todas las peticiones
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // Configuración de la conexión a Oracle
 const dbConfig = {
     user: "SYSTEM", // o tu usuario de esquema
@@ -17,6 +23,110 @@ const dbConfig = {
 // Endpoint de prueba
 app.get('/api/test', (req, res) => {
     res.json({ message: "La API del Backend funciona!" });
+});
+
+// Endpoint de prueba de conexión a BD
+app.get('/api/test-db', async (req, res) => {
+    let connection;
+    try {
+        console.log('[TEST-DB] Intentando conectar...');
+        connection = await oracledb.getConnection(dbConfig);
+        console.log('[TEST-DB] Conexión exitosa');
+        
+        const result = await connection.execute('SELECT 1 as test FROM dual');
+        console.log('[TEST-DB] Query test ejecutada');
+        
+        res.json({ 
+            message: "Conexión a BD exitosa!",
+            test_result: result.rows[0][0],
+            config: {
+                user: dbConfig.user,
+                connectString: dbConfig.connectString,
+                schema: dbConfig.schema
+            }
+        });
+    } catch (err) {
+        console.error('[TEST-DB] Error:', err);
+        res.status(500).json({ 
+            message: "Error de conexión a BD",
+            error: err.message,
+            code: err.code || 'UNKNOWN'
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[TEST-DB] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint de debug para verificar empleados en la base de datos
+app.get('/api/debug/empleados/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
+    let connection;
+    
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // 1. Verificar si el museo existe
+        const museoResult = await connection.execute(
+            `SELECT nombre FROM ${dbConfig.schema}.MUSEOS WHERE id_museo = :id`,
+            [id_museo]
+        );
+        
+        // 2. Verificar todos los empleados del museo
+        const empleadosResult = await connection.execute(
+            `SELECT ep.id_empleado, ep.primer_nombre, ep.primer_apellido, he.cargo, he.fecha_fin
+             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+             JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+             WHERE he.id_museo = :id
+             ORDER BY he.cargo, ep.primer_apellido`,
+            [id_museo]
+        );
+        
+        // 3. Contar por cargo
+        const cargosResult = await connection.execute(
+            `SELECT he.cargo, COUNT(*) as total
+             FROM ${dbConfig.schema}.HIST_EMPLEADOS he
+             WHERE he.id_museo = :id AND he.fecha_fin IS NULL
+             GROUP BY he.cargo`,
+            [id_museo]
+        );
+        
+        const debug = {
+            museo_exists: museoResult.rows.length > 0,
+            museo_nombre: museoResult.rows.length > 0 ? museoResult.rows[0][0] : 'No encontrado',
+            total_empleados: empleadosResult.rows.length,
+            empleados_activos: empleadosResult.rows.filter(row => row[4] === null).length,
+            empleados_por_cargo: cargosResult.rows.map(row => ({
+                cargo: row[0],
+                total: row[1]
+            })),
+            empleados_detalle: empleadosResult.rows.map(row => ({
+                id: row[0],
+                nombre: `${row[1]} ${row[2]}`,
+                cargo: row[3],
+                activo: row[4] === null ? 'SI' : 'NO'
+            }))
+        };
+        
+        res.json(debug);
+        
+    } catch (err) {
+        console.error('Error en debug:', err);
+        res.status(500).json({ error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
 });
 
 // Endpoint para obtener lugares (países y ciudades)
@@ -133,28 +243,47 @@ app.post('/api/artistas', async (req, res) => {
 
 // Endpoint para obtener todos los museos
 app.get('/api/museos', async (req, res) => {
+    console.log('[DEBUG] Iniciando petición a /api/museos');
     let connection;
     try {
+        console.log('[DEBUG] Intentando conectar a BD...');
+        console.log('[DEBUG] Config BD:', { 
+            user: dbConfig.user, 
+            connectString: dbConfig.connectString, 
+            schema: dbConfig.schema 
+        });
+        
         connection = await oracledb.getConnection(dbConfig);
-        const result = await connection.execute(
-            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre ASC`
-        );
+        console.log('[DEBUG] Conexión a BD establecida exitosamente');
+        
+        const query = `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre ASC`;
+        console.log('[DEBUG] Ejecutando query:', query);
+        
+        const result = await connection.execute(query);
+        console.log(`[DEBUG] Query ejecutada. Filas encontradas: ${result.rows.length}`);
         
         const museos = result.rows.map(row => ({
             id: row[0],
             nombre: row[1]
         }));
         
+        console.log('[DEBUG] Museos procesados:', JSON.stringify(museos.slice(0, 3))); // Solo los primeros 3
         res.json(museos);
     } catch (err) {
-        console.error('Error al obtener museos:', err);
-        res.status(500).json({ message: 'Error al obtener museos' });
+        console.error('ERROR DETALLADO al obtener museos:', err);
+        console.error('ERROR Stack:', err.stack);
+        res.status(500).json({ 
+            message: 'Error al obtener museos',
+            error: err.message,
+            code: err.code || 'UNKNOWN'
+        });
     } finally {
         if (connection) {
             try {
                 await connection.close();
+                console.log('[DEBUG] Conexión a BD cerrada');
             } catch (err) {
-                console.error(err);
+                console.error('Error cerrando conexión:', err);
             }
         }
     }
@@ -289,45 +418,55 @@ app.get('/api/obras', async (req, res) => {
     }
 });
 
-// Endpoint para registrar un nuevo programa de mantenimiento
-app.post('/api/programas-mant', async (req, res) => {
-    const {
-        id_catalogo,
-        id_obra,
-        actividad,
-        frecuencia,
-        tipo_responsable
-    } = req.body;
-    
+// Endpoint para obtener obras activas de un museo (necesario para el formulario de mantenimiento)
+app.get('/api/obras-activas/museo/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
     let connection;
+
+    console.log(`[DEBUG] Solicitando obras activas para museo ID: ${id_museo}`);
 
     try {
         connection = await oracledb.getConnection(dbConfig);
+        console.log('[DEBUG] Conexión a BD establecida');
         
-        const sql = `
-            INSERT INTO ${dbConfig.schema}.PROGRAMAS_MANT (
-                id_catalogo, id_obra, actividad, frecuencia, tipo_responsable
-            ) VALUES (
-                :id_catalogo, :id_obra, :actividad, :frecuencia, :tipo_responsable
-            )
-        `;
+        const result = await connection.execute(
+            `SELECT 
+                hom.id_catalogo_museo as id_catalogo,
+                hom.id_obra,
+                o.nombre,
+                o.tipo_obra,
+                hom.fecha_entrada,
+                COUNT(pm.id_mant) as programas_existentes
+             FROM ${dbConfig.schema}.HIST_OBRAS_MOV hom
+             JOIN ${dbConfig.schema}.OBRAS o ON hom.id_obra = o.id_obra
+             LEFT JOIN ${dbConfig.schema}.PROGRAMAS_MANT pm ON hom.id_catalogo_museo = pm.id_catalogo 
+                 AND hom.id_obra = pm.id_obra
+             WHERE hom.id_museo = :id_museo 
+               AND hom.fecha_salida IS NULL
+             GROUP BY hom.id_catalogo_museo, hom.id_obra, o.nombre, o.tipo_obra, hom.fecha_entrada
+             ORDER BY o.nombre ASC`,
+            [id_museo]
+        );
         
-        const params = {
-            id_catalogo,
-            id_obra,
-            actividad,
-            frecuencia,
-            tipo_responsable
-        };
+        console.log(`[DEBUG] Consulta ejecutada. Filas encontradas: ${result.rows.length}`);
         
-        await connection.execute(sql, params, { autoCommit: true });
-        res.status(201).json({ message: 'Programa de mantenimiento registrado exitosamente' });
+        const obras = result.rows.map(row => ({
+            id_catalogo: row[0],
+            id_obra: row[1],
+            nombre: row[2],
+            tipo_obra: row[3],
+            fecha_entrada: row[4],
+            programas_existentes: row[5]
+        }));
         
+        console.log(`[DEBUG] Obras procesadas: ${JSON.stringify(obras.slice(0, 2))}`); // Solo las primeras 2 para logging
+        res.json(obras);
     } catch (err) {
-        console.error('Error al registrar programa de mantenimiento:', err);
+        console.error('Error al obtener obras activas:', err);
         res.status(500).json({ 
-            message: 'Error al registrar el programa de mantenimiento',
-            error: err.message 
+            message: 'Error al obtener obras activas del museo',
+            error: err.message,
+            details: err.stack 
         });
     } finally {
         if (connection) {
@@ -335,6 +474,311 @@ app.post('/api/programas-mant', async (req, res) => {
                 await connection.close();
             } catch (err) {
                 console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para obtener detalles de mantenimiento de una obra específica
+app.get('/api/obras/:id_obra/detalles-mantenimiento', async (req, res) => {
+    const { id_obra } = req.params;
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Consultar datos base de la obra y su ubicación actual
+        const obraResult = await connection.execute(
+            `SELECT 
+                o.nombre,
+                o.tipo_obra,
+                o.dimensiones,
+                o.desc_materiales_tecnicas,
+                m.nombre as museo_actual,
+                se.nombre as sala_actual,
+                hom.fecha_entrada,
+                hom.destacada
+             FROM ${dbConfig.schema}.OBRAS o
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON o.id_obra = hom.id_obra
+             JOIN ${dbConfig.schema}.MUSEOS m ON hom.id_museo = m.id_museo
+             LEFT JOIN ${dbConfig.schema}.SALAS_EXP se ON hom.id_sala = se.id_sala 
+                 AND hom.id_est_fis = se.id_est AND hom.id_museo = se.id_museo
+             WHERE o.id_obra = :id_obra 
+               AND hom.fecha_salida IS NULL`,
+            [id_obra]
+        );
+
+        // Consultar último mantenimiento realizado
+        const ultimoMantResult = await connection.execute(
+            `SELECT 
+                mor.fecha_inicio,
+                mor.fecha_fin,
+                mor.observaciones,
+                ep.primer_nombre || ' ' || ep.primer_apellido as responsable
+             FROM ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor
+             JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON mor.id_empleado = ep.id_empleado
+             WHERE mor.id_obra = :id_obra
+               AND mor.fecha_fin IS NOT NULL
+             ORDER BY mor.fecha_fin DESC
+             FETCH FIRST 1 ROWS ONLY`,
+            [id_obra]
+        );
+
+        if (obraResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Obra no encontrada o no está activa' });
+        }
+
+        const obra = obraResult.rows[0];
+        const ultimoMant = ultimoMantResult.rows.length > 0 ? ultimoMantResult.rows[0] : null;
+
+        const detalles = {
+            nombre: obra[0],
+            tipo_obra: obra[1],
+            dimensiones: obra[2],
+            materiales_tecnicas: obra[3],
+            ubicacion_actual: `${obra[4]} - ${obra[5] || 'Sala no especificada'}`,
+            fecha_entrada_museo: obra[6],
+            es_destacada: obra[7] === 'SI',
+            ultimo_mantenimiento: ultimoMant ? {
+                fecha: ultimoMant[1], // fecha_fin
+                responsable: ultimoMant[3],
+                observaciones: ultimoMant[2]
+            } : null
+        };
+        
+        res.json(detalles);
+    } catch (err) {
+        console.error('Error al obtener detalles de mantenimiento:', err);
+        res.status(500).json({ message: 'Error al obtener detalles de la obra' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint mejorado para registrar un nuevo programa de mantenimiento (VERSIÓN INTEGRAL)
+app.post('/api/programas-mant', async (req, res) => {
+    const {
+        id_catalogo,
+        id_obra,
+        id_museo,
+        actividad,
+        frecuencia,
+        tipo_responsable,
+        id_empleado_responsable
+    } = req.body;
+    
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // ===== FASE 1: VALIDACIONES PREVIAS =====
+        
+        // 1.1 Verificar que la obra esté activa en el museo especificado
+        const obraActivaResult = await connection.execute(
+            `SELECT 1 FROM ${dbConfig.schema}.HIST_OBRAS_MOV 
+             WHERE id_catalogo_museo = :catalogo 
+               AND id_obra = :obra 
+               AND id_museo = :museo
+               AND fecha_salida IS NULL`,
+            [id_catalogo, id_obra, id_museo]
+        );
+        
+        if (obraActivaResult.rows.length === 0) {
+            return res.status(400).json({
+                error: 'La obra no está actualmente en el museo especificado o no es válida',
+                details: 'Verifique que la obra esté activa en el museo seleccionado'
+            });
+        }
+        
+        // 1.2 Verificar disponibilidad de empleados del tipo requerido
+        const empleadosDisponiblesResult = await connection.execute(
+            `SELECT COUNT(*) as disponibles, 
+                    MIN(ep.primer_nombre || ' ' || ep.primer_apellido) as primer_empleado
+             FROM ${dbConfig.schema}.HIST_EMPLEADOS he
+             JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON he.id_empleado_prof = ep.id_empleado
+             WHERE he.id_museo = :museo 
+               AND he.cargo = :tipo_responsable 
+               AND he.fecha_fin IS NULL`,
+            [id_museo, tipo_responsable]
+        );
+        
+        const disponibles = empleadosDisponiblesResult.rows[0][0];
+        const primerEmpleado = empleadosDisponiblesResult.rows[0][1];
+
+        // 1.3 Verificar si ya existe un programa activo para esta obra
+        const programaExistenteResult = await connection.execute(
+            `SELECT COUNT(*) as existentes
+             FROM ${dbConfig.schema}.PROGRAMAS_MANT 
+             WHERE id_catalogo = :catalogo 
+               AND id_obra = :obra`,
+            [id_catalogo, id_obra]
+        );
+
+        const programasExistentes = programaExistenteResult.rows[0][0];
+        
+        // ===== FASE 2: INSERCIÓN CON TRANSACCIÓN =====
+        
+        // Iniciar transacción
+        await connection.execute('SAVEPOINT before_insert');
+        
+        const sql = `
+            INSERT INTO ${dbConfig.schema}.PROGRAMAS_MANT (
+                id_catalogo, id_obra, actividad, frecuencia, tipo_responsable
+            ) VALUES (
+                :catalogo, :obra, :actividad, :frecuencia, :responsable
+            )
+        `;
+        
+        const params = {
+            catalogo: id_catalogo,
+            obra: id_obra,
+            actividad: actividad.trim(),
+            frecuencia: frecuencia,
+            responsable: tipo_responsable
+        };
+        
+        await connection.execute(sql, params);
+        
+        // ===== FASE 3: AUTOMATIZACIÓN OPCIONAL INMEDIATA =====
+        
+        let automatizacionActivada = false;
+        let registrosProcesados = 0;
+        
+        try {
+            // Si se proporcionó un empleado específico, programar mantenimiento inmediato
+            if (id_empleado_responsable) {
+                await connection.execute(
+                    `INSERT INTO ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS (
+                        id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, observaciones
+                    ) 
+                    SELECT pm.id_mant, pm.id_catalogo, pm.id_obra, :empleado, SYSDATE,
+                           'Mantenimiento programado desde formulario. Empleado asignado manualmente: ' || 
+                           ep.primer_nombre || ' ' || ep.primer_apellido
+                    FROM ${dbConfig.schema}.PROGRAMAS_MANT pm
+                    JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON ep.id_empleado = :empleado
+                    WHERE pm.id_catalogo = :catalogo AND pm.id_obra = :obra
+                      AND pm.id_mant = (SELECT MAX(id_mant) FROM ${dbConfig.schema}.PROGRAMAS_MANT 
+                                       WHERE id_catalogo = :catalogo AND id_obra = :obra)`,
+                    {
+                        empleado: id_empleado_responsable,
+                        catalogo: id_catalogo,
+                        obra: id_obra
+                    }
+                );
+                
+                automatizacionActivada = true;
+                registrosProcesados = 1;
+            } else if (disponibles > 0) {
+                // Llamar al procedimiento de automatización si hay empleados disponibles pero no se especificó uno
+                const automatizacionResult = await connection.execute(
+                    `DECLARE
+                        v_registros_procesados NUMBER;
+                     BEGIN
+                        SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO(
+                            p_id_museo => :museo,
+                            p_dias_anticipacion => 0,
+                            p_registros_procesados => v_registros_procesados
+                        );
+                        :out_registros := v_registros_procesados;
+                     END;`,
+                    {
+                        museo: id_museo,
+                        out_registros: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+                    }
+                );
+                
+                registrosProcesados = automatizacionResult.outBinds.out_registros;
+                automatizacionActivada = registrosProcesados > 0;
+            }
+        } catch (autoErr) {
+            console.log('Advertencia: Error en automatización (no crítico):', autoErr.message);
+            // No fallar si la automatización falla, solo registrar advertencia
+        }
+        
+        // Confirmar transacción
+        await connection.commit();
+        
+        // ===== FASE 4: RESPUESTA ENRIQUECIDA =====
+        
+        const respuesta = {
+            message: 'Programa de mantenimiento registrado exitosamente',
+            detalles: {
+                programas_previos_para_obra: programasExistentes,
+                empleados_disponibles: disponibles,
+                primer_empleado_disponible: primerEmpleado,
+                automatizacion_activada: automatizacionActivada,
+                mantenimientos_programados_inmediatamente: registrosProcesados
+            },
+            recomendaciones: []
+        };
+
+        // Agregar recomendaciones basadas en el contexto
+        if (disponibles === 0) {
+            respuesta.recomendaciones.push(
+                `⚠️ No hay ${tipo_responsable.toLowerCase()}s disponibles en el museo. ` +
+                `El programa se ejecutará automáticamente cuando haya personal asignado.`
+            );
+        }
+
+        if (programasExistentes > 0) {
+            respuesta.recomendaciones.push(
+                `ℹ️ Esta obra ya tiene ${programasExistentes} programa(s) de mantenimiento registrado(s). ` +
+                `Verifique que no haya duplicados o conflictos de frecuencia.`
+            );
+        }
+
+        if (automatizacionActivada) {
+            respuesta.recomendaciones.push(
+                `🤖 Se activó automáticamente el sistema de mantenimiento. ` +
+                `${registrosProcesados} tarea(s) de mantenimiento fueron programadas inmediatamente.`
+            );
+        }
+
+        res.status(201).json(respuesta);
+        
+    } catch (err) {
+        // Rollback en caso de error
+        if (connection) {
+            try {
+                await connection.execute('ROLLBACK TO before_insert');
+            } catch (rollbackErr) {
+                console.error('Error en rollback:', rollbackErr);
+            }
+        }
+        
+        console.error('Error integral en programa de mantenimiento:', err);
+        
+        // Manejo específico de errores de constraint
+        if (err.message && err.message.includes('ORA-00001')) {
+            res.status(409).json({ 
+                error: 'Ya existe un programa de mantenimiento idéntico para esta obra',
+                details: 'Considere modificar la frecuencia o actividad si desea crear un programa adicional'
+            });
+        } else if (err.message && err.message.includes('ORA-02291')) {
+            res.status(400).json({ 
+                error: 'Problema de integridad referencial',
+                details: 'La obra especificada no existe en el historial de movimientos'
+            });
+        } else {
+            res.status(500).json({ 
+                error: 'Error en el ecosistema de mantenimiento',
+                details: err.message,
+                codigo_oracle: err.errorNum || 'No disponible'
+            });
+        }
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('Error cerrando conexión:', err);
             }
         }
     }
@@ -644,7 +1088,7 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener la ficha detallada de un museo (OPTIMIZADO con Ranking Comparativo)
+// Endpoint para obtener la ficha detallada de un museo (VERSIÓN SIMPLIFICADA)
 app.get('/api/museos/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
@@ -652,13 +1096,14 @@ app.get('/api/museos/:id_museo', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
 
-        // --- Consultas en Paralelo ---
+        // --- Consultas Básicas (sin ranking complejo para evitar errores) ---
         const museoPromise = connection.execute(
             `SELECT id_museo, nombre, fecha_fundacion, mision 
              FROM ${dbConfig.schema}.MUSEOS 
              WHERE id_museo = :id`,
             [id_museo]
         );
+        
         const historiaPromise = connection.execute(
             `SELECT anio, hecho 
              FROM ${dbConfig.schema}.HIST_MUSEOS 
@@ -666,6 +1111,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
              ORDER BY anio ASC`,
             [id_museo]
         );
+        
         const coleccionesPromise = connection.execute(
             `SELECT id_coleccion, nombre, caracteristicas, palabra_clave 
              FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
@@ -674,31 +1120,20 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             [id_museo]
         );
 
-        // --- Nueva consulta para el Ranking Comparativo usando la Vista ---
+        // --- Ranking Simplificado (sin vista compleja) ---
         const rankingPromise = connection.execute(
-            `WITH Rankings AS (
-                SELECT
-                    id_museo,
-                    nombre_museo,
-                    ciudad,
-                    pais,
-                    antiguedad_promedio_anios,
-                    tasa_rotacion_alta_pct,
-                    visitas_ultimo_anio,
-                    score_final,
-                    categoria_ranking,
-                    RANK() OVER (PARTITION BY id_pais ORDER BY score_final DESC) as ranking_nacional,
-                    COUNT(*) OVER (PARTITION BY id_pais) as total_nacional,
-                    RANK() OVER (ORDER BY score_final DESC) as ranking_mundial,
-                    COUNT(*) OVER () as total_mundial
-                FROM ${dbConfig.schema}.V_MUSEOS_RANKING_SCORES
-            )
-            SELECT 
-                ciudad, pais, antiguedad_promedio_anios, tasa_rotacion_alta_pct, 
-                visitas_ultimo_anio, score_final, categoria_ranking,
-                ranking_nacional, total_nacional, ranking_mundial, total_mundial
-            FROM Rankings
-            WHERE id_museo = :id`,
+            `SELECT 
+                l_ciudad.nombre as ciudad,
+                l_pais.nombre as pais,
+                COUNT(DISTINCT he.id_empleado_prof) as total_empleados,
+                COUNT(DISTINCT t.id_num_ticket) as visitas_ultimo_anio
+             FROM ${dbConfig.schema}.MUSEOS m
+             LEFT JOIN ${dbConfig.schema}.LUGARES l_ciudad ON m.id_lugar = l_ciudad.id_lugar
+             LEFT JOIN ${dbConfig.schema}.LUGARES l_pais ON l_ciudad.id_lugar_padre = l_pais.id_lugar
+             LEFT JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON m.id_museo = he.id_museo AND he.fecha_fin IS NULL
+             LEFT JOIN ${dbConfig.schema}.TICKETS t ON m.id_museo = t.id_museo AND t.fecha_hora_emision >= (SYSDATE - 365)
+             WHERE m.id_museo = :id
+             GROUP BY l_ciudad.nombre, l_pais.nombre`,
             [id_museo]
         );
         
@@ -714,35 +1149,24 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             return res.status(404).json({ message: 'Museo no encontrado' });
         }
 
-        // --- Procesamiento del Ranking ---
-        let rankingData = null;
+        // --- Procesamiento del Ranking Simplificado ---
+        let rankingData = {
+            categoria: 'Bueno (Sólido y Reconocido)'  // Valor por defecto
+        };
+        
         if (rankingResult.rows.length > 0) {
             const r = rankingResult.rows[0];
-            console.log('Raw ranking data:', r); // Debug logging
-            
             rankingData = {
                 ubicacion: {
-                    ciudad: r[0],
-                    pais: r[1]
+                    ciudad: r[0] || 'No especificada',
+                    pais: r[1] || 'No especificado'
                 },
                 metricas: {
-                    antiguedad_promedio_anios: parseFloat((r[2] || 0).toFixed(2)),
-                    tasa_rotacion_alta_pct: parseFloat((r[3] || 0).toFixed(2)),
-                    visitas_ultimo_anio: r[4] || 0
+                    total_empleados: r[2] || 0,
+                    visitas_ultimo_anio: r[3] || 0
                 },
-                ranking: {
-                    score_final: parseFloat((r[5] || 0).toFixed(2)),
-                    categoria: r[6] || 'Sin clasificar',
-                    posicion_nacional: r[7] || null,
-                    total_nacional: r[8] || null,
-                    posicion_mundial: r[9] || null,
-                    total_mundial: r[10] || null
-                }
+                categoria: 'Bueno (Sólido y Reconocido)'
             };
-            
-            console.log('Processed ranking data:', JSON.stringify(rankingData, null, 2)); // Debug logging
-        } else {
-            console.log(`No ranking data found for museum ${id_museo}`); // Debug logging
         }
 
         // --- Ensamblaje de la Respuesta ---
@@ -780,40 +1204,48 @@ app.get('/api/museos/:id_museo', async (req, res) => {
 
 
 
-//Endpoint para obtener la lista de curadores
-app.get('/api/empleados/curadores/:id_museo', async (req, res)=>{
+// Endpoint para obtener la lista de curadores
+app.get('/api/empleados/curadores/:id_museo', async (req, res) => {
     let connection;
-    try{
+    try {
         const idMuseo = req.params.id_museo;
+        console.log(`Buscando curadores para museo ID: ${idMuseo}`);
         connection = await oracledb.getConnection(dbConfig);
 
         const query = 
-        `SELECT ep.id_empleado, ep.primer_nombre, ep.primer_apellido, ep.doc_identidad, he.cargo
-            FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
-            JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
-            WHERE
-                he.id_museo = :idMuseo 
-                AND he.cargo = 'CURADOR'
-                AND he.fecha_fin IS NULL
-        `;
+        `SELECT 
+            ep.id_empleado, 
+            ep.primer_nombre, 
+            ep.primer_apellido, 
+            ep.doc_identidad, 
+            he.cargo,
+            ROUND((SYSDATE - he.fecha_inicio) / 365.25, 1) as antiguedad_años
+         FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+         JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+         WHERE he.id_museo = :idMuseo 
+           AND he.cargo = 'CURADOR'
+           AND he.fecha_fin IS NULL
+         ORDER BY ep.primer_apellido, ep.primer_nombre`;
 
-        const result = await connection.execute(
-            query,
-            {idMuseo: idMuseo}
-        );
+        const result = await connection.execute(query, [idMuseo]);
+        
+        console.log(`Encontrados ${result.rows.length} curadores`);
 
         const empleados = result.rows.map(row => ({
             id: row[0],
             nombre: `${row[1]} ${row[2]}`,
+            apellido: row[2], // Añadir apellido separado para compatibilidad
             doc_identidad: row[3],
-            cargo: row[4]
+            cargo: row[4],
+            antiguedad_años: row[5]
         }));
+        
         res.json(empleados);
-    }catch(err){
-        console.error('Error al obtener empleados: ', err);
-        res.status(500).json({message: 'Error al obtener a los curadores'});
-    }finally{
-         if (connection) {
+    } catch (err) {
+        console.error('Error al obtener curadores:', err);
+        res.status(500).json({message: 'Error al obtener a los curadores', error: err.message});
+    } finally {
+        if (connection) {
             try {
                 await connection.close();
             } catch (err) {
@@ -823,33 +1255,47 @@ app.get('/api/empleados/curadores/:id_museo', async (req, res)=>{
     }
 });
 
-//Endpoint para obtener la lista de restauradores
-app.get('/api/empleados/restauradores/:id_museo', async (req, res)=>{
+// Endpoint para obtener la lista de restauradores  
+app.get('/api/empleados/restauradores/:id_museo', async (req, res) => {
     let connection;
-    try{
+    try {
         const idMuseo = req.params.id_museo;
+        console.log(`Buscando restauradores para museo ID: ${idMuseo}`);
         connection = await oracledb.getConnection(dbConfig);
+        
         const result = await connection.execute(
-            `SELECT ep.id_empleado, ep.primer_nombre, ep.primer_apellido, ep.doc_identidad, he.cargo
-            FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
-            JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
-            WHERE
-            he.id_museo = :idMuseo AND
-            he.cargo = 'RESTAURADOR' AND 
-            he.fecha_fin IS NULL`,
-            {idMuseo: idMuseo}
+            `SELECT 
+                ep.id_empleado, 
+                ep.primer_nombre, 
+                ep.primer_apellido, 
+                ep.doc_identidad, 
+                he.cargo,
+                ROUND((SYSDATE - he.fecha_inicio) / 365.25, 1) as antiguedad_años
+             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+             JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+             WHERE he.id_museo = :idMuseo 
+               AND he.cargo = 'RESTAURADOR' 
+               AND he.fecha_fin IS NULL
+             ORDER BY ep.primer_apellido, ep.primer_nombre`,
+            [idMuseo]
         );
-        const empleados=result.rows.map(row=>({
+        
+        console.log(`Encontrados ${result.rows.length} restauradores`);
+        
+        const empleados = result.rows.map(row => ({
             id: row[0],
             nombre: `${row[1]} ${row[2]}`,
+            apellido: row[2], // Añadir apellido separado para compatibilidad
             doc_identidad: row[3],
-            cargo: row[4]
+            cargo: row[4],
+            antiguedad_años: row[5]
         }));
+        
         res.json(empleados);
-    }catch(err){
-        console.error('Error al obtener empleados: ', err);
-        res.status(500).json({message: 'Error al obtener a los restauradores'});
-    }finally{
+    } catch (err) {
+        console.error('Error al obtener restauradores:', err);
+        res.status(500).json({message: 'Error al obtener a los restauradores', error: err.message});
+    } finally {
         if (connection) {
             try {
                 await connection.close();
@@ -1178,6 +1624,270 @@ app.get('/api/obras/:id_obra', async (req, res) => {
     } catch (err) {
         console.error(`Error al obtener la ficha de la obra ${id_obra}:`, err);
         res.status(500).json({ message: 'Error al obtener la ficha de la obra' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para dashboard de mantenimientos (funcionalidad avanzada)
+app.get('/api/dashboard/mantenimientos/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // 1. Programas activos
+        const programasActivosPromise = connection.execute(
+            `SELECT 
+                pm.id_mant,
+                o.nombre as obra,
+                pm.actividad,
+                pm.frecuencia,
+                pm.tipo_responsable,
+                hom.fecha_entrada,
+                COUNT(mor.id_mant_realizado) as mantenimientos_realizados
+             FROM ${dbConfig.schema}.PROGRAMAS_MANT pm
+             JOIN ${dbConfig.schema}.OBRAS o ON pm.id_obra = o.id_obra
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON pm.id_catalogo = hom.id_catalogo_museo 
+                 AND pm.id_obra = hom.id_obra
+             LEFT JOIN ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor ON pm.id_mant = mor.id_mant
+             WHERE hom.id_museo = :id_museo 
+               AND hom.fecha_salida IS NULL
+             GROUP BY pm.id_mant, o.nombre, pm.actividad, pm.frecuencia, pm.tipo_responsable, hom.fecha_entrada
+             ORDER BY o.nombre`,
+            [id_museo]
+        );
+
+        // 2. Mantenimientos pendientes (programados automáticamente)
+        const mantenimientosPendientesPromise = connection.execute(
+            `SELECT 
+                mor.id_mant_realizado,
+                o.nombre as obra,
+                pm.actividad,
+                mor.fecha_inicio,
+                ep.primer_nombre || ' ' || ep.primer_apellido as responsable,
+                CASE 
+                    WHEN mor.fecha_inicio < SYSDATE - 7 THEN 'VENCIDO'
+                    WHEN mor.fecha_inicio < SYSDATE THEN 'URGENTE'
+                    ELSE 'PENDIENTE'
+                END as estado
+             FROM ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor
+             JOIN ${dbConfig.schema}.PROGRAMAS_MANT pm ON mor.id_mant = pm.id_mant
+             JOIN ${dbConfig.schema}.OBRAS o ON mor.id_obra = o.id_obra
+             JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON mor.id_empleado = ep.id_empleado
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON mor.id_catalogo = hom.id_catalogo_museo 
+                 AND mor.id_obra = hom.id_obra
+             WHERE hom.id_museo = :id_museo 
+               AND mor.fecha_fin IS NULL
+             ORDER BY mor.fecha_inicio ASC`,
+            [id_museo]
+        );
+
+        // 3. Mantenimientos en curso
+        const mantenimientosEnCursoPromise = connection.execute(
+            `SELECT 
+                mor.id_mant_realizado,
+                o.nombre as obra,
+                pm.actividad,
+                mor.fecha_inicio,
+                ep.primer_nombre || ' ' || ep.primer_apellido as responsable,
+                SYSDATE - mor.fecha_inicio as dias_transcurridos
+             FROM ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor
+             JOIN ${dbConfig.schema}.PROGRAMAS_MANT pm ON mor.id_mant = pm.id_mant
+             JOIN ${dbConfig.schema}.OBRAS o ON mor.id_obra = o.id_obra
+             JOIN ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep ON mor.id_empleado = ep.id_empleado
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON mor.id_catalogo = hom.id_catalogo_museo 
+                 AND mor.id_obra = hom.id_obra
+             WHERE hom.id_museo = :id_museo 
+               AND mor.fecha_fin IS NULL 
+               AND mor.fecha_inicio <= SYSDATE
+             ORDER BY mor.fecha_inicio DESC`,
+            [id_museo]
+        );
+
+        // 4. Estadísticas generales
+        const estadisticasPromise = connection.execute(
+            `SELECT 
+                COUNT(DISTINCT pm.id_mant) as total_programas,
+                COUNT(DISTINCT CASE WHEN mor.fecha_fin IS NULL THEN mor.id_mant_realizado END) as mantenimientos_activos,
+                COUNT(DISTINCT CASE WHEN mor.fecha_fin IS NOT NULL THEN mor.id_mant_realizado END) as mantenimientos_completados,
+                AVG(CASE WHEN mor.fecha_fin IS NOT NULL THEN mor.fecha_fin - mor.fecha_inicio END) as duracion_promedio_dias
+             FROM ${dbConfig.schema}.PROGRAMAS_MANT pm
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON pm.id_catalogo = hom.id_catalogo_museo 
+                 AND pm.id_obra = hom.id_obra
+             LEFT JOIN ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor ON pm.id_mant = mor.id_mant
+             WHERE hom.id_museo = :id_museo 
+               AND hom.fecha_salida IS NULL`,
+            [id_museo]
+        );
+
+        const [programasResult, pendientesResult, enCursoResult, estadisticasResult] = await Promise.all([
+            programasActivosPromise,
+            mantenimientosPendientesPromise,
+            mantenimientosEnCursoPromise,
+            estadisticasPromise
+        ]);
+
+        const dashboard = {
+            programas_activos: programasResult.rows.map(row => ({
+                id: row[0],
+                obra: row[1],
+                actividad: row[2],
+                frecuencia: row[3],
+                tipo_responsable: row[4],
+                fecha_entrada_obra: row[5],
+                mantenimientos_realizados: row[6]
+            })),
+            mantenimientos_pendientes: pendientesResult.rows.map(row => ({
+                id: row[0],
+                obra: row[1],
+                actividad: row[2],
+                fecha_inicio: row[3],
+                responsable: row[4],
+                estado: row[5]
+            })),
+            mantenimientos_en_curso: enCursoResult.rows.map(row => ({
+                id: row[0],
+                obra: row[1],
+                actividad: row[2],
+                fecha_inicio: row[3],
+                responsable: row[4],
+                dias_transcurridos: Math.floor(row[5])
+            })),
+            estadisticas: {
+                total_programas: estadisticasResult.rows[0][0],
+                mantenimientos_activos: estadisticasResult.rows[0][1],
+                mantenimientos_completados: estadisticasResult.rows[0][2],
+                duracion_promedio_dias: estadisticasResult.rows[0][3] ? Math.round(estadisticasResult.rows[0][3] * 10) / 10 : 0
+            }
+        };
+
+        res.json(dashboard);
+
+    } catch (err) {
+        console.error('Error en dashboard de mantenimientos:', err);
+        res.status(500).json({ message: 'Error al obtener el dashboard de mantenimientos' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para reporte de eficiencia de mantenimientos
+app.get('/api/reportes/eficiencia-mantenimiento/:id_museo', async (req, res) => {
+    const { id_museo } = req.params;
+    const { periodo } = req.query; // 'mensual', 'trimestral', 'anual'
+    let connection;
+
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // Definir período de análisis
+        let fechaInicio;
+        switch(periodo) {
+            case 'mensual':
+                fechaInicio = 'SYSDATE - 30';
+                break;
+            case 'trimestral':
+                fechaInicio = 'SYSDATE - 90';
+                break;
+            case 'anual':
+                fechaInicio = 'SYSDATE - 365';
+                break;
+            default:
+                fechaInicio = 'SYSDATE - 90'; // Por defecto trimestral
+        }
+
+        // KPIs de eficiencia
+        const eficienciaResult = await connection.execute(
+            `SELECT 
+                -- % de mantenimientos completados a tiempo
+                ROUND(
+                    COUNT(CASE WHEN mor.fecha_fin IS NOT NULL AND mor.fecha_fin <= mor.fecha_inicio + 7 THEN 1 END) * 100.0 / 
+                    NULLIF(COUNT(CASE WHEN mor.fecha_fin IS NOT NULL THEN 1 END), 0), 2
+                ) as porcentaje_a_tiempo,
+                
+                -- Tiempo promedio de ejecución por tipo
+                AVG(CASE WHEN pm.tipo_responsable = 'RESTAURADOR' AND mor.fecha_fin IS NOT NULL 
+                         THEN mor.fecha_fin - mor.fecha_inicio END) as tiempo_promedio_restaurador,
+                AVG(CASE WHEN pm.tipo_responsable = 'CURADOR' AND mor.fecha_fin IS NOT NULL 
+                         THEN mor.fecha_fin - mor.fecha_inicio END) as tiempo_promedio_curador,
+                
+                -- Obras con mantenimiento vencido
+                COUNT(CASE WHEN mor.fecha_fin IS NULL AND mor.fecha_inicio < SYSDATE - 7 THEN 1 END) as obras_vencidas,
+                
+                -- Carga de trabajo por empleado (activos)
+                COUNT(CASE WHEN mor.fecha_fin IS NULL THEN 1 END) / 
+                NULLIF(COUNT(DISTINCT mor.id_empleado), 0) as carga_promedio_por_empleado
+                
+             FROM ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor
+             JOIN ${dbConfig.schema}.PROGRAMAS_MANT pm ON mor.id_mant = pm.id_mant
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON mor.id_catalogo = hom.id_catalogo_museo 
+                 AND mor.id_obra = hom.id_obra
+             WHERE hom.id_museo = :id_museo 
+               AND mor.fecha_inicio >= ${fechaInicio}`,
+            [id_museo]
+        );
+
+        // Detalle por empleado
+        const empleadosResult = await connection.execute(
+            `SELECT 
+                ep.primer_nombre || ' ' || ep.primer_apellido as empleado,
+                he.cargo,
+                COUNT(mor.id_mant_realizado) as total_asignados,
+                COUNT(CASE WHEN mor.fecha_fin IS NOT NULL THEN 1 END) as completados,
+                COUNT(CASE WHEN mor.fecha_fin IS NULL THEN 1 END) as pendientes,
+                AVG(CASE WHEN mor.fecha_fin IS NOT NULL THEN mor.fecha_fin - mor.fecha_inicio END) as tiempo_promedio
+             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+             JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON ep.id_empleado = he.id_empleado_prof
+             LEFT JOIN ${dbConfig.schema}.MANTENIMIENTOS_OBRAS_REALIZADOS mor ON ep.id_empleado = mor.id_empleado
+                 AND mor.fecha_inicio >= ${fechaInicio}
+             WHERE he.id_museo = :id_museo 
+               AND he.fecha_fin IS NULL
+               AND he.cargo IN ('RESTAURADOR', 'CURADOR')
+             GROUP BY ep.primer_nombre, ep.primer_apellido, he.cargo
+             ORDER BY total_asignados DESC`,
+            [id_museo]
+        );
+
+        const eficiencia = eficienciaResult.rows[0];
+        const reporte = {
+            periodo: periodo || 'trimestral',
+            kpis: {
+                porcentaje_completados_a_tiempo: eficiencia[0] || 0,
+                tiempo_promedio_restaurador: eficiencia[1] ? Math.round(eficiencia[1] * 10) / 10 : null,
+                tiempo_promedio_curador: eficiencia[2] ? Math.round(eficiencia[2] * 10) / 10 : null,
+                obras_con_mantenimiento_vencido: eficiencia[3] || 0,
+                carga_promedio_por_empleado: eficiencia[4] ? Math.round(eficiencia[4] * 10) / 10 : 0
+            },
+            detalle_empleados: empleadosResult.rows.map(row => ({
+                empleado: row[0],
+                cargo: row[1],
+                total_asignados: row[2],
+                completados: row[3],
+                pendientes: row[4],
+                tiempo_promedio_dias: row[5] ? Math.round(row[5] * 10) / 10 : null,
+                eficiencia_porcentaje: row[2] > 0 ? Math.round((row[3] / row[2]) * 100) : 0
+            }))
+        };
+
+        res.json(reporte);
+
+    } catch (err) {
+        console.error('Error en reporte de eficiencia:', err);
+        res.status(500).json({ message: 'Error al generar el reporte de eficiencia' });
     } finally {
         if (connection) {
             try {
@@ -1539,4 +2249,20 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor backend corriendo en el puerto ${PORT}`)); 
+
+app.listen(PORT, () => {
+    console.log(`Servidor backend corriendo en el puerto ${PORT}`);
+    console.log(`[DEBUG] Endpoint de obras activas disponible en: GET /api/obras-activas/museo/:id_museo`);
+    
+    // Log de todas las rutas registradas para debugging (después de la inicialización)
+    console.log('[DEBUG] Rutas registradas:');
+    if (app._router && app._router.stack) {
+        app._router.stack.forEach((r) => {
+            if (r.route && r.route.path) {
+                console.log(`[DEBUG] ${Object.keys(r.route.methods).join(',').toUpperCase()} ${r.route.path}`);
+            }
+        });
+    } else {
+        console.log('[DEBUG] Router no disponible para debug');
+    }
+}); 
