@@ -1,56 +1,58 @@
 <template>
   <div class="organigrama-view">
-    <header class="view-header">
-      <h1>Reporte de Estructura Organizacional</h1>
-      <p>Visualice la jerarquía de departamentos y empleados de cada museo.</p>
-    </header>
+    <div class="organigrama-container">
+      <header class="view-header">
+        <h1>Reporte de Estructura Organizacional</h1>
+        <p>Visualice la jerarquía de departamentos y empleados de cada museo.</p>
+      </header>
 
-    <div class="selection-container card">
-      <label for="museo-select">Seleccione un Museo:</label>
-      <select id="museo-select" v-model="selectedMuseo" @change="fetchOrganigrama">
-        <option disabled value="">Por favor seleccione uno</option>
-        <option v-for="museo in museos" :key="museo.id" :value="museo.id">
-          {{ museo.nombre }}
-        </option>
-      </select>
-      
-      <!-- Botón de exportar PDF -->
-      <button 
-        v-if="organigrama && museoInfo" 
-        @click="exportToPDF" 
-        :disabled="exportingPDF"
-        class="export-button"
-      >
-        <span v-if="exportingPDF">📄 Generando PDF...</span>
-        <span v-else>📄 Exportar PDF</span>
-      </button>
-    </div>
-
-    <div v-if="loading" class="loading-state">
-      <p>Cargando reporte...</p>
-    </div>
-
-    <div v-if="error" class="error-state">
-      <p>Ha ocurrido un error al cargar el reporte: {{ error }}</p>
-    </div>
-
-    <!-- Contenedor del reporte con ID para captura PDF -->
-    <div v-if="museoInfo && organigrama" class="report-container card" id="organigrama-content">
-      <div class="report-header">
-        <h2>{{ museoInfo.nombre }}</h2>
-        <div class="header-details">
-          <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
-          <span class="rank"><strong>Ranking:</strong> {{ museoInfo.ranking.categoria }}</span>
-        </div>
-        <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
-        <small><em>(El ranking se calcula basado en la estabilidad del personal y el volumen de visitas anuales)</em></small>
+      <div class="selection-container card">
+        <label for="museo-select">Seleccione un Museo:</label>
+        <select id="museo-select" v-model="selectedMuseo" @change="fetchOrganigrama">
+          <option disabled value="">Por favor seleccione uno</option>
+          <option v-for="museo in museos" :key="museo.id" :value="museo.id">
+            {{ museo.nombre }}
+          </option>
+        </select>
+        
+        <!-- Botón de exportar PDF -->
+        <button 
+          v-if="organigrama && museoInfo" 
+          @click="exportToPDF" 
+          :disabled="exportingPDF"
+          class="export-button"
+        >
+          <span v-if="exportingPDF">📄 Generando PDF...</span>
+          <span v-else>📄 Exportar PDF</span>
+        </button>
       </div>
 
-      <div class="organigrama-content">
-        <h3>Organigrama Jerárquico</h3>
-        <ul class="organigrama-root">
-          <OrganigramaNode v-for="node in organigrama" :key="node.id" :node="node" />
-        </ul>
+      <div v-if="loading" class="loading-state">
+        <p>Cargando reporte...</p>
+      </div>
+
+      <div v-if="error" class="error-state">
+        <p>Ha ocurrido un error al cargar el reporte: {{ error }}</p>
+      </div>
+
+      <!-- Contenedor del reporte con ID para captura PDF -->
+      <div v-if="museoInfo && organigrama" class="report-container card" id="organigrama-content">
+        <div class="report-header">
+          <h2>{{ museoInfo.nombre }}</h2>
+          <div class="header-details">
+            <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
+            <span class="rank"><strong>Ranking:</strong> {{ museoInfo.ranking.categoria }}</span>
+          </div>
+          <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
+          <small><em>(El ranking se calcula basado en la estabilidad del personal y el volumen de visitas anuales)</em></small>
+        </div>
+
+        <div class="organigrama-content">
+          <h3>Organigrama Jerárquico</h3>
+          <ul class="organigrama-root">
+            <OrganigramaNode v-for="node in organigrama" :key="node.id" :node="node" />
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -478,15 +480,17 @@ export default {
 
 <style scoped>
 .organigrama-view {
-  max-width: 1400px;
-  margin: 0 auto;
   padding: 1rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  border-radius: 0;
+  min-height: 100%;
   width: 100%;
   box-sizing: border-box;
+}
+
+.organigrama-container {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .view-header {

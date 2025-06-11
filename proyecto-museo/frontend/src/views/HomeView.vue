@@ -10,23 +10,23 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">🎨</div>
-            <div class="stat-number">1,247</div>
-            <div class="stat-label">Obras Registradas</div>
+            <div class="stat-number">{{ loading ? '...' : stats.totalArtistas }}</div>
+            <div class="stat-label">Artistas Registrados</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">👥</div>
-            <div class="stat-number">89</div>
+            <div class="stat-number">{{ loading ? '...' : stats.totalEmpleados }}</div>
             <div class="stat-label">Empleados Activos</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">🏢</div>
-            <div class="stat-number">5</div>
+            <div class="stat-number">{{ loading ? '...' : stats.totalMuseos }}</div>
             <div class="stat-label">Museos Registrados</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-number">342</div>
-            <div class="stat-label">Reportes Generados</div>
+            <div class="stat-icon">🎭</div>
+            <div class="stat-number">{{ loading ? '...' : stats.totalExposiciones }}</div>
+            <div class="stat-label">Exposiciones Activas</div>
           </div>
         </div>
       </div>
@@ -50,33 +50,33 @@
           <div class="feature-arrow">→</div>
         </RouterLink>
 
-        <div class="feature-card coming-soon">
-          <div class="feature-icon">🖼️</div>
-          <h3>Gestión de Obras</h3>
-          <p>Control exhaustivo de colecciones, movimientos de obras, estado de conservación y ubicaciones.</p>
-          <div class="coming-soon-badge">Próximamente</div>
-        </div>
+        <RouterLink to="/empleados" class="feature-card">
+          <div class="feature-icon">👤</div>
+          <h3>Gestión de Empleados</h3>
+          <p>Control completo del personal, cargos, departamentos y información profesional de cada empleado.</p>
+          <div class="feature-arrow">→</div>
+        </RouterLink>
 
-        <div class="feature-card coming-soon">
-          <div class="feature-icon">🎪</div>
+        <RouterLink to="/exposiciones" class="feature-card">
+          <div class="feature-icon">🎭</div>
           <h3>Exposiciones y Eventos</h3>
           <p>Planificación y gestión de exposiciones temporales, eventos culturales y actividades educativas.</p>
-          <div class="coming-soon-badge">Próximamente</div>
-        </div>
+          <div class="feature-arrow">→</div>
+        </RouterLink>
 
-        <div class="feature-card coming-soon">
-          <div class="feature-icon">💰</div>
-          <h3>Control Financiero</h3>
-          <p>Seguimiento de ingresos por tickets, gastos operativos y análisis financiero detallado.</p>
-          <div class="coming-soon-badge">Próximamente</div>
-        </div>
+        <RouterLink to="/reporte-estructura" class="feature-card">
+          <div class="feature-icon">🏗️</div>
+          <h3>Estructura Física</h3>
+          <p>Análisis detallado de la infraestructura del museo, edificios, pisos y distribución de espacios.</p>
+          <div class="feature-arrow">→</div>
+        </RouterLink>
 
-        <div class="feature-card coming-soon">
-          <div class="feature-icon">📈</div>
-          <h3>Reportes y Analytics</h3>
-          <p>Generación de reportes avanzados, métricas de desempeño y análisis de datos operativos.</p>
-          <div class="coming-soon-badge">Próximamente</div>
-        </div>
+        <RouterLink to="/programa-mantenimiento" class="feature-card">
+          <div class="feature-icon">🔧</div>
+          <h3>Programa de Mantenimiento</h3>
+          <p>Seguimiento y planificación de actividades de mantenimiento preventivo y correctivo.</p>
+          <div class="feature-arrow">→</div>
+        </RouterLink>
       </div>
     </section>
 
@@ -84,20 +84,42 @@
     <section class="quick-actions-section">
       <h2 class="section-title">Acciones Rápidas</h2>
       <div class="actions-grid">
-        <div class="action-card">
-          <div class="action-icon">➕</div>
-          <h4>Nuevo Artista</h4>
-          <p>Registrar un nuevo artista en el sistema</p>
+        <div class="action-card" @click="navigateToArtistas">
+          <div class="action-icon">🎨</div>
+          <h4>Ver Artistas</h4>
+          <p>Consultar y gestionar artistas registrados</p>
         </div>
-        <div class="action-card">
-          <div class="action-icon">📋</div>
+        <div class="action-card" @click="navigateToOrganigrama">
+          <div class="action-icon">📊</div>
           <h4>Ver Organigrama</h4>
           <p>Consultar la estructura organizacional</p>
         </div>
-        <div class="action-card">
-          <div class="action-icon">📊</div>
-          <h4>Generar Reporte</h4>
-          <p>Crear reportes de gestión y control</p>
+        <div class="action-card" @click="navigateToEmpleados">
+          <div class="action-icon">👥</div>
+          <h4>Gestión de Personal</h4>
+          <p>Ver y administrar empleados</p>
+        </div>
+        <div class="action-card" @click="navigateToEstructura">
+          <div class="action-icon">🏗️</div>
+          <h4>Estructura Física</h4>
+          <p>Revisar infraestructura del museo</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Activity Section -->
+    <section v-if="recentActivity.length > 0" class="recent-activity-section">
+      <h2 class="section-title">Actividad Reciente</h2>
+      <div class="activity-card">
+        <div class="activity-list">
+          <div v-for="activity in recentActivity" :key="activity.id" class="activity-item">
+            <div class="activity-icon">{{ activity.icon }}</div>
+            <div class="activity-content">
+              <h4>{{ activity.title }}</h4>
+              <p>{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -105,8 +127,113 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
 export default {
-  name: 'HomeView'
+  name: 'HomeView',
+  setup() {
+    const router = useRouter()
+    const loading = ref(true)
+    const stats = ref({
+      totalArtistas: 0,
+      totalEmpleados: 0,
+      totalMuseos: 0,
+      totalExposiciones: 0
+    })
+    const recentActivity = ref([])
+
+    const fetchStats = async () => {
+      try {
+        loading.value = true
+        
+        // Usar el endpoint optimizado que hace COUNT en la base de datos
+        const response = await fetch('http://localhost:3000/api/estadisticas')
+        
+        if (response.ok) {
+          const estadisticas = await response.json()
+          stats.value = estadisticas
+          generateRecentActivity()
+        } else {
+          console.error('Error al obtener estadísticas:', response.status, response.statusText)
+          // Mantener valores por defecto (0) si hay error
+        }
+
+      } catch (error) {
+        console.error('Error al obtener estadísticas:', error)
+        // Mantener valores por defecto (0) si hay error
+      } finally {
+        loading.value = false
+      }
+    }
+
+    const generateRecentActivity = () => {
+      const activities = []
+      
+      if (stats.value.totalArtistas > 0) {
+        activities.push({
+          id: 1,
+          icon: '🎨',
+          title: 'Artistas Actualizados',
+          description: `${stats.value.totalArtistas} artistas registrados en el sistema`,
+          time: 'Hace 2 horas'
+        })
+      }
+
+      if (stats.value.totalEmpleados > 0) {
+        activities.push({
+          id: 2,
+          icon: '👥',
+          title: 'Personal Activo',
+          description: `${stats.value.totalEmpleados} empleados activos en nómina`,
+          time: 'Hace 1 día'
+        })
+      }
+
+      if (stats.value.totalExposiciones > 0) {
+        activities.push({
+          id: 3,
+          icon: '🎭',
+          title: 'Exposiciones en Curso',
+          description: `${stats.value.totalExposiciones} exposiciones actualmente abiertas`,
+          time: 'Hace 3 días'
+        })
+      }
+
+      recentActivity.value = activities.slice(0, 3) // Mostrar máximo 3 actividades
+    }
+
+    // Métodos de navegación
+    const navigateToArtistas = () => {
+      router.push('/artistas')
+    }
+
+    const navigateToOrganigrama = () => {
+      router.push('/organigrama')
+    }
+
+    const navigateToEmpleados = () => {
+      router.push('/empleados')
+    }
+
+    const navigateToEstructura = () => {
+      router.push('/reporte-estructura')
+    }
+
+    onMounted(() => {
+      fetchStats()
+    })
+
+    return {
+      loading,
+      stats,
+      recentActivity,
+      navigateToArtistas,
+      navigateToOrganigrama,
+      navigateToEmpleados,
+      navigateToEstructura
+    }
+  }
 }
 </script>
 
@@ -201,7 +328,7 @@ export default {
   font-weight: 500;
 }
 
-.features-section, .quick-actions-section {
+.features-section, .quick-actions-section, .recent-activity-section {
   background: var(--gray-100);
   padding: 4rem 2rem;
 }
@@ -269,11 +396,6 @@ export default {
   border-color: var(--primary-color);
 }
 
-.feature-card.coming-soon {
-  opacity: 0.7;
-  pointer-events: none;
-}
-
 .feature-icon {
   font-size: 3rem;
   margin-bottom: 1.5rem;
@@ -306,25 +428,11 @@ export default {
   transform: translateX(5px);
 }
 
-.coming-soon-badge {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: linear-gradient(135deg, var(--warning-color) 0%, #f97316 100%);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 .actions-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -363,6 +471,63 @@ export default {
   font-size: 0.9rem;
 }
 
+/* Recent Activity Section */
+.recent-activity-section {
+  background: white;
+}
+
+.activity-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--gray-50);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+.activity-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-content h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin-bottom: 0.5rem;
+}
+
+.activity-content p {
+  color: var(--gray-600);
+  margin-bottom: 0.5rem;
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .hero-title {
@@ -391,8 +556,22 @@ export default {
     padding: 3rem 1rem 4rem 1rem;
   }
   
-  .features-section, .quick-actions-section {
+  .features-section, .quick-actions-section, .recent-activity-section {
     padding: 3rem 1rem;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style> 

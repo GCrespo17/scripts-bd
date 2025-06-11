@@ -1,13 +1,13 @@
 <template>
-  <div class="report-container">
-    <header class="report-header">
-      <div class="report-title">
-        <h1>📊 Reporte de Estructura Física</h1>
+  <div class="reporte-estructura-view">
+    <div class="reporte-estructura-container">
+      <header class="view-header">
+        <h1>Reporte de Estructura Física</h1>
         <p>Análisis detallado de la infraestructura del museo</p>
-      </div>
-      
+      </header>
+
       <!-- Selector de Museo -->
-      <div class="museum-selector">
+      <div class="selection-container card">
         <label for="museo-select">Seleccionar Museo:</label>
         <select id="museo-select" v-model="selectedMuseo" @change="fetchReporte">
           <option disabled value="">Seleccione un museo para generar el reporte</option>
@@ -25,128 +25,128 @@
           <span v-else>📄 Exportar PDF</span>
         </button>
       </div>
-    </header>
 
-    <!-- Contenido del Reporte -->
-    <div v-if="loadingReporte" class="loading-container">
-      <div class="loading-spinner">🔄</div>
-      <p>Generando reporte...</p>
+      <!-- Contenido del Reporte -->
+      <div v-if="loadingReporte" class="loading-state">
+        <div class="loading-spinner">🔄</div>
+        <p>Generando reporte...</p>
+      </div>
+
+      <div v-else-if="errorReporte" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <p>{{ errorReporte }}</p>
+        <button @click="fetchReporte" class="retry-btn">Reintentar</button>
+      </div>
+
+      <main v-else-if="reporte" class="report-content-card card" id="report-content">
+        <!-- Encabezado del Museo -->
+        <section class="museum-info">
+          <h2>{{ reporte.museo.nombre }}</h2>
+          <div class="museum-details">
+            <div class="detail-item">
+              <strong>Fecha de Fundación:</strong> 
+              {{ formatearFecha(reporte.museo.fecha_fundacion) }}
+            </div>
+            <div class="detail-item">
+              <strong>Misión:</strong> 
+              {{ reporte.museo.mision }}
+            </div>
+          </div>
+        </section>
+
+        <!-- Resumen Ejecutivo -->
+        <section class="executive-summary">
+          <h3>📈 Resumen Ejecutivo</h3>
+          <div class="summary-grid">
+            <div class="summary-card">
+              <div class="card-icon">🏢</div>
+              <div class="card-content">
+                <span class="card-number">{{ reporte.resumen.total_edificios }}</span>
+                <span class="card-label">Edificios</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon">🏠</div>
+              <div class="card-content">
+                <span class="card-number">{{ reporte.resumen.total_pisos }}</span>
+                <span class="card-label">Pisos</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon">📦</div>
+              <div class="card-content">
+                <span class="card-number">{{ reporte.resumen.total_areas }}</span>
+                <span class="card-label">Áreas</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon">🖼️</div>
+              <div class="card-content">
+                <span class="card-number">{{ reporte.resumen.total_salas }}</span>
+                <span class="card-label">Salas de Exposición</span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <div class="card-icon">🎨</div>
+              <div class="card-content">
+                <span class="card-number">{{ reporte.resumen.total_exposiciones_activas }}</span>
+                <span class="card-label">Exposiciones Activas</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Estructura Física Detallada -->
+        <section class="structure-detail">
+          <h3>🏗️ Estructura Física Detallada</h3>
+          <div class="structure-tree">
+            <ReporteEstructuraNode 
+              v-for="edificio in reporte.estructura_fisica" 
+              :key="edificio.id" 
+              :node="edificio"
+              :level="0" 
+            />
+          </div>
+        </section>
+
+        <!-- Exposiciones Actuales -->
+        <section v-if="reporte.exposiciones_actuales && reporte.exposiciones_actuales.length > 0" class="current-exhibitions">
+          <h3>🎭 Exposiciones y Eventos Actuales</h3>
+          <div class="exhibitions-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre del Evento</th>
+                  <th>Sala</th>
+                  <th>Fecha Inicio</th>
+                  <th>Fecha Fin</th>
+                  <th>Costo</th>
+                  <th>Visitantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="expo in reporte.exposiciones_actuales" :key="expo.nombre">
+                  <td class="expo-name">{{ expo.nombre }}</td>
+                  <td>{{ expo.sala }}</td>
+                  <td>{{ formatearFecha(expo.fecha_inicio) }}</td>
+                  <td>{{ formatearFecha(expo.fecha_fin) }}</td>
+                  <td class="cost">{{ formatearMoneda(expo.costo_persona) }}</td>
+                  <td class="visitors">{{ expo.visitantes || 'N/A' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Pie del Reporte -->
+        <footer class="report-footer">
+          <div class="generation-info">
+            <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
+            <p><strong>Sistema de Gestión de Museos</strong> - v2024.2</p>
+          </div>
+        </footer>
+      </main>
     </div>
-
-    <div v-else-if="errorReporte" class="error-container">
-      <div class="error-icon">⚠️</div>
-      <p>{{ errorReporte }}</p>
-      <button @click="fetchReporte" class="retry-btn">Reintentar</button>
-    </div>
-
-    <main v-else-if="reporte" class="report-content" id="report-content">
-      <!-- Encabezado del Museo -->
-      <section class="museum-info">
-        <h2>{{ reporte.museo.nombre }}</h2>
-        <div class="museum-details">
-          <div class="detail-item">
-            <strong>Fecha de Fundación:</strong> 
-            {{ formatearFecha(reporte.museo.fecha_fundacion) }}
-          </div>
-          <div class="detail-item">
-            <strong>Misión:</strong> 
-            {{ reporte.museo.mision }}
-          </div>
-        </div>
-      </section>
-
-      <!-- Resumen Ejecutivo -->
-      <section class="executive-summary">
-        <h3>📈 Resumen Ejecutivo</h3>
-        <div class="summary-grid">
-          <div class="summary-card">
-            <div class="card-icon">🏢</div>
-            <div class="card-content">
-              <span class="card-number">{{ reporte.resumen.total_edificios }}</span>
-              <span class="card-label">Edificios</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">🏠</div>
-            <div class="card-content">
-              <span class="card-number">{{ reporte.resumen.total_pisos }}</span>
-              <span class="card-label">Pisos</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">📦</div>
-            <div class="card-content">
-              <span class="card-number">{{ reporte.resumen.total_areas }}</span>
-              <span class="card-label">Áreas</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">🖼️</div>
-            <div class="card-content">
-              <span class="card-number">{{ reporte.resumen.total_salas }}</span>
-              <span class="card-label">Salas de Exposición</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="card-icon">🎨</div>
-            <div class="card-content">
-              <span class="card-number">{{ reporte.resumen.total_exposiciones_activas }}</span>
-              <span class="card-label">Exposiciones Activas</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Estructura Física Detallada -->
-      <section class="structure-detail">
-        <h3>🏗️ Estructura Física Detallada</h3>
-        <div class="structure-tree">
-          <ReporteEstructuraNode 
-            v-for="edificio in reporte.estructura_fisica" 
-            :key="edificio.id" 
-            :node="edificio"
-            :level="0" 
-          />
-        </div>
-      </section>
-
-      <!-- Exposiciones Actuales -->
-      <section v-if="reporte.exposiciones_actuales && reporte.exposiciones_actuales.length > 0" class="current-exhibitions">
-        <h3>🎭 Exposiciones y Eventos Actuales</h3>
-        <div class="exhibitions-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre del Evento</th>
-                <th>Sala</th>
-                <th>Fecha Inicio</th>
-                <th>Fecha Fin</th>
-                <th>Costo</th>
-                <th>Visitantes</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="expo in reporte.exposiciones_actuales" :key="expo.nombre">
-                <td class="expo-name">{{ expo.nombre }}</td>
-                <td>{{ expo.sala }}</td>
-                <td>{{ formatearFecha(expo.fecha_inicio) }}</td>
-                <td>{{ formatearFecha(expo.fecha_fin) }}</td>
-                <td class="cost">{{ formatearMoneda(expo.costo_persona) }}</td>
-                <td class="visitors">{{ expo.visitantes || 'N/A' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Pie del Reporte -->
-      <footer class="report-footer">
-        <div class="generation-info">
-          <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
-          <p><strong>Sistema de Gestión de Museos</strong> - v2024.2</p>
-        </div>
-      </footer>
-    </main>
   </div>
 </template>
 
@@ -568,56 +568,79 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.report-container {
+.reporte-estructura-view {
+  padding: 2rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100%;
+}
+
+.reporte-estructura-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  background: white;
-  min-height: 100vh;
 }
 
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+.view-header {
+  text-align: center;
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--primary-color);
+  color: white;
 }
 
-.report-title h1 {
-  color: var(--primary-color);
-  font-size: 2rem;
+.view-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.report-title p {
-  color: var(--gray-600);
+.view-header p {
   font-size: 1.1rem;
+  opacity: 0.9;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-.museum-selector {
+.card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.selection-container {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 300px;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.museum-selector label {
+.selection-container label {
   font-weight: 600;
-  color: var(--gray-700);
+  color: #374151;
+  font-size: 1rem;
+  white-space: nowrap;
 }
 
-.museum-selector select {
-  padding: 0.75rem;
-  border: 2px solid var(--gray-300);
+select {
+  flex: 1;
+  padding: 0.75rem 1rem;
   border-radius: 8px;
+  border: 2px solid #e5e7eb;
   font-size: 1rem;
-  background: white;
+  transition: all 0.2s ease;
+  background-color: white;
+  min-width: 200px;
+}
+
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .export-pdf-btn {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 1.5rem;
   background: #DC2626;
   color: white;
   border: none;
@@ -637,10 +660,12 @@ onMounted(() => {
 }
 
 /* Estados de carga y error */
-.loading-container,
-.error-container {
+.loading-state,
+.error-state {
   text-align: center;
   padding: 4rem 2rem;
+  border-radius: 16px;
+  background: #fff;
 }
 
 .loading-spinner {
@@ -656,6 +681,11 @@ onMounted(() => {
 .error-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+  color: #dc2626;
+}
+
+.error-state {
+  border: 1px solid #fecaca;
 }
 
 .retry-btn {
@@ -669,7 +699,7 @@ onMounted(() => {
 }
 
 /* Contenido del reporte */
-.report-content {
+.report-content-card {
   line-height: 1.6;
 }
 
@@ -857,7 +887,7 @@ onMounted(() => {
     grid-template-columns: repeat(3, 1fr);
   }
   
-  .report-container {
+  .reporte-estructura-container {
     padding: 1rem;
     max-width: none;
   }
@@ -870,14 +900,9 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .report-header {
+  .selection-container {
     flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .museum-selector {
-    min-width: auto;
-    width: 100%;
+    align-items: stretch;
   }
   
   .summary-grid {

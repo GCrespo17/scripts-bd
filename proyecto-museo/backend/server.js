@@ -2248,6 +2248,112 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
     }
 });
 
+// Endpoint para obtener estadísticas generales del sistema
+app.get('/api/estadisticas', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        console.log('[ESTADISTICAS] Iniciando consultas con schema:', dbConfig.schema);
+        
+        // Ejecutar consultas una por una para identificar cuál falla
+        let estadisticas = {
+            totalArtistas: 0,
+            totalEmpleados: 0,
+            totalMuseos: 0,
+            totalExposiciones: 0
+        };
+
+        try {
+            console.log('[ESTADISTICAS] Consultando ARTISTAS...');
+            const artistasResult = await connection.execute(`SELECT COUNT(*) FROM ${dbConfig.schema}.ARTISTAS`);
+            estadisticas.totalArtistas = artistasResult.rows[0][0];
+            console.log('[ESTADISTICAS] ARTISTAS OK:', estadisticas.totalArtistas);
+        } catch (err) {
+            console.error('[ESTADISTICAS] Error en ARTISTAS:', err.message);
+        }
+
+        try {
+            console.log('[ESTADISTICAS] Consultando EMPLEADOS...');
+            const empleadosResult = await connection.execute(`SELECT COUNT(DISTINCT ep.id_empleado) FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON ep.id_empleado = he.id_empleado_prof WHERE he.fecha_fin IS NULL`);
+            estadisticas.totalEmpleados = empleadosResult.rows[0][0];
+            console.log('[ESTADISTICAS] EMPLEADOS OK:', estadisticas.totalEmpleados);
+        } catch (err) {
+            console.error('[ESTADISTICAS] Error en EMPLEADOS:', err.message);
+        }
+
+        try {
+            console.log('[ESTADISTICAS] Consultando MUSEOS...');
+            const museosResult = await connection.execute(`SELECT COUNT(*) FROM ${dbConfig.schema}.MUSEOS`);
+            estadisticas.totalMuseos = museosResult.rows[0][0];
+            console.log('[ESTADISTICAS] MUSEOS OK:', estadisticas.totalMuseos);
+        } catch (err) {
+            console.error('[ESTADISTICAS] Error en MUSEOS:', err.message);
+        }
+
+        try {
+            console.log('[ESTADISTICAS] Consultando EXPOSICIONES...');
+            const exposicionesResult = await connection.execute(`SELECT COUNT(*) FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS WHERE fecha_fin >= SYSDATE`);
+            estadisticas.totalExposiciones = exposicionesResult.rows[0][0];
+            console.log('[ESTADISTICAS] EXPOSICIONES OK:', estadisticas.totalExposiciones);
+        } catch (err) {
+            console.error('[ESTADISTICAS] Error en EXPOSICIONES:', err.message);
+        }
+        
+        console.log('[ESTADISTICAS] Resultado final:', estadisticas);
+        res.json(estadisticas);
+    } catch (err) {
+        console.error('[ESTADISTICAS] Error general:', err);
+        res.status(500).json({ 
+            message: 'Error al obtener estadísticas del sistema',
+            error: err.message 
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint de debug para verificar qué tablas existen
+app.get('/api/debug/tables', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        const result = await connection.execute(
+            `SELECT table_name FROM all_tables WHERE owner = :schema ORDER BY table_name`,
+            [dbConfig.schema]
+        );
+        
+        const tables = result.rows.map(row => row[0]);
+        
+        res.json({
+            schema: dbConfig.schema,
+            tables: tables,
+            total_tables: tables.length
+        });
+    } catch (err) {
+        console.error('[DEBUG-TABLES] Error:', err);
+        res.status(500).json({ 
+            message: 'Error al obtener lista de tablas',
+            error: err.message 
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {

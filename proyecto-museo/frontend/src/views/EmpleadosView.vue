@@ -1,109 +1,111 @@
 <template>
   <div class="empleados-view">
-    <header class="view-header">
-      <h1>Reporte de Empleados Profesionales</h1>
-      <p>Visualice los detalles de cada empleado.</p>
-    </header>
+    <div class="empleados-container">
+      <header class="view-header">
+        <h1>Reporte de Empleados Profesionales</h1>
+        <p>Visualice los detalles de cada empleado.</p>
+      </header>
 
-    <div class="selection-container card">
-      <label for="museo-select">Seleccione un Museo:</label>
-      <select id="museo-select" v-model="selectedMuseo" @change="fetchMuseoSeleccionado">
-        <option disabled value="">Por favor seleccione uno</option>
-        <option v-for="museo in museos" :key="museo.id" :value="museo.id">
-          {{ museo.nombre }}
-        </option>
-      </select>
-    </div>
+      <div class="selection-container card">
+        <label for="museo-select">Seleccione un Museo:</label>
+        <select id="museo-select" v-model="selectedMuseo" @change="fetchMuseoSeleccionado">
+          <option disabled value="">Por favor seleccione uno</option>
+          <option v-for="museo in museos" :key="museo.id" :value="museo.id">
+            {{ museo.nombre }}
+          </option>
+        </select>
+      </div>
 
-    <div v-if="loading && !detallesEmpleado" class="loading-state">
-      <p>Cargando reporte...</p>
-    </div>
+      <div v-if="loading && !detallesEmpleado" class="loading-state">
+        <p>Cargando reporte...</p>
+      </div>
 
-    <div v-if="error && !detallesEmpleado" class="error-state">
-      <p>Ha ocurrido un error al cargar el reporte: {{ error }}</p>
-    </div>
-
-
-    <div v-if="museoInfo" class="report-container card employee-select">
-      <div class="report-header">
-        <h2>{{ museoInfo.nombre }}</h2>
-        <div class="header-details">
-          <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
-          <span v-if="museoInfo.ranking && museoInfo.ranking.categoria" class="rank">{{ museoInfo.ranking.categoria }}</span>
-          <span v-if="museoInfo.ranking && museoInfo.ranking.ubicacion" class="location">
-            📍 {{ museoInfo.ranking.ubicacion.ciudad }}, {{ museoInfo.ranking.ubicacion.pais }}
-          </span>
-        </div>
-        <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
-        <div v-if="museoInfo.ranking && museoInfo.ranking.metricas" class="museo-stats">
-          <div class="stat">
-            <span class="stat-number">{{ museoInfo.ranking.metricas.total_empleados || 0 }}</span>
-            <span class="stat-label">Empleados Activos</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">{{ formatNumber(museoInfo.ranking.metricas.visitas_ultimo_anio) || 0 }}</span>
-            <span class="stat-label">Visitas Anuales</span>
-          </div>
-        </div>
+      <div v-if="error && !detallesEmpleado" class="error-state">
+        <p>Ha ocurrido un error al cargar el reporte: {{ error }}</p>
       </div>
 
 
-      <div v-if="detallesEmpleado || loadingEmpleado || errorEmpleado" class="employee-detail-view">
-        <EmpleadoDet
-          v-if="detallesEmpleado"
-          :empleado="detallesEmpleado"
-          @back-to-list="clearDetallesEmpleado"
-        />
-        <p v-if="loadingEmpleado" class="loading-details-message">Cargando detalles del empleado...</p>
-        <p v-if="errorEmpleado" class="error-details-message">Error al cargar detalles: {{ errorEmpleado }}</p>
-      </div>
-
-
-      <div v-else class="employee-list-view">
-        <div class="selection-container card">
-          <label for="profesional-select">Seleccione el Cargo del Empleado Profesional: </label>
-          <select id="profesional-select" v-model="tipoProfesional">
-            <option disabled value="">Por favor seleccione uno</option>
-            <option value="curador">Curador</option>
-            <option value="restaurador">Restaurador</option>
-          </select>
-        </div>
-
-        <div v-if="tipoProfesional == 'curador' && empleados" class="report-container card">
-          <div class="empleados-content">
-            <h2>Curadores:</h2>
-            <div class="empleados-root">
-              <EmpleadosNode
-                v-for="empleado in empleados"
-                :key="empleado.doc_identidad"
-                :empleado="empleado"
-                @employee-selected="fetchDetallesEmpleados"
-              />
+      <div v-if="museoInfo" class="report-container card employee-select">
+        <div class="report-header">
+          <h2>{{ museoInfo.nombre }}</h2>
+          <div class="header-details">
+            <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
+            <span v-if="museoInfo.ranking && museoInfo.ranking.categoria" class="rank">{{ museoInfo.ranking.categoria }}</span>
+            <span v-if="museoInfo.ranking && museoInfo.ranking.ubicacion" class="location">
+              📍 {{ museoInfo.ranking.ubicacion.ciudad }}, {{ museoInfo.ranking.ubicacion.pais }}
+            </span>
+          </div>
+          <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
+          <div v-if="museoInfo.ranking && museoInfo.ranking.metricas" class="museo-stats">
+            <div class="stat">
+              <span class="stat-number">{{ museoInfo.ranking.metricas.total_empleados || 0 }}</span>
+              <span class="stat-label">Empleados Activos</span>
             </div>
-          </div>
-        </div>
-
-        <div v-if="tipoProfesional == 'restaurador' && empleados" class="report-container card">
-          <div class="empleados-content">
-            <h2>Restauradores:</h2>
-            <div class="empleados-root">
-              <EmpleadosNode
-                v-for="empleado in empleados"
-                :key="empleado.doc_identidad"
-                :empleado="empleado"
-                @employee-selected="fetchDetallesEmpleados"
-              />
+            <div class="stat">
+              <span class="stat-number">{{ formatNumber(museoInfo.ranking.metricas.visitas_ultimo_anio) || 0 }}</span>
+              <span class="stat-label">Visitas Anuales</span>
             </div>
           </div>
         </div>
 
 
-        <div v-else-if="tipoProfesional && !empleados && !loading && !error" class="no-employees-message">
-          <p>No se encontraron empleados del tipo seleccionado para este museo.</p>
+        <div v-if="detallesEmpleado || loadingEmpleado || errorEmpleado" class="employee-detail-view">
+          <EmpleadoDet
+            v-if="detallesEmpleado"
+            :empleado="detallesEmpleado"
+            @back-to-list="clearDetallesEmpleado"
+          />
+          <p v-if="loadingEmpleado" class="loading-details-message">Cargando detalles del empleado...</p>
+          <p v-if="errorEmpleado" class="error-details-message">Error al cargar detalles: {{ errorEmpleado }}</p>
         </div>
+
+
+        <div v-else class="employee-list-view">
+          <div class="selection-container card">
+            <label for="profesional-select">Seleccione el Cargo del Empleado Profesional: </label>
+            <select id="profesional-select" v-model="tipoProfesional">
+              <option disabled value="">Por favor seleccione uno</option>
+              <option value="curador">Curador</option>
+              <option value="restaurador">Restaurador</option>
+            </select>
+          </div>
+
+          <div v-if="tipoProfesional == 'curador' && empleados" class="report-container card">
+            <div class="empleados-content">
+              <h2>Curadores:</h2>
+              <div class="empleados-root">
+                <EmpleadosNode
+                  v-for="empleado in empleados"
+                  :key="empleado.doc_identidad"
+                  :empleado="empleado"
+                  @employee-selected="fetchDetallesEmpleados"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div v-if="tipoProfesional == 'restaurador' && empleados" class="report-container card">
+            <div class="empleados-content">
+              <h2>Restauradores:</h2>
+              <div class="empleados-root">
+                <EmpleadosNode
+                  v-for="empleado in empleados"
+                  :key="empleado.doc_identidad"
+                  :empleado="empleado"
+                  @employee-selected="fetchDetallesEmpleados"
+                />
+              </div>
+            </div>
+          </div>
+
+
+          <div v-else-if="tipoProfesional && !empleados && !loading && !error" class="no-employees-message">
+            <p>No se encontraron empleados del tipo seleccionado para este museo.</p>
+          </div>
+        </div>
+
+
       </div>
-
-
     </div>
   </div>
 </template>
@@ -280,13 +282,15 @@ export default {
 
 <style scoped>
 .empleados-view {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  border-radius: 0;
+  min-height: 100%;
+}
+
+.empleados-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .view-header {
