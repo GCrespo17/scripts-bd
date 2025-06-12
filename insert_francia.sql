@@ -385,84 +385,84 @@ INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES
 --MUSEO JACQUEMART ADNRE
 -- CURADORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), 'Máster en Curaduría de Arte Moderno', 2010, 'Posgrado en arte francés XIX-XX, teoría curatorial, gestión de colecciones y museología. Prepara para curador principal, con estudios de caso de colecciones francesas. (215 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), 'Máster en Curaduría de Arte Moderno', 2010, 'Posgrado en arte francés XIX-XX, teoría curatorial, gestión de colecciones y museología. Prepara para curador principal, con estudios de caso de colecciones francesas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), 'Certificado Gestión Exposiciones Internacionales', 2015, 'Curso avanzado en planificación, logística y ejecución de exposiciones temporales globales, incluyendo préstamos, seguros y protocolos de seguridad en transporte y montaje. (233 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), 'Certificado Gestión Exposiciones Internacionales', 2015, 'Curso avanzado en planificación, logística y ejecución de exposiciones temporales globales, incluyendo préstamos, seguros y protocolos de seguridad en transporte y montaje.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), 'Doctorado en Arte Medieval y Renacentista', 2013, 'Investigación doctoral sobre iconografía, técnicas y contextos del arte gótico y renacentista francés y europeo. Proporciona conocimiento para autenticación y contextualización de obras históricas. (250 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), 'Doctorado en Arte Medieval y Renacentista', 2013, 'Investigación doctoral sobre iconografía, técnicas y contextos del arte gótico y renacentista francés y europeo. Proporciona conocimiento para autenticación y contextualización de obras históricas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), 'Diplôme en Mediación Cultural y Museografía', 2017, 'Formación práctica en desarrollo de estrategias de mediación cultural, programas educativos y materiales didácticos para la interpretación del arte en museos históricos y modernos. (238 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), 'Diplôme en Mediación Cultural y Museografía', 2017, 'Formación práctica en desarrollo de estrategias de mediación cultural, programas educativos y materiales didácticos para la interpretación del arte en museos históricos y modernos.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), 'Licenciatura en Historia del Arte y Crítica', 2017, 'Estudios de grado en vanguardias artísticas del siglo XX-XXI: Cubismo, Surrealismo, Abstracción. Prepara para curaduría de colecciones y exposiciones contemporáneas. (205 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), 'Licenciatura en Historia del Arte y Crítica', 2017, 'Estudios de grado en vanguardias artísticas del siglo XX-XXI: Cubismo, Surrealismo, Abstracción. Prepara para curaduría de colecciones y exposiciones contemporáneas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), 'Máster en Curaduría Digital y Patrimonio', 2020, 'Posgrado en aplicación de tecnologías digitales (RV, RA, 3D) para exposiciones virtuales, digitalización de colecciones y experiencias interactivas en museos. (213 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), 'Máster en Curaduría Digital y Patrimonio', 2020, 'Posgrado en aplicación de tecnologías digitales (RV, RA, 3D) para exposiciones virtuales, digitalización de colecciones y experiencias interactivas en museos.');
 -- RESTAURADORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2003), 'Máster en Conservación y Restauración', 2008, 'Formación superior en conservación-restauración de pintura de caballete, incluyendo análisis, intervención y ética. Habilita para colecciones nacionales. (203 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2003), 'Máster en Conservación y Restauración', 2008, 'Formación superior en conservación-restauración de pintura de caballete, incluyendo análisis, intervención y ética. Habilita para colecciones nacionales.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2003), 'Certificado Análisis Científico de Arte', 2012, 'Curso de especialización en uso de técnicas de laboratorio (microscopía, espectroscopía, cromatografía) para identificar materiales, degradación y guiar intervenciones en obras de arte. (251 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2003), 'Certificado Análisis Científico de Arte', 2012, 'Curso de especialización en uso de técnicas de laboratorio (microscopía, espectroscopía, cromatografía) para identificar materiales, degradación y guiar intervenciones en obras de arte.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
     ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2006), 'Máster en Conservación de Escultura', 2007, 'Posgrado enfocado en restauración de escultura en piedra, bronce y madera. Incluye consolidación, limpieza y reintegración. (160 chars)');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2006), 'Certificado Gestión Riesgos y Conservación', 2011, 'Curso sobre implementación de planes de gestión de riesgos (incendios, inundaciones, plagas) y estrategias de conservación preventiva para colecciones museísticas. (221 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2006), 'Certificado Gestión Riesgos y Conservación', 2011, 'Curso sobre implementación de planes de gestión de riesgos (incendios, inundaciones, plagas) y estrategias de conservación preventiva para colecciones museísticas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2007), 'Máster en Restauración Obras Gráficas', 2018, 'Especialización en restauración de papel, grabados y manuscritos. Aborda limpieza, desacidificación, reparación y montaje para preservar arte en papel. (208 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2007), 'Máster en Restauración Obras Gráficas', 2018, 'Especialización en restauración de papel, grabados y manuscritos. Aborda limpieza, desacidificación, reparación y montaje para preservar arte en papel.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2007), 'Diplôme Control Climático Museos', 2021, 'Formación en climatología y control ambiental para asegurar temperatura, humedad y luz óptimas en salas de exhibición y depósitos de colecciones artísticas. (246 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2007), 'Diplôme Control Climático Museos', 2021, 'Formación en climatología y control ambiental para asegurar temperatura, humedad y luz óptimas en salas de exhibición y depósitos de colecciones artísticas.');
 -- ADMINISTRACION
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2004), 'Licenciatura en Gestión Cultural y Adm. Pública', 2006, 'Grado en administración de instituciones culturales: finanzas públicas, presupuestos, contabilidad y gestión de RRHH en el sector público. (207 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2004), 'Licenciatura en Gestión Cultural y Adm. Pública', 2006, 'Grado en administración de instituciones culturales: finanzas públicas, presupuestos, contabilidad y gestión de RRHH en el sector público.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2008), 'Máster Administración Instituciones Culturales', 2012, 'Posgrado en dirección estratégica, planificación financiera, gestión de proyectos y fundraising para museos y organizaciones culturales. (209 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2008), 'Máster Administración Instituciones Culturales', 2012, 'Posgrado en dirección estratégica, planificación financiera, gestión de proyectos y fundraising para museos y organizaciones culturales.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2009), 'Máster en Derecho del Arte y Prop. Intelectual', 2015, 'Especialización jurídica en legislación de obras de arte, derechos de autor, autenticidad, patrimonio y aspectos contractuales del mercado del arte, para asesoramiento legal museístico. (260 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2009), 'Máster en Derecho del Arte y Prop. Intelectual', 2015, 'Especialización jurídica en legislación de obras de arte, derechos de autor, autenticidad, patrimonio y aspectos contractuales del mercado del arte, para asesoramiento legal museístico.');
 -- DIRECTORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2010), 'MBA en Gestión de Instituciones Culturales', 2005, 'Programa ejecutivo para directores de museos: liderazgo estratégico, sostenibilidad financiera, desarrollo de colecciones, diplomacia cultural y gestión de proyectos institucionales. (242 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2010), 'MBA en Gestión de Instituciones Culturales', 2005, 'Programa ejecutivo para directores de museos: liderazgo estratégico, sostenibilidad financiera, desarrollo de colecciones, diplomacia cultural y gestión de proyectos institucionales.');
 -- MUSEO PETIT PALAIS
 -- ADMINISTRACION
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2011), 'Certificado CMS y Digitalización', 2017, 'Formación en implementación y gestión de software para catalogación y digitalización de colecciones, optimizando acceso y conservación de información patrimonial. (223 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2011), 'Certificado CMS y Digitalización', 2017, 'Formación en implementación y gestión de software para catalogación y digitalización de colecciones, optimizando acceso y conservación de información patrimonial.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2016), 'Diplôme Marketing Digital Cultural', 2013, 'Especialización en marketing digital y comunicación para museos: redes sociales, email marketing, SEO y creación de contenido para atraer audiencias. (229 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2016), 'Diplôme Marketing Digital Cultural', 2013, 'Especialización en marketing digital y comunicación para museos: redes sociales, email marketing, SEO y creación de contenido para atraer audiencias.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2017), 'Certificado Protocolo y RR.PP. Culturales', 2020, 'Curso en organización de eventos de alto nivel, gestión de relaciones con patrocinadores/medios y aplicación de protocolo internacional en instituciones culturales. (244 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2017), 'Certificado Protocolo y RR.PP. Culturales', 2020, 'Curso en organización de eventos de alto nivel, gestión de relaciones con patrocinadores/medios y aplicación de protocolo internacional en instituciones culturales.');
 -- CURADORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), 'Doctorado Historia del Arte S.XVIII Francés', 2008, 'Investigación académica profunda sobre el arte Rococó y Neoclásico en Francia, incluyendo la vida y obra de artistas clave, la evolución estilística y el contexto filosófico y social de la época. (262 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), 'Doctorado Historia del Arte S.XVIII Francés', 2008, 'Investigación académica profunda sobre el arte Rococó y Neoclásico en Francia, incluyendo la vida y obra de artistas clave, la evolución estilística y el contexto filosófico y social de la época.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), 'Máster Museología y Estudios Curatorialies', 2013, 'Posgrado enfocado en metodologías de investigación aplicadas a la museología, la conceptualización de exposiciones, la historia de las colecciones y la crítica curatorial contemporánea. (240 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), 'Máster Museología y Estudios Curatorialies', 2013, 'Posgrado enfocado en metodologías de investigación aplicadas a la museología, la conceptualización de exposiciones, la historia de las colecciones y la crítica curatorial contemporánea.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), 'Máster Artes Decorativas y Diseño Histórico', 2016, 'Especialización en historia, técnicas y estilos de artes decorativas francesas (mobiliario, cerámica, textiles) desde Renacimiento al Art Nouveau. Relevante para curaduría. (233 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), 'Máster Artes Decorativas y Diseño Histórico', 2016, 'Especialización en historia, técnicas y estilos de artes decorativas francesas (mobiliario, cerámica, textiles) desde Renacimiento al Art Nouveau. Relevante para curaduría.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), 'Diplôme Tasación y Mercado del Arte', 2019, 'Formación en valoración de obras, funcionamiento del mercado del arte, subastas, galerías y aspectos legales/éticos de adquisición/disposición de piezas. (251 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), 'Diplôme Tasación y Mercado del Arte', 2019, 'Formación en valoración de obras, funcionamiento del mercado del arte, subastas, galerías y aspectos legales/éticos de adquisición/disposición de piezas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), 'Máster Gestión Colecciones y Exposiciones', 2014, 'Posgrado en desarrollo, conservación, interpretación y exhibición de colecciones; incluye gestión de riesgos, préstamos y ética del coleccionismo museístico. (240 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), 'Máster Gestión Colecciones y Exposiciones', 2014, 'Posgrado en desarrollo, conservación, interpretación y exhibición de colecciones; incluye gestión de riesgos, préstamos y ética del coleccionismo museístico.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), 'Certificado Comisariado de Exposiciones', 2018, 'Taller práctico sobre conceptualización y producción de exposiciones que integran diversas disciplinas (arte, ciencia, sociedad) para experiencias innovadoras. (227 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), 'Certificado Comisariado de Exposiciones', 2018, 'Taller práctico sobre conceptualización y producción de exposiciones que integran diversas disciplinas (arte, ciencia, sociedad) para experiencias innovadoras.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), 'Licenciatura Hist. Arte y Civiliz. Francesa', 2010, 'Estudios sobre arte y cultura francesa del siglo XVIII, incluyendo el contexto social, filosófico y político de la Ilustración y su impacto en expresiones artísticas. (244 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), 'Licenciatura Hist. Arte y Civiliz. Francesa', 2010, 'Estudios sobre arte y cultura francesa del siglo XVIII, incluyendo el contexto social, filosófico y político de la Ilustración y su impacto en expresiones artísticas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), 'Máster en Museología y Patrimonio', 2016, 'Posgrado en curaduría transcultural, gestión de colecciones diversas y promoción de diálogo inclusivo entre narrativas culturales en museos globales. (244 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), 'Máster en Museología y Patrimonio', 2016, 'Posgrado en curaduría transcultural, gestión de colecciones diversas y promoción de diálogo inclusivo entre narrativas culturales en museos globales.');
 -- RESTAURADORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2014), 'Máster Restauración Muebles y Madera', 2012, 'Especialización en restauración de mobiliario histórico, marquetería, dorados y lacados. Incluye diagnóstico, consolidación, reintegración estética y técnicas tradicionales. (239 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2014), 'Máster Restauración Muebles y Madera', 2012, 'Especialización en restauración de mobiliario histórico, marquetería, dorados y lacados. Incluye diagnóstico, consolidación, reintegración estética y técnicas tradicionales.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2014), 'Certificado Restauración Metales Históricos', 2016, 'Curso práctico en restauración de objetos de metal (plata, bronce, oro), incluyendo limpieza, estabilización de corrosión, soldadura y protección superficial para piezas artísticas/arqueológicas. (260 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2014), 'Certificado Restauración Metales Históricos', 2016, 'Curso práctico en restauración de objetos de metal (plata, bronce, oro), incluyendo limpieza, estabilización de corrosión, soldadura y protección superficial para piezas artísticas/arqueológicas.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2015), 'Máster Restauración Textiles Históricos', 2018, 'Formación avanzada en restauración de tapices, vestuario y textiles patrimoniales. Incluye limpieza, consolidación, teñido y montaje para exhibición/almacenamiento a largo plazo. (247 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2015), 'Máster Restauración Textiles Históricos', 2018, 'Formación avanzada en restauración de tapices, vestuario y textiles patrimoniales. Incluye limpieza, consolidación, teñido y montaje para exhibición/almacenamiento a largo plazo.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2015), 'Curso Diagnóstico Imagen Conservación Arte', 2021, 'Uso de imagen no invasiva (rayos X, IR, UV, tomografía) para análisis de estructura interna, capas pictóricas, restauraciones previas y autenticidad, crucial para diagnóstico preciso. (269 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2015), 'Curso Diagnóstico Imagen Conservación Arte', 2021, 'Uso de imagen no invasiva (rayos X, IR, UV, tomografía) para análisis de estructura interna, capas pictóricas, restauraciones previas y autenticidad, crucial para diagnóstico preciso.');
 -- DIRECTORES
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES
-    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2018), 'Doctorado Gobernanza y Políticas Culturales', 2010, 'Investigación doctoral sobre políticas culturales, gobernanza de grandes museos, sostenibilidad financiera y papel de los museos en diplomacia cultural y desarrollo. (241 chars)');
+    ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2018), 'Doctorado Gobernanza y Políticas Culturales', 2010, 'Investigación doctoral sobre políticas culturales, gobernanza de grandes museos, sostenibilidad financiera y papel de los museos en diplomacia cultural y desarrollo.');
 -- ---------------------------------------------------------------
 -- Tabla: MUSEOS
 -- ---------------------------------------------------------------
 INSERT INTO MUSEOS(id_lugar, nombre, fecha_fundacion, mision) VALUES
-    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée Jacquemart André', TO_DATE('1913', 'YYYY'), 'Preservar y exhibir la vasta y exquisita colección de arte que fue reunida por Édouard André y su esposa Nélie Jacquemart durante sus vidas');
+    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée Jacquemart André', TO_DATE('1913-01-01', 'YYYY-MM-DD'), 'Preservar y exhibir la vasta y exquisita colección de arte que fue reunida por Édouard André y su esposa Nélie Jacquemart durante sus vidas');
 INSERT INTO MUSEOS(id_lugar, nombre, fecha_fundacion, mision) VALUES
-    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée du Petit Palais', TO_DATE('1902', 'YYYY'), 'Preservar, exhibir y hacer accesible al público una vasta colección de arte desde la Antigüedad hasta el siglo XIX. También busca educar e inspirar a través de exposiciones temporales y actividades culturales en su icónico edificio');
+    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée du Petit Palais', TO_DATE('1902-01-01', 'YYYY-MM-DD'), 'Preservar, exhibir y hacer accesible al público una vasta colección de arte desde la Antigüedad hasta el siglo XIX. También busca educar e inspirar a través de exposiciones temporales y actividades culturales en su icónico edificio');
 
 -- ---------------------------------------------------------------
 -- Tabla: EST_FISICA
@@ -3853,36 +3853,96 @@ VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart Andr�
 
 -- MUSEO PETIT PALAIS
 
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 09:50:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 14:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:40:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:45:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio)
-VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 09:50:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 14:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:40:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:45:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
+VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+
+
+-- ---------------------------------------------------------------
+-- Tabla: HIST_MUSEO
+-- ---------------------------------------------------------------
+-- JACQUEMART ANDRE
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1913, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Fundación del Musée Jacquemart André.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1925, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Adquisición de la colección de arte italiano.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1935, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Exposición de arte renacentista.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1960, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Restauración de las pinturas murales.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1980, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Celebración del centenario del nacimiento de Nélie Jacquemart.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1995, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Renovación de las salas de exposición.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2005, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Exposición de obras maestras italianas.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2015, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Ampliación de la colección de esculturas.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2025, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'), 'Implementación de programas educativos.');
+
+-- MUSEO PETIT PALAIS
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1902, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Fundación del Musée du Petit Palais.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1910, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Adquisición de nuevas colecciones de arte.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1920, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Exposición de arte moderno.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1950, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Restauración del edificio después de la guerra.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1975, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Celebración del 75 aniversario del museo.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (1990, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Modernización de las instalaciones del museo.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2000, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Exposición sobre la historia de París.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2010, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Ampliación de la colección permanente.');
+
+INSERT INTO HIST_MUSEOS (anio, id_museo, hecho)
+VALUES (2020, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 'Implementación de visitas virtuales.');
 
 
 COMMIT;
