@@ -1084,3 +1084,203 @@ EXCEPTION
             'Error inesperado en programación automática de mantenimientos: ' || SQLERRM);
 END SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO;
 /
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_INSERTAR_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la insercion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_INSERTAR_COLECCION(
+    n_nombre_museo IN VARCHAR2, 
+    n_nombre_depto IN VARCHAR2,
+    n_nombre_coleccion IN VARCHAR2, 
+    n_caracteristicas IN VARCHAR2, 
+    n_palabra_clave IN VARCHAR2,    
+    n_orden_recorrido IN NUMBER) IS v_id_museo NUMBER; v_id_depto NUMBER;
+BEGIN
+    IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido>0 THEN
+        UPDATE COLECCIONES_PERMANENTES SET orden_recorrido = orden_recorrido+1
+        WHERE orden_recorrido >= n_orden_recorrido;
+    END IF;
+    
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre = n_nombre_museo;
+    
+    SELECT eo.id_est_org INTO v_id_depto
+    FROM EST_ORGANIZACIONAL eo
+    WHERE eo.id_museo = v_id_museo AND eo.nombre = n_nombre_depto;
+    
+    INSERT INTO COLECCIONES_PERMANENTES (id_est_org, id_museo, nombre, caracteristicas,
+        palabra_clave, orden_recorrido) VALUES (v_id_depto, v_id_museo, n_nombre_coleccion,
+        n_caracteristicas, n_palabra_clave, n_orden_recorrido);
+    
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20064, 'Error: Museo "' || n_nombre_museo || '" o Departamento "' || n_nombre_depto || '" no encontrado.');
+        WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20065, 'Error: Se encontraron múltiples registros para el Museo "' || n_nombre_museo || '" o el Departamento "' || n_nombre_depto || '".');
+        WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066, 'Error inesperado al insertar coleccion "' || n_nombre_coleccion || '": ' || SQLERRM);
+END SP_INSERTAR_COLECCION;
+/    
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: INSERTAR COLECCION
+-- -----------------------------------------------------------------------------
+/*
+EXEC SP_INSERTAR_COLECCION('Musée du Petit Palais', 'Servicio de Exposiciones y Gestión de Colecciones', 'Coleccion Post-Moderna', 'Arte de la era digital y de la información', 'Digital', 3);
+*/
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MODIFICAR_ORDEN_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la modificacion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MODIFICAR_ORDEN_COLECCION
+    (n_id_coleccion IN VARCHAR2,
+    n_orden_recorrido IN NUMBER) 
+    IS
+    v_orden_viejo NUMBER;
+BEGIN
+    
+    SELECT orden_recorrido INTO v_orden_viejo
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = n_id_coleccion;
+    
+    IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 AND n_orden_recorrido != v_orden_viejo THEN
+        IF n_orden_recorrido > v_orden_viejo THEN 
+            UPDATE COLECCIONES_PERMANENTES
+            SET orden_recorrido = orden_recorrido -1
+            WHERE orden_recorrido > v_orden_viejo AND
+            orden_recorrido <= n_orden_recorrido;
+        ELSIF n_orden_recorrido < v_orden_viejo THEN
+            UPDATE COLECCIONES_PERMANENTES
+            SET orden_recorrido = orden_recorrido +1
+            WHERE orden_recorrido < v_orden_viejo AND
+            orden_recorrido >= n_orden_recorrido;
+        END IF;
+        UPDATE COLECCIONES_PERMANENTES
+        SET orden_recorrido = n_orden_recorrido
+        WHERE id_coleccion = n_id_coleccion;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20064, 'Error: Coleccion "' || n_id_coleccion || 'no encontrado.');
+     WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20065, 'Error: Se encontraron múltiples registros la Coleccion "' || n_id_coleccion ||'".');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066, 'Error inesperado al modificar orden de coleccion "' || n_id_coleccion || '": ' || SQLERRM);
+END SP_MODIFICAR_ORDEN_COLECCION;
+/
+
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: MODIFICAR ORDEN DE RECORRIDO DE UNA COLECCION
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_museo NUMBER;
+    v_id_coleccion NUMBER;
+    v_id_org NUMBER;
+BEGIN
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre='Musée du Petit Palais';
+    
+    SELECT id_est_org INTO v_id_org
+    FROM EST_ORGANIZACIONAL
+    WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
+    id_museo = v_id_museo;
+    
+    SELECT id_coleccion INTO v_id_coleccion
+    FROM COLECCIONES_PERMANENTES
+    WHERE
+    id_museo = v_id_museo AND
+    id_est_org = v_id_org AND
+    nombre = 'Coleccion Post-Moderna';
+    
+    SP_MODIFICAR_ORDEN_COLECCION(v_id_coleccion, 3);
+    
+END;
+/
+*/
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_ELIMINAR_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la eliminacion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_ELIMINAR_COLECCION (
+    p_id_coleccion IN NUMBER 
+)
+IS
+    v_orden_eliminado NUMBER;
+BEGIN
+    
+    SELECT orden_recorrido
+    INTO v_orden_eliminado
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = p_id_coleccion;
+
+    DELETE FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = p_id_coleccion;
+
+    IF v_orden_eliminado IS NOT NULL THEN
+        UPDATE COLECCIONES_PERMANENTES
+        SET orden_recorrido = orden_recorrido - 1
+        WHERE orden_recorrido > v_orden_eliminado;
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20068, 'Error: Colección con ID ' || p_id_coleccion || ' no encontrada para eliminar.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20069, 'Error inesperado al eliminar coleccion con ID ' || p_id_coleccion || ': ' || SQLERRM);
+END SP_ELIMINAR_COLECCION;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: ELIMINAR COLECCION
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_museo NUMBER;
+    v_id_coleccion NUMBER;
+    v_id_org NUMBER;
+BEGIN
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre='Musée du Petit Palais';
+    
+    SELECT id_est_org INTO v_id_org
+    FROM EST_ORGANIZACIONAL
+    WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
+    id_museo = v_id_museo;
+    
+    SELECT id_coleccion INTO v_id_coleccion
+    FROM COLECCIONES_PERMANENTES
+    WHERE
+    id_museo = v_id_museo AND
+    id_est_org = v_id_org AND
+    nombre = 'Coleccion Post-Moderna';
+    
+    SP_ELIMINAR_COLECCION(v_id_coleccion);
+    
+END;
+/
+*/
+
+
