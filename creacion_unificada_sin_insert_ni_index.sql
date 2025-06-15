@@ -63,41 +63,38 @@
 -- CREATE SEQUENCE seq_mant_obra_realizado
 --     START WITH 1
 --     INCREMENT BY 1;
- 
--- Secuencia eliminada: seq_observacion_mov (tabla OBSERVACIONES_MOVIMIENTOS no se crea)
-  --  START WITH 1
-    --INCREMENT BY 1;
+-- 
 
 
 -- NOTA: Los tickets NO usan secuencia global (cada museo tiene su numeración propia)
 
 
- DROP TABLE TIPO_TICKETS;
- DROP TABLE HIST_MUSEOS;
- DROP TABLE TICKETS;
- DROP TABLE HORARIOS;
- DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS;
- DROP TABLE PROGRAMAS_MANT;
- DROP TABLE HIST_OBRAS_MOV;
- DROP TABLE HIST_EMPLEADOS;
- DROP TABLE SALAS_COLECCIONES;
- DROP TABLE COLECCIONES_PERMANENTES;
- DROP TABLE EST_ORGANIZACIONAL;
- DROP TABLE CIERRES_TEMPORALES;
- DROP TABLE EXPOSICIONES_EVENTOS;
- DROP TABLE SALAS_EXP;
- DROP TABLE ASIGNACIONES_MES;
- DROP TABLE EST_FISICA;
- DROP TABLE MUSEOS;
- DROP TABLE FORMACIONES;
- DROP TABLE EMPLEADOS_IDIOMAS;
- DROP TABLE EMPLEADOS_PROFESIONALES;
- DROP TABLE ARTISTAS_OBRAS;
- DROP TABLE ARTISTAS;
- DROP TABLE EMPLEADOS_VIGILANTE_MANT;
- DROP TABLE IDIOMAS;
- DROP TABLE OBRAS;
- DROP TABLE LUGARES;
+DROP TABLE TIPO_TICKETS;
+DROP TABLE HIST_MUSEOS;
+DROP TABLE TICKETS;
+DROP TABLE HORARIOS;
+DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS;
+DROP TABLE PROGRAMAS_MANT;
+DROP TABLE HIST_OBRAS_MOV;
+DROP TABLE HIST_EMPLEADOS;
+DROP TABLE SALAS_COLECCIONES;
+DROP TABLE COLECCIONES_PERMANENTES;
+DROP TABLE EST_ORGANIZACIONAL;
+DROP TABLE CIERRES_TEMPORALES;
+DROP TABLE EXPOSICIONES_EVENTOS;
+DROP TABLE SALAS_EXP;
+DROP TABLE ASIGNACIONES_MES;
+DROP TABLE EST_FISICA;
+DROP TABLE MUSEOS;
+DROP TABLE FORMACIONES;
+DROP TABLE EMPLEADOS_IDIOMAS;
+DROP TABLE EMPLEADOS_PROFESIONALES;
+DROP TABLE ARTISTAS_OBRAS;
+DROP TABLE ARTISTAS;
+DROP TABLE EMPLEADOS_VIGILANTE_MANT;
+DROP TABLE IDIOMAS;
+DROP TABLE OBRAS;
+DROP TABLE LUGARES;
 
 
 
@@ -1435,57 +1432,89 @@ END TRG_MANEJAR_HIST_EMPLEADOS;
 
 
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_HIST_OBRAS_MOV_FECHAS
+-- TRIGGER: TRG_HIST_OBRAS_MOV_FECHAS (Versión Refactorizada con Compound Trigger)
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 09-JUN-2025 (Refactorización)
 -- Descripción:
--- Este trigger se dispara antes de insertar un nuevo registro en HIST_OBRAS_MOV.
--- Su propósito es encontrar el registro de movimiento anterior para la misma
--- obra (el que tiene fecha_salida nula) y actualizarlo con la fecha de entrada
--- del nuevo movimiento. Esto asegura una cadena de custodia coherente.
+-- Este trigger gestiona la cadena de custodia de las obras en HIST_OBRAS_MOV.
+-- Utiliza un Compound Trigger para evitar el error de tabla mutante (ORA-04091)
+-- que ocurría al intentar leer y escribir en la misma tabla durante una inserción.
+-- 1. Recopila las filas insertadas en una colección en memoria.
+-- 2. Al final de la sentencia, actualiza el registro de movimiento anterior para
+--    cada obra, estableciendo su `fecha_salida` y asegurando la consistencia.
 -- -----------------------------------------------------------------------------
-
 CREATE OR REPLACE TRIGGER TRG_HIST_OBRAS_MOV_FECHAS
-BEFORE INSERT ON HIST_OBRAS_MOV
-FOR EACH ROW
-DECLARE
-    -- Variable para almacenar el ROWID del registro anterior a actualizar.
-    v_previous_rowid UROWID;
-BEGIN
-    -- Buscamos el ROWID del último movimiento de esta obra que aún no tiene fecha de salida.
-    -- Esto nos indica la ubicación "actual" de la obra antes de este nuevo movimiento.
+FOR INSERT ON HIST_OBRAS_MOV
+COMPOUND TRIGGER
+    -- Colección para almacenar temporalmente los datos de las filas recién insertadas
+    TYPE t_obra_hist_rec IS RECORD (
+        id_obra       HIST_OBRAS_MOV.id_obra%TYPE,
+        fecha_entrada HIST_OBRAS_MOV.fecha_entrada%TYPE,
+        row_id        UROWID -- Guardamos el ROWID para excluir el registro actual de las validaciones
+    );
+    TYPE t_obra_hist_table IS TABLE OF t_obra_hist_rec INDEX BY PLS_INTEGER;
+    g_new_obras t_obra_hist_table;
+
+    -- Se ejecuta después de cada operación de inserción de fila
+    AFTER EACH ROW IS
     BEGIN
-        SELECT ROWID
-        INTO v_previous_rowid
-        FROM HIST_OBRAS_MOV
-        WHERE id_obra = :NEW.id_obra
-          AND fecha_salida IS NULL;
+        -- Almacenar los datos clave de la nueva fila en la colección para su posterior procesamiento
+        g_new_obras(g_new_obras.COUNT + 1).id_obra := :NEW.id_obra;
+        g_new_obras(g_new_obras.COUNT).fecha_entrada := :NEW.fecha_entrada;
+        g_new_obras(g_new_obras.COUNT).row_id := :NEW.ROWID;
+    END AFTER EACH ROW;
 
-    EXCEPTION
-        -- Si no se encuentra ningún registro (NO_DATA_FOUND), significa que este es el primer
-        -- movimiento histórico (adquisición) de la obra. En este caso, no hacemos nada.
-        WHEN NO_DATA_FOUND THEN
-            NULL; -- No hay registro previo que actualizar, lo cual es correcto.
+    -- Se ejecuta una sola vez, después de que se complete toda la sentencia INSERT
+    AFTER STATEMENT IS
+    BEGIN
+        -- Solo proceder si se insertaron filas en esta transacción
+        IF g_new_obras.COUNT > 0 THEN
         
-        -- Si se encuentra más de un registro, es un estado de datos inconsistente.
-        -- Una obra no debería estar en dos lugares activos al mismo tiempo.
-        WHEN TOO_MANY_ROWS THEN
-            RAISE_APPLICATION_ERROR(-20004, 
-                'Error de consistencia de datos: La obra con ID ' || :NEW.id_obra || 
-                ' ya existe en múltiples ubicaciones activas (con fecha_salida nula).');
-    END;
+            FOR i IN 1..g_new_obras.COUNT LOOP
+                
+                -- Se valida la consistencia de los datos antes de actualizar.
+                -- Contamos cuántos registros de historial "abiertos" (sin fecha de salida)
+                -- existen para la obra, excluyendo el que acabamos de insertar.
+                DECLARE
+                    v_open_records_count NUMBER;
+                BEGIN
+                    SELECT COUNT(*)
+                    INTO v_open_records_count
+                    FROM HIST_OBRAS_MOV
+                    WHERE id_obra = g_new_obras(i).id_obra
+                      AND fecha_salida IS NULL
+                      -- Excluimos la fila recién insertada del conteo para no interferir
+                      AND ROWID != g_new_obras(i).row_id;
 
-    -- Si encontramos un registro anterior válido, actualizamos su fecha de salida.
-    IF v_previous_rowid IS NOT NULL THEN
-        UPDATE HIST_OBRAS_MOV
-        SET fecha_salida = :NEW.fecha_entrada
-        WHERE ROWID = v_previous_rowid;
-    END IF;
+                    -- Si hay más de un registro abierto, es un estado de datos inconsistente.
+                    -- Una obra no puede estar en dos lugares activos al mismo tiempo.
+                    IF v_open_records_count > 1 THEN
+                        RAISE_APPLICATION_ERROR(-20004, 
+                            'Error de consistencia de datos: La obra con ID ' || g_new_obras(i).id_obra || 
+                            ' tiene múltiples registros de historial abiertos. No se puede determinar la ubicación anterior.');
+                    
+                    -- Si hay exactamente un registro abierto, se procede a actualizarlo para "cerrarlo".
+                    ELSIF v_open_records_count = 1 THEN
+                        UPDATE HIST_OBRAS_MOV
+                        SET fecha_salida = g_new_obras(i).fecha_entrada
+                        WHERE id_obra = g_new_obras(i).id_obra
+                          AND fecha_salida IS NULL
+                          AND ROWID != g_new_obras(i).row_id;
+                    END IF;
+                    -- Si v_open_records_count = 0, es el primer movimiento histórico y no se hace nada.
+                END;
+            END LOOP;
+            
+        END IF;
 
-EXCEPTION
-    -- Captura de cualquier otro error inesperado durante la operación.
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en el trigger TRG_HIST_OBRAS_MOV_FECHAS: ' || SQLERRM);
+        -- Limpiar la colección para la siguiente ejecución del trigger
+        g_new_obras.DELETE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- En caso de un error inesperado, limpiar la colección y relanzar la excepción
+            g_new_obras.DELETE;
+            RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en el trigger TRG_HIST_OBRAS_MOV_FECHAS (Post-Statement): ' || SQLERRM);
+    END AFTER STATEMENT;
 
 END TRG_HIST_OBRAS_MOV_FECHAS;
 /
@@ -1540,54 +1569,97 @@ END TRG_EVITAR_CIERRE_CON_EXPOSICION;
 /
 
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_MANEJAR_MANTENIMIENTOS_OBRAS
+-- TRIGGER: TRG_MANEJAR_MANTENIMIENTOS_OBRAS (Versión Refactorizada con Compound Trigger)
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 09-JUN-2025 (Refactorización)
 -- Descripción:
--- Automatiza la gestión de mantenimientos de obras:
+-- Automatiza la gestión de mantenimientos de obras utilizando un Compound Trigger
+-- para evitar el error de tabla mutante (ORA-04091):
 -- - Cierra automáticamente mantenimientos anteriores cuando se inicia uno nuevo
 -- - Registra observaciones de traspaso entre mantenimientos
 -- - Implementa mejores prácticas de manejo de errores
 -- -----------------------------------------------------------------------------
-
 CREATE OR REPLACE TRIGGER TRG_MANEJAR_MANTENIMIENTOS_OBRAS
-BEFORE INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
-FOR EACH ROW
-DECLARE
-    v_mant_abiertos NUMBER := 0;
-    v_empleado_anterior NUMBER;
-    v_fecha_anterior DATE;
-BEGIN
-    -- Verificar si hay mantenimientos abiertos para la misma obra
-    SELECT COUNT(*), MAX(id_empleado), MAX(fecha_inicio)
-    INTO v_mant_abiertos, v_empleado_anterior, v_fecha_anterior
-    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
-    WHERE id_catalogo = :NEW.id_catalogo
-      AND id_obra = :NEW.id_obra
-      AND fecha_fin IS NULL;
+FOR INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
+COMPOUND TRIGGER
+    -- Colección para almacenar temporalmente los datos de las filas recién insertadas
+    TYPE t_mant_rec IS RECORD (
+        id_catalogo   MANTENIMIENTOS_OBRAS_REALIZADOS.id_catalogo%TYPE,
+        id_obra       MANTENIMIENTOS_OBRAS_REALIZADOS.id_obra%TYPE,
+        id_empleado   MANTENIMIENTOS_OBRAS_REALIZADOS.id_empleado%TYPE,
+        fecha_inicio  MANTENIMIENTOS_OBRAS_REALIZADOS.fecha_inicio%TYPE,
+        row_id        UROWID
+    );
+    TYPE t_mant_table IS TABLE OF t_mant_rec INDEX BY PLS_INTEGER;
+    g_new_mantenimientos t_mant_table;
 
-    -- Si hay mantenimientos abiertos, cerrarlos automáticamente
-    IF v_mant_abiertos > 0 THEN
-        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
-        SET fecha_fin = :NEW.fecha_inicio,
-            observaciones = COALESCE(observaciones || '; ', '') || 
-                          'Cerrado automáticamente por nuevo mantenimiento iniciado el ' ||
-                          TO_CHAR(:NEW.fecha_inicio, 'DD-MON-YYYY') ||
-                          ' por empleado ID ' || :NEW.id_empleado
-        WHERE id_catalogo = :NEW.id_catalogo
-          AND id_obra = :NEW.id_obra
-          AND fecha_fin IS NULL;
+    -- Se ejecuta después de cada operación de inserción de fila
+    AFTER EACH ROW IS
+    BEGIN
+        -- Almacenar los datos clave de la nueva fila en la colección
+        g_new_mantenimientos(g_new_mantenimientos.COUNT + 1).id_catalogo := :NEW.id_catalogo;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).id_obra := :NEW.id_obra;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).id_empleado := :NEW.id_empleado;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).fecha_inicio := :NEW.fecha_inicio;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).row_id := :NEW.ROWID;
+    END AFTER EACH ROW;
 
-        -- Agregar observación al nuevo mantenimiento sobre el anterior
-        :NEW.observaciones := COALESCE(:NEW.observaciones || '; ', '') ||
-                             'Continúa mantenimiento anterior del empleado ID ' || v_empleado_anterior ||
-                             ' iniciado el ' || TO_CHAR(v_fecha_anterior, 'DD-MON-YYYY');
-    END IF;
+    -- Se ejecuta una sola vez, después de que se complete toda la sentencia INSERT
+    AFTER STATEMENT IS
+    BEGIN
+        -- Solo proceder si se insertaron filas en esta transacción
+        IF g_new_mantenimientos.COUNT > 0 THEN
+        
+            FOR i IN 1..g_new_mantenimientos.COUNT LOOP
+                DECLARE
+                    v_mant_abiertos NUMBER := 0;
+                    v_empleado_anterior NUMBER;
+                    v_fecha_anterior DATE;
+                BEGIN
+                    -- Verificar si hay mantenimientos abiertos para la misma obra (excluyendo el recién insertado)
+                    SELECT COUNT(*), MAX(id_empleado), MAX(fecha_inicio)
+                    INTO v_mant_abiertos, v_empleado_anterior, v_fecha_anterior
+                    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
+                    WHERE id_catalogo = g_new_mantenimientos(i).id_catalogo
+                      AND id_obra = g_new_mantenimientos(i).id_obra
+                      AND fecha_fin IS NULL
+                      AND ROWID != g_new_mantenimientos(i).row_id;
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20060, 
-            'Error en automatización de mantenimientos para obra ID ' || :NEW.id_obra || ': ' || SQLERRM);
+                    -- Si hay mantenimientos abiertos, cerrarlos automáticamente
+                    IF v_mant_abiertos > 0 THEN
+                        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
+                        SET fecha_fin = g_new_mantenimientos(i).fecha_inicio,
+                            observaciones = COALESCE(observaciones || '; ', '') || 
+                                          'Cerrado automáticamente por nuevo mantenimiento iniciado el ' ||
+                                          TO_CHAR(g_new_mantenimientos(i).fecha_inicio, 'DD-MON-YYYY') ||
+                                          ' por empleado ID ' || g_new_mantenimientos(i).id_empleado
+                        WHERE id_catalogo = g_new_mantenimientos(i).id_catalogo
+                          AND id_obra = g_new_mantenimientos(i).id_obra
+                          AND fecha_fin IS NULL
+                          AND ROWID != g_new_mantenimientos(i).row_id;
+
+                        -- Agregar observación al nuevo mantenimiento sobre el anterior
+                        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
+                        SET observaciones = COALESCE(observaciones || '; ', '') ||
+                                           'Continúa mantenimiento anterior del empleado ID ' || v_empleado_anterior ||
+                                           ' iniciado el ' || TO_CHAR(v_fecha_anterior, 'DD-MON-YYYY')
+                        WHERE ROWID = g_new_mantenimientos(i).row_id;
+                    END IF;
+                END;
+            END LOOP;
+            
+        END IF;
+
+        -- Limpiar la colección para la siguiente ejecución del trigger
+        g_new_mantenimientos.DELETE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- En caso de un error inesperado, limpiar la colección y relanzar la excepción
+            g_new_mantenimientos.DELETE;
+            RAISE_APPLICATION_ERROR(-20060, 
+                'Error en automatización de mantenimientos (Post-Statement): ' || SQLERRM);
+    END AFTER STATEMENT;
+
 END TRG_MANEJAR_MANTENIMIENTOS_OBRAS;
 /
 
@@ -1975,6 +2047,8 @@ EXCEPTION
 END SP_CONSOLIDAR_OPERACIONES_DIARIAS;
 /
 
+
+
 -- -----------------------------------------------------------------------------
 -- BLOQUE DE EJEMPLO DE USO: SISTEMA COMPLETO DE AUTOMATIZACIÓN
 -- -----------------------------------------------------------------------------
@@ -2026,6 +2100,208 @@ EXCEPTION
 END;
 /
 */
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_INSERTAR_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la insercion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_INSERTAR_COLECCION(
+    n_nombre_museo IN VARCHAR2, 
+    n_nombre_depto IN VARCHAR2,
+    n_nombre_coleccion IN VARCHAR2, 
+    n_caracteristicas IN VARCHAR2, 
+    n_palabra_clave IN VARCHAR2,    
+    n_orden_recorrido IN NUMBER) IS v_id_museo NUMBER; v_id_depto NUMBER;
+BEGIN
+    IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido>0 THEN
+        UPDATE COLECCIONES_PERMANENTES SET orden_recorrido = orden_recorrido+1
+        WHERE orden_recorrido >= n_orden_recorrido;
+    END IF;
+    
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre = n_nombre_museo;
+    
+    SELECT eo.id_est_org INTO v_id_depto
+    FROM EST_ORGANIZACIONAL eo
+    WHERE eo.id_museo = v_id_museo AND eo.nombre = n_nombre_depto;
+    
+    INSERT INTO COLECCIONES_PERMANENTES (id_est_org, id_museo, nombre, caracteristicas,
+        palabra_clave, orden_recorrido) VALUES (v_id_depto, v_id_museo, n_nombre_coleccion,
+        n_caracteristicas, n_palabra_clave, n_orden_recorrido);
+    
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20064, 'Error: Museo "' || n_nombre_museo || '" o Departamento "' || n_nombre_depto || '" no encontrado.');
+        WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20065, 'Error: Se encontraron múltiples registros para el Museo "' || n_nombre_museo || '" o el Departamento "' || n_nombre_depto || '".');
+        WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066, 'Error inesperado al insertar coleccion "' || n_nombre_coleccion || '": ' || SQLERRM);
+END SP_INSERTAR_COLECCION;
+/    
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: INSERTAR COLECCION
+-- -----------------------------------------------------------------------------
+/*
+EXEC SP_INSERTAR_COLECCION('Musée du Petit Palais', 'Servicio de Exposiciones y Gestión de Colecciones', 'Coleccion Post-Moderna', 'Arte de la era digital y de la información', 'Digital', 3);
+*/
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MODIFICAR_ORDEN_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la modificacion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MODIFICAR_ORDEN_COLECCION
+    (n_id_coleccion IN VARCHAR2,
+    n_orden_recorrido IN NUMBER) 
+    IS
+    v_orden_viejo NUMBER;
+BEGIN
+    
+    SELECT orden_recorrido INTO v_orden_viejo
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = n_id_coleccion;
+    
+    IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 AND n_orden_recorrido != v_orden_viejo THEN
+        IF n_orden_recorrido > v_orden_viejo THEN 
+            UPDATE COLECCIONES_PERMANENTES
+            SET orden_recorrido = orden_recorrido -1
+            WHERE orden_recorrido > v_orden_viejo AND
+            orden_recorrido <= n_orden_recorrido;
+        ELSIF n_orden_recorrido < v_orden_viejo THEN
+            UPDATE COLECCIONES_PERMANENTES
+            SET orden_recorrido = orden_recorrido +1
+            WHERE orden_recorrido < v_orden_viejo AND
+            orden_recorrido >= n_orden_recorrido;
+        END IF;
+        UPDATE COLECCIONES_PERMANENTES
+        SET orden_recorrido = n_orden_recorrido
+        WHERE id_coleccion = n_id_coleccion;
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20064, 'Error: Coleccion "' || n_id_coleccion || 'no encontrado.');
+     WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20065, 'Error: Se encontraron múltiples registros la Coleccion "' || n_id_coleccion ||'".');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20066, 'Error inesperado al modificar orden de coleccion "' || n_id_coleccion || '": ' || SQLERRM);
+END SP_MODIFICAR_ORDEN_COLECCION;
+/
+
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: MODIFICAR ORDEN DE RECORRIDO DE UNA COLECCION
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_museo NUMBER;
+    v_id_coleccion NUMBER;
+    v_id_org NUMBER;
+BEGIN
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre='Musée du Petit Palais';
+    
+    SELECT id_est_org INTO v_id_org
+    FROM EST_ORGANIZACIONAL
+    WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
+    id_museo = v_id_museo;
+    
+    SELECT id_coleccion INTO v_id_coleccion
+    FROM COLECCIONES_PERMANENTES
+    WHERE
+    id_museo = v_id_museo AND
+    id_est_org = v_id_org AND
+    nombre = 'Coleccion Post-Moderna';
+    
+    SP_MODIFICAR_ORDEN_COLECCION(v_id_coleccion, 3);
+    
+END;
+/
+*/
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_ELIMINAR_COLECCION
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+--Automatiza la eliminacion de colecciones para que se actualice el orden 
+--de recorrido del resto de las colecciones.
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_ELIMINAR_COLECCION (
+    p_id_coleccion IN NUMBER 
+)
+IS
+    v_orden_eliminado NUMBER;
+BEGIN
+    
+    SELECT orden_recorrido
+    INTO v_orden_eliminado
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = p_id_coleccion;
+
+    DELETE FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = p_id_coleccion;
+
+    IF v_orden_eliminado IS NOT NULL THEN
+        UPDATE COLECCIONES_PERMANENTES
+        SET orden_recorrido = orden_recorrido - 1
+        WHERE orden_recorrido > v_orden_eliminado;
+    END IF;
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20068, 'Error: Colección con ID ' || p_id_coleccion || ' no encontrada para eliminar.');
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20069, 'Error inesperado al eliminar coleccion con ID ' || p_id_coleccion || ': ' || SQLERRM);
+END SP_ELIMINAR_COLECCION;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: ELIMINAR COLECCION
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_museo NUMBER;
+    v_id_coleccion NUMBER;
+    v_id_org NUMBER;
+BEGIN
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre='Musée du Petit Palais';
+    
+    SELECT id_est_org INTO v_id_org
+    FROM EST_ORGANIZACIONAL
+    WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
+    id_museo = v_id_museo;
+    
+    SELECT id_coleccion INTO v_id_coleccion
+    FROM COLECCIONES_PERMANENTES
+    WHERE
+    id_museo = v_id_museo AND
+    id_est_org = v_id_org AND
+    nombre = 'Coleccion Post-Moderna';
+    
+    SP_ELIMINAR_COLECCION(v_id_coleccion);
+    
+END;
+/
+*/
+
+
 
 -- -----------------------------------------------------------------------------
 -- VISTA: VW_MOVIMIENTOS_ACTIVOS

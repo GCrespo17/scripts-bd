@@ -72,14 +72,6 @@ INSERT INTO HORARIOS (DIA, ID_MUSEO, HORA_INICIO, HORA_CIERRE) VALUES (5, (SELEC
 INSERT INTO HORARIOS (DIA, ID_MUSEO, HORA_INICIO, HORA_CIERRE) VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), TO_DATE('10:00:00', 'HH24:MI:SS'), TO_DATE('17:00:00', 'HH24:MI:SS')); -- Sábado extendido
 INSERT INTO HORARIOS (DIA, ID_MUSEO, HORA_INICIO, HORA_CIERRE) VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), TO_DATE('10:00:00','HH24:MI:SS'), TO_DATE('17:00:00', 'HH24:MI:SS')); -- Domingo extendido
 
---INSERT TICKETS
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'), 'ADULTO', 7.50)
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'),TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',5.00)
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL', 0.00)
-
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'),TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),'ADULTO', 8.20);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'),TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',5.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'),TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
 
 --INSERT TIPO_TICKETS
 
@@ -150,6 +142,16 @@ VALUES (TO_DATE('01-01-2024', 'DD-MM-YYYY'), (SELECT id_museo FROM MUSEOS WHERE 
 INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) 
 VALUES (TO_DATE('01-01-2015', 'DD-MM-YYYY'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), 0.00, 'INFANTIL', NULL);
 
+--INSERT TICKETS
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ADULTO', 7.50);
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ESTUDIANTE', 5.00);
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'INFANTIL', 0.00);
+
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ADULTO', 8.20);
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ESTUDIANTE', 5.50);
+INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'INFANTIL', 0.00);
+
+
 --INSERT EST_FISICA
 INSERT INTO EST_FISICA (id_museo, nombre, tipo, descripcion, direccion_edificio, id_est_padre) VALUES 
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), 'Gmach Główny Muzeum Narodowego w Warszawie', 'EDIFICIO', 
@@ -201,16 +203,16 @@ INSERT INTO EST_FISICA (id_museo, nombre, tipo, descripcion, direccion_edificio,
 (SELECT id_museo FROM MUSEOS WHERE nombre = 'Palacio de Nieborów'));
 
 -- UPDATE MUSEO NACIONAL DE VARSOVIA
-update est_fisica 
-set id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Gmach Główny Muzeum Narodowego w Warszawie')
-where  tipo = 'PISO' and id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia');
+UPDATE est_fisica 
+SET id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Gmach Główny Muzeum Narodowego w Warszawie')
+WHERE tipo = 'PISO' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia');
 -- UPDATE MUSEO DE NIEBOROW Y ARKADIA
-update est_fisica 
-set id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Palacio de Nieborów')
-where tipo = 'PISO' and (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia');
-update est_fisica 
-set id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Palacio de Nieborów')
-where tipo = 'AREA' and (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia');
+UPDATE est_fisica 
+SET id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Palacio de Nieborów')
+WHERE tipo = 'PISO' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia');
+UPDATE est_fisica 
+SET id_est_padre = (SELECT id_est FROM EST_FISICA WHERE nombre = 'Palacio de Nieborów')
+WHERE tipo = 'AREA' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia');
 
 
 --INSERT EMPLEADOS_VIGILANTE_MANT

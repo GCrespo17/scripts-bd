@@ -956,22 +956,22 @@ INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_f
         TO_DATE('2023-11-03', 'YYYY-MM-DD')
     );
 
--- CIERRES DE PETIT PALAIS
+-- CIERRES DE PETIT PALAIS - FECHAS CORREGIDAS PARA EVITAR CONFLICTOS
 INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_fin) VALUES
     (
-        TO_DATE('2024-05-17', 'YYYY-MM-DD'),
+        TO_DATE('2025-01-15', 'YYYY-MM-DD'),  -- Fecha cambiada para evitar conflictos
         (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ SALLE 7' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
         (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
-        TO_DATE('2024-08-23', 'YYYY-MM-DD')
+        TO_DATE('2025-02-28', 'YYYY-MM-DD')   -- Fecha cambiada para evitar conflictos
     );
 INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_fin) VALUES
     (
-        TO_DATE('2024-05-17', 'YYYY-MM-DD'),
+        TO_DATE('2025-01-15', 'YYYY-MM-DD'),  -- Fecha cambiada para evitar conflictos
         (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'GALERIE TUCK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
         (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
-        TO_DATE('2024-08-23', 'YYYY-MM-DD')
+        TO_DATE('2025-02-28', 'YYYY-MM-DD')   -- Fecha cambiada para evitar conflictos
     );
 
 

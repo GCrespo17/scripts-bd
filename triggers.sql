@@ -1,4 +1,3 @@
-
 -- -----------------------------------------------------------------------------
 -- TRIGGER: TRG_TICKETS_BEFORE_INSERT (Versión Optimizada para Concurrencia)
 -- -----------------------------------------------------------------------------
@@ -200,57 +199,89 @@ END TRG_MANEJAR_HIST_EMPLEADOS;
 
 
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_HIST_OBRAS_MOV_FECHAS
+-- TRIGGER: TRG_HIST_OBRAS_MOV_FECHAS (Versión Refactorizada con Compound Trigger)
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 09-JUN-2025 (Refactorización)
 -- Descripción:
--- Este trigger se dispara antes de insertar un nuevo registro en HIST_OBRAS_MOV.
--- Su propósito es encontrar el registro de movimiento anterior para la misma
--- obra (el que tiene fecha_salida nula) y actualizarlo con la fecha de entrada
--- del nuevo movimiento. Esto asegura una cadena de custodia coherente.
+-- Este trigger gestiona la cadena de custodia de las obras en HIST_OBRAS_MOV.
+-- Utiliza un Compound Trigger para evitar el error de tabla mutante (ORA-04091)
+-- que ocurría al intentar leer y escribir en la misma tabla durante una inserción.
+-- 1. Recopila las filas insertadas en una colección en memoria.
+-- 2. Al final de la sentencia, actualiza el registro de movimiento anterior para
+--    cada obra, estableciendo su `fecha_salida` y asegurando la consistencia.
 -- -----------------------------------------------------------------------------
-
 CREATE OR REPLACE TRIGGER TRG_HIST_OBRAS_MOV_FECHAS
-BEFORE INSERT ON HIST_OBRAS_MOV
-FOR EACH ROW
-DECLARE
-    -- Variable para almacenar el ROWID del registro anterior a actualizar.
-    v_previous_rowid UROWID;
-BEGIN
-    -- Buscamos el ROWID del último movimiento de esta obra que aún no tiene fecha de salida.
-    -- Esto nos indica la ubicación "actual" de la obra antes de este nuevo movimiento.
+FOR INSERT ON HIST_OBRAS_MOV
+COMPOUND TRIGGER
+    -- Colección para almacenar temporalmente los datos de las filas recién insertadas
+    TYPE t_obra_hist_rec IS RECORD (
+        id_obra       HIST_OBRAS_MOV.id_obra%TYPE,
+        fecha_entrada HIST_OBRAS_MOV.fecha_entrada%TYPE,
+        row_id        UROWID -- Guardamos el ROWID para excluir el registro actual de las validaciones
+    );
+    TYPE t_obra_hist_table IS TABLE OF t_obra_hist_rec INDEX BY PLS_INTEGER;
+    g_new_obras t_obra_hist_table;
+
+    -- Se ejecuta después de cada operación de inserción de fila
+    AFTER EACH ROW IS
     BEGIN
-        SELECT ROWID
-        INTO v_previous_rowid
-        FROM HIST_OBRAS_MOV
-        WHERE id_obra = :NEW.id_obra
-          AND fecha_salida IS NULL;
+        -- Almacenar los datos clave de la nueva fila en la colección para su posterior procesamiento
+        g_new_obras(g_new_obras.COUNT + 1).id_obra := :NEW.id_obra;
+        g_new_obras(g_new_obras.COUNT).fecha_entrada := :NEW.fecha_entrada;
+        g_new_obras(g_new_obras.COUNT).row_id := :NEW.ROWID;
+    END AFTER EACH ROW;
 
-    EXCEPTION
-        -- Si no se encuentra ningún registro (NO_DATA_FOUND), significa que este es el primer
-        -- movimiento histórico (adquisición) de la obra. En este caso, no hacemos nada.
-        WHEN NO_DATA_FOUND THEN
-            NULL; -- No hay registro previo que actualizar, lo cual es correcto.
+    -- Se ejecuta una sola vez, después de que se complete toda la sentencia INSERT
+    AFTER STATEMENT IS
+    BEGIN
+        -- Solo proceder si se insertaron filas en esta transacción
+        IF g_new_obras.COUNT > 0 THEN
         
-        -- Si se encuentra más de un registro, es un estado de datos inconsistente.
-        -- Una obra no debería estar en dos lugares activos al mismo tiempo.
-        WHEN TOO_MANY_ROWS THEN
-            RAISE_APPLICATION_ERROR(-20004, 
-                'Error de consistencia de datos: La obra con ID ' || :NEW.id_obra || 
-                ' ya existe en múltiples ubicaciones activas (con fecha_salida nula).');
-    END;
+            FOR i IN 1..g_new_obras.COUNT LOOP
+                
+                -- Se valida la consistencia de los datos antes de actualizar.
+                -- Contamos cuántos registros de historial "abiertos" (sin fecha de salida)
+                -- existen para la obra, excluyendo el que acabamos de insertar.
+                DECLARE
+                    v_open_records_count NUMBER;
+                BEGIN
+                    SELECT COUNT(*)
+                    INTO v_open_records_count
+                    FROM HIST_OBRAS_MOV
+                    WHERE id_obra = g_new_obras(i).id_obra
+                      AND fecha_salida IS NULL
+                      -- Excluimos la fila recién insertada del conteo para no interferir
+                      AND ROWID != g_new_obras(i).row_id;
 
-    -- Si encontramos un registro anterior válido, actualizamos su fecha de salida.
-    IF v_previous_rowid IS NOT NULL THEN
-        UPDATE HIST_OBRAS_MOV
-        SET fecha_salida = :NEW.fecha_entrada
-        WHERE ROWID = v_previous_rowid;
-    END IF;
+                    -- Si hay más de un registro abierto, es un estado de datos inconsistente.
+                    -- Una obra no puede estar en dos lugares activos al mismo tiempo.
+                    IF v_open_records_count > 1 THEN
+                        RAISE_APPLICATION_ERROR(-20004, 
+                            'Error de consistencia de datos: La obra con ID ' || g_new_obras(i).id_obra || 
+                            ' tiene múltiples registros de historial abiertos. No se puede determinar la ubicación anterior.');
+                    
+                    -- Si hay exactamente un registro abierto, se procede a actualizarlo para "cerrarlo".
+                    ELSIF v_open_records_count = 1 THEN
+                        UPDATE HIST_OBRAS_MOV
+                        SET fecha_salida = g_new_obras(i).fecha_entrada
+                        WHERE id_obra = g_new_obras(i).id_obra
+                          AND fecha_salida IS NULL
+                          AND ROWID != g_new_obras(i).row_id;
+                    END IF;
+                    -- Si v_open_records_count = 0, es el primer movimiento histórico y no se hace nada.
+                END;
+            END LOOP;
+            
+        END IF;
 
-EXCEPTION
-    -- Captura de cualquier otro error inesperado durante la operación.
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en el trigger TRG_HIST_OBRAS_MOV_FECHAS: ' || SQLERRM);
+        -- Limpiar la colección para la siguiente ejecución del trigger
+        g_new_obras.DELETE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- En caso de un error inesperado, limpiar la colección y relanzar la excepción
+            g_new_obras.DELETE;
+            RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en el trigger TRG_HIST_OBRAS_MOV_FECHAS (Post-Statement): ' || SQLERRM);
+    END AFTER STATEMENT;
 
 END TRG_HIST_OBRAS_MOV_FECHAS;
 /
@@ -305,54 +336,97 @@ END TRG_EVITAR_CIERRE_CON_EXPOSICION;
 /
 
 -- -----------------------------------------------------------------------------
--- TRIGGER: TRG_MANEJAR_MANTENIMIENTOS_OBRAS
+-- TRIGGER: TRG_MANEJAR_MANTENIMIENTOS_OBRAS (Versión Refactorizada con Compound Trigger)
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 09-JUN-2025 (Refactorización)
 -- Descripción:
--- Automatiza la gestión de mantenimientos de obras:
+-- Automatiza la gestión de mantenimientos de obras utilizando un Compound Trigger
+-- para evitar el error de tabla mutante (ORA-04091):
 -- - Cierra automáticamente mantenimientos anteriores cuando se inicia uno nuevo
 -- - Registra observaciones de traspaso entre mantenimientos
 -- - Implementa mejores prácticas de manejo de errores
 -- -----------------------------------------------------------------------------
-
 CREATE OR REPLACE TRIGGER TRG_MANEJAR_MANTENIMIENTOS_OBRAS
-BEFORE INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
-FOR EACH ROW
-DECLARE
-    v_mant_abiertos NUMBER := 0;
-    v_empleado_anterior NUMBER;
-    v_fecha_anterior DATE;
-BEGIN
-    -- Verificar si hay mantenimientos abiertos para la misma obra
-    SELECT COUNT(*), MAX(id_empleado), MAX(fecha_inicio)
-    INTO v_mant_abiertos, v_empleado_anterior, v_fecha_anterior
-    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
-    WHERE id_catalogo = :NEW.id_catalogo
-      AND id_obra = :NEW.id_obra
-      AND fecha_fin IS NULL;
+FOR INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
+COMPOUND TRIGGER
+    -- Colección para almacenar temporalmente los datos de las filas recién insertadas
+    TYPE t_mant_rec IS RECORD (
+        id_catalogo   MANTENIMIENTOS_OBRAS_REALIZADOS.id_catalogo%TYPE,
+        id_obra       MANTENIMIENTOS_OBRAS_REALIZADOS.id_obra%TYPE,
+        id_empleado   MANTENIMIENTOS_OBRAS_REALIZADOS.id_empleado%TYPE,
+        fecha_inicio  MANTENIMIENTOS_OBRAS_REALIZADOS.fecha_inicio%TYPE,
+        row_id        UROWID
+    );
+    TYPE t_mant_table IS TABLE OF t_mant_rec INDEX BY PLS_INTEGER;
+    g_new_mantenimientos t_mant_table;
 
-    -- Si hay mantenimientos abiertos, cerrarlos automáticamente
-    IF v_mant_abiertos > 0 THEN
-        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
-        SET fecha_fin = :NEW.fecha_inicio,
-            observaciones = COALESCE(observaciones || '; ', '') || 
-                          'Cerrado automáticamente por nuevo mantenimiento iniciado el ' ||
-                          TO_CHAR(:NEW.fecha_inicio, 'DD-MON-YYYY') ||
-                          ' por empleado ID ' || :NEW.id_empleado
-        WHERE id_catalogo = :NEW.id_catalogo
-          AND id_obra = :NEW.id_obra
-          AND fecha_fin IS NULL;
+    -- Se ejecuta después de cada operación de inserción de fila
+    AFTER EACH ROW IS
+    BEGIN
+        -- Almacenar los datos clave de la nueva fila en la colección
+        g_new_mantenimientos(g_new_mantenimientos.COUNT + 1).id_catalogo := :NEW.id_catalogo;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).id_obra := :NEW.id_obra;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).id_empleado := :NEW.id_empleado;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).fecha_inicio := :NEW.fecha_inicio;
+        g_new_mantenimientos(g_new_mantenimientos.COUNT).row_id := :NEW.ROWID;
+    END AFTER EACH ROW;
 
-        -- Agregar observación al nuevo mantenimiento sobre el anterior
-        :NEW.observaciones := COALESCE(:NEW.observaciones || '; ', '') ||
-                             'Continúa mantenimiento anterior del empleado ID ' || v_empleado_anterior ||
-                             ' iniciado el ' || TO_CHAR(v_fecha_anterior, 'DD-MON-YYYY');
-    END IF;
+    -- Se ejecuta una sola vez, después de que se complete toda la sentencia INSERT
+    AFTER STATEMENT IS
+    BEGIN
+        -- Solo proceder si se insertaron filas en esta transacción
+        IF g_new_mantenimientos.COUNT > 0 THEN
+        
+            FOR i IN 1..g_new_mantenimientos.COUNT LOOP
+                DECLARE
+                    v_mant_abiertos NUMBER := 0;
+                    v_empleado_anterior NUMBER;
+                    v_fecha_anterior DATE;
+                BEGIN
+                    -- Verificar si hay mantenimientos abiertos para la misma obra (excluyendo el recién insertado)
+                    SELECT COUNT(*), MAX(id_empleado), MAX(fecha_inicio)
+                    INTO v_mant_abiertos, v_empleado_anterior, v_fecha_anterior
+                    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
+                    WHERE id_catalogo = g_new_mantenimientos(i).id_catalogo
+                      AND id_obra = g_new_mantenimientos(i).id_obra
+                      AND fecha_fin IS NULL
+                      AND ROWID != g_new_mantenimientos(i).row_id;
 
-EXCEPTION
-    WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20060, 
-            'Error en automatización de mantenimientos para obra ID ' || :NEW.id_obra || ': ' || SQLERRM);
+                    -- Si hay mantenimientos abiertos, cerrarlos automáticamente
+                    IF v_mant_abiertos > 0 THEN
+                        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
+                        SET fecha_fin = g_new_mantenimientos(i).fecha_inicio,
+                            observaciones = COALESCE(observaciones || '; ', '') || 
+                                          'Cerrado automáticamente por nuevo mantenimiento iniciado el ' ||
+                                          TO_CHAR(g_new_mantenimientos(i).fecha_inicio, 'DD-MON-YYYY') ||
+                                          ' por empleado ID ' || g_new_mantenimientos(i).id_empleado
+                        WHERE id_catalogo = g_new_mantenimientos(i).id_catalogo
+                          AND id_obra = g_new_mantenimientos(i).id_obra
+                          AND fecha_fin IS NULL
+                          AND ROWID != g_new_mantenimientos(i).row_id;
+
+                        -- Agregar observación al nuevo mantenimiento sobre el anterior
+                        UPDATE MANTENIMIENTOS_OBRAS_REALIZADOS
+                        SET observaciones = COALESCE(observaciones || '; ', '') ||
+                                           'Continúa mantenimiento anterior del empleado ID ' || v_empleado_anterior ||
+                                           ' iniciado el ' || TO_CHAR(v_fecha_anterior, 'DD-MON-YYYY')
+                        WHERE ROWID = g_new_mantenimientos(i).row_id;
+                    END IF;
+                END;
+            END LOOP;
+            
+        END IF;
+
+        -- Limpiar la colección para la siguiente ejecución del trigger
+        g_new_mantenimientos.DELETE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- En caso de un error inesperado, limpiar la colección y relanzar la excepción
+            g_new_mantenimientos.DELETE;
+            RAISE_APPLICATION_ERROR(-20060, 
+                'Error en automatización de mantenimientos (Post-Statement): ' || SQLERRM);
+    END AFTER STATEMENT;
+
 END TRG_MANEJAR_MANTENIMIENTOS_OBRAS;
 /
 

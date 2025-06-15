@@ -375,28 +375,31 @@ PROMPT -------------------------------------------------------------------------
 PROMPT Inserting data into CIERRES_TEMPORALES table...
 
 -- Cierre para la Galería Nacional de Arte (GAN), Sala de Vanguardias Venezolanas (montaje nueva exposición)
+-- Razón: Programado después del fin de la exposición "Espiritualidad y Surrealismo" que termina el 15-07-2025
 INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_fin) VALUES 
-(TO_DATE('2025-07-01', 'YYYY-MM-DD'), 
+(TO_DATE('2025-07-16', 'YYYY-MM-DD'), 
  (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Sala de Vanguardias Venezolanas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte')), 
  (SELECT id_est FROM EST_FISICA WHERE nombre = 'Nivel 2 GAN' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte')), 
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 
- TO_DATE('2025-07-15', 'YYYY-MM-DD'));
+ TO_DATE('2025-07-31', 'YYYY-MM-DD'));
 
 -- Cierre para el Museo de Bellas Artes (MBA), Sala de Arte Egipcio (mantenimiento)
+-- Razón: Programado después del fin de la exposición "Egipto Eterno" que termina el 10-09-2025
 INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_fin) VALUES 
-(TO_DATE('2025-09-01', 'YYYY-MM-DD'), 
+(TO_DATE('2025-09-11', 'YYYY-MM-DD'), 
  (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Sala de Arte Egipcio' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')), 
  (SELECT id_est FROM EST_FISICA WHERE nombre = 'Primer Piso MBA' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')), 
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 
- TO_DATE('2025-09-10', 'YYYY-MM-DD'));
+ TO_DATE('2025-09-20', 'YYYY-MM-DD'));
 
 -- Cierre para el Museo de Bellas Artes (MBA), Jardín de Esculturas (reacondicionamiento)
+-- Razón: Programado después del fin de la exposición "Escultura Venezolana" que termina el 15-11-2025
 INSERT INTO CIERRES_TEMPORALES (fecha_inicio, id_sala, id_est, id_museo, fecha_fin) VALUES 
-(TO_DATE('2025-10-01', 'YYYY-MM-DD'), 
+(TO_DATE('2025-11-16', 'YYYY-MM-DD'), 
  (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Jardín de Esculturas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')), 
  (SELECT id_est FROM EST_FISICA WHERE nombre = 'Jardín de Esculturas MBA' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')), 
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 
- TO_DATE('2025-10-15', 'YYYY-MM-DD'));
+ TO_DATE('2025-11-30', 'YYYY-MM-DD'));
 PROMPT Data inserted into CIERRES_TEMPORALES table.
 PROMPT -----------------------------------------------------------------------------
 
@@ -651,8 +654,10 @@ PROMPT -------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into MANTENIMIENTOS_OBRAS_REALIZADOS table...
 -- Mantenimiento realizado en la Galería Nacional de Arte
-INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
-((SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Miranda en La Carraca' AND pm.actividad LIKE 'Revisión del estado%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1))), 
+-- Nota: Incluimos todas las columnas explícitamente, id_mant_realizado se genera automáticamente
+INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant_realizado, id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
+(seq_mant_obra_realizado.NEXTVAL,
+ (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Miranda en La Carraca' AND pm.actividad LIKE 'Revisión del estado%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1)), 
  (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Miranda en La Carraca') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1), 
  (SELECT id_obra FROM OBRAS WHERE nombre = 'Miranda en La Carraca'), 
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 11230566), 
@@ -660,8 +665,9 @@ INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_e
  TO_DATE('2025-02-11', 'YYYY-MM-DD'), 
  'Revisión semestral completada. Condiciones ambientales óptimas.');
 
-INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
-((SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Fisicromía nº 222' AND pm.actividad LIKE 'Monitoreo del color%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1))), 
+INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant_realizado, id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
+(seq_mant_obra_realizado.NEXTVAL,
+ (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Fisicromía nº 222' AND pm.actividad LIKE 'Monitoreo del color%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1)), 
  (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Fisicromía nº 222') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte') AND ROWNUM = 1), 
  (SELECT id_obra FROM OBRAS WHERE nombre = 'Fisicromía nº 222'), 
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 11230566), 
@@ -670,8 +676,9 @@ INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_e
  'Monitoreo semestral realizado. Colores vibrantes y sin alteraciones.');
 
 -- Mantenimiento realizado en el Museo de Bellas Artes
-INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
-((SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Paisaje tropical con casas rurales y palmeras' AND pm.actividad LIKE 'Inspección anual%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1))), 
+INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant_realizado, id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
+(seq_mant_obra_realizado.NEXTVAL,
+ (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Paisaje tropical con casas rurales y palmeras' AND pm.actividad LIKE 'Inspección anual%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1)), 
  (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Paisaje tropical con casas rurales y palmeras') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1), 
  (SELECT id_obra FROM OBRAS WHERE nombre = 'Paisaje tropical con casas rurales y palmeras'), 
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 15310561), 
@@ -679,8 +686,9 @@ INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_e
  TO_DATE('2025-04-16', 'YYYY-MM-DD'), 
  'Inspección anual completada. Materiales en excelente estado.');
 
-INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
-((SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Picador y toro' AND pm.actividad LIKE 'Control periódico%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1))), 
+INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant_realizado, id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES 
+(seq_mant_obra_realizado.NEXTVAL,
+ (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Picador y toro' AND pm.actividad LIKE 'Control periódico%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = o.id_obra AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1)), 
  (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Picador y toro') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes') AND ROWNUM = 1), 
  (SELECT id_obra FROM OBRAS WHERE nombre = 'Picador y toro'), 
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 15310561), 
