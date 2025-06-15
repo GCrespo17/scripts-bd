@@ -55,9 +55,6 @@ CREATE INDEX idx_tickets_museo_fecha ON TICKETS(id_museo, fecha_hora_emision);
 -- Para consultas de obras activas por museo
 CREATE INDEX idx_hist_obras_museo_activas ON HIST_OBRAS_MOV(id_museo, fecha_salida, id_obra);
 
--- Para obtener empleados por museo y cargo
-CREATE INDEX idx_hist_empleados_museo_cargo ON HIST_EMPLEADOS(id_museo, cargo, fecha_fin);
-
 -- Para consultas de salas por museo
 CREATE INDEX idx_salas_exp_museo ON SALAS_EXP(id_museo);
 

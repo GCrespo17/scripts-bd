@@ -3,94 +3,8 @@
 * -- GRUPO 3
 * -- DESCRIPCIÓN: Script unificado para la creación de la BDD.
 ******************************************************************************/
-
 -- =============================================================================
--- SECCIÓN 1: LIMPIEZA DEL ENTORNO (DROP OBJECTS)
--- =============================================================================
-PROMPT --- Eliminando objetos en orden de dependencia inversa...
-
--- Triggers
-PROMPT --- Eliminando Triggers...
-DROP TRIGGER TRG_MANEJAR_HIST_EMPLEADOS;
-DROP TRIGGER TRG_HIST_OBRAS_MOV_FECHAS;
-DROP TRIGGER TRG_EVITAR_CIERRE_CON_EXPOSICION;
-DROP TRIGGER TRG_MANEJAR_MANTENIMIENTOS_OBRAS;
-DROP TRIGGER TRG_AUTOMATIZAR_CIERRES_TEMPORALES;
-DROP TRIGGER TRG_GESTIONAR_HISTORIAL_PRECIOS;
-
--- Vistas
-PROMPT --- Eliminando Vistas...
-DROP VIEW V_MUSEOS_RANKING_SCORES;
-DROP VIEW VW_MOVIMIENTOS_ACTIVOS;
-
--- Procedimientos
-PROMPT --- Eliminando Procedimientos...
-DROP PROCEDURE SP_VENDER_TICKET;
-DROP PROCEDURE SP_REGISTRAR_NUEVO_EMPLEADO;
-DROP PROCEDURE SP_FINALIZAR_EXPOSICION;
-DROP PROCEDURE SP_CALCULAR_RANKING_MUSEO;
-DROP PROCEDURE SP_ASIGNAR_OBRA_A_EXPOSICION;
-DROP PROCEDURE SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO;
-DROP PROCEDURE SP_GESTIONAR_ESTADO_EXPOSICIONES;
-DROP PROCEDURE SP_CONSOLIDAR_OPERACIONES_DIARIAS;
-DROP PROCEDURE SP_INSERTAR_COLECCION;
-DROP PROCEDURE SP_MODIFICAR_ORDEN_COLECCION;
-DROP PROCEDURE SP_ELIMINAR_COLECCION;
-
--- Paquetes
-PROMPT --- Eliminando Paquetes...
-DROP PACKAGE trigger_state_pkg;
-
--- Tablas
-PROMPT --- Eliminando Tablas...
-DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS CASCADE CONSTRAINTS;
-DROP TABLE PROGRAMAS_MANT CASCADE CONSTRAINTS;
-DROP TABLE HIST_OBRAS_MOV CASCADE CONSTRAINTS;
-DROP TABLE SALAS_COLECCIONES CASCADE CONSTRAINTS;
-DROP TABLE COLECCIONES_PERMANENTES CASCADE CONSTRAINTS;
-DROP TABLE CIERRES_TEMPORALES CASCADE CONSTRAINTS;
-DROP TABLE EXPOSICIONES_EVENTOS CASCADE CONSTRAINTS;
-DROP TABLE SALAS_EXP CASCADE CONSTRAINTS;
-DROP TABLE ASIGNACIONES_MES CASCADE CONSTRAINTS;
-DROP TABLE EST_FISICA CASCADE CONSTRAINTS;
-DROP TABLE HIST_EMPLEADOS CASCADE CONSTRAINTS;
-DROP TABLE EST_ORGANIZACIONAL CASCADE CONSTRAINTS;
-DROP TABLE FORMACIONES CASCADE CONSTRAINTS;
-DROP TABLE EMPLEADOS_IDIOMAS CASCADE CONSTRAINTS;
-DROP TABLE ARTISTAS_OBRAS CASCADE CONSTRAINTS;
-DROP TABLE ARTISTAS CASCADE CONSTRAINTS;
-DROP TABLE EMPLEADOS_PROFESIONALES CASCADE CONSTRAINTS;
-DROP TABLE EMPLEADOS_VIGILANTE_mant CASCADE CONSTRAINTS;
-DROP TABLE TICKETS CASCADE CONSTRAINTS;
-DROP TABLE TIPO_TICKETS CASCADE CONSTRAINTS;
-DROP TABLE HORARIOS CASCADE CONSTRAINTS;
-DROP TABLE HIST_MUSEOS CASCADE CONSTRAINTS;
-DROP TABLE MUSEOS CASCADE CONSTRAINTS;
-DROP TABLE IDIOMAS CASCADE CONSTRAINTS;
-DROP TABLE OBRAS CASCADE CONSTRAINTS;
-DROP TABLE LUGARES CASCADE CONSTRAINTS;
-
--- Secuencias
-PROMPT --- Eliminando Secuencias...
-DROP SEQUENCE seq_lugar;
-DROP SEQUENCE seq_obra;
-DROP SEQUENCE seq_idioma;
-DROP SEQUENCE seq_empleado_vigilante_mant;
-DROP SEQUENCE seq_artista;
-DROP SEQUENCE seq_empleado_profesional;
-DROP SEQUENCE seq_formacion;
-DROP SEQUENCE seq_museo;
-DROP SEQUENCE seq_est_fisica;
-DROP SEQUENCE seq_sala_exp;
-DROP SEQUENCE seq_exposicion_evento;
-DROP SEQUENCE seq_est_organizacional;
-DROP SEQUENCE seq_coleccion_permanente;
-DROP SEQUENCE seq_hist_obra_mov;
-DROP SEQUENCE seq_programa_mant;
-DROP SEQUENCE seq_mant_obra_realizado;
-
--- =============================================================================
--- SECCIÓN 2: CREACIÓN DE ESTRUCTURA (DDL)
+-- SECCIÓN 1: CREACIÓN DE ESTRUCTURA (DDL)
 -- =============================================================================
 PROMPT --- Creando Secuencias...
 CREATE SEQUENCE seq_lugar START WITH 1 INCREMENT BY 1;
@@ -428,7 +342,12 @@ CREATE TABLE TIPO_TICKETS(
     CONSTRAINT pk_tipo_tickets PRIMARY KEY(fecha_inicio, id_museo, tipo)
 );
 
-PROMPT --- Creando Índices...
+-- =============================================================================
+-- SECCIÓN 3: INDICES
+-- =============================================================================
+
+
+PROMPT --- Creando Indices...
 -- Índices para Triggers y optimización de concurrencia
 CREATE INDEX idx_tickets_museo_num_ticket ON TICKETS(id_museo, id_num_ticket);
 CREATE INDEX idx_tipo_tickets_museo_tipo_fechas ON TIPO_TICKETS(id_museo, tipo, fecha_inicio, fecha_fin);
@@ -445,7 +364,6 @@ CREATE INDEX idx_hist_empleados_museo_cargo_activo ON HIST_EMPLEADOS(id_museo, c
 CREATE INDEX idx_tickets_museo_fecha ON TICKETS(id_museo, fecha_hora_emision);
 -- Índices para consultas del Backend y reportes
 CREATE INDEX idx_hist_obras_museo_activas ON HIST_OBRAS_MOV(id_museo, fecha_salida, id_obra);
-CREATE INDEX idx_hist_empleados_museo_cargo ON HIST_EMPLEADOS(id_museo, cargo, fecha_fin);
 CREATE INDEX idx_salas_exp_museo ON SALAS_EXP(id_museo);
 CREATE INDEX idx_est_org_museo ON EST_ORGANIZACIONAL(id_museo);
 CREATE INDEX idx_est_fisica_museo ON EST_FISICA(id_museo);
@@ -456,13 +374,6 @@ CREATE INDEX idx_horarios_museo ON HORARIOS(id_museo);
 CREATE INDEX idx_formaciones_empleado ON FORMACIONES(id_empleado_prof);
 CREATE INDEX idx_programas_mant_catalogo_obra ON PROGRAMAS_MANT(id_catalogo, id_obra);
 
--- =============================================================================
--- SECCIÓN 3: INSERCIÓN DE DATOS (DML)
--- =============================================================================
-PROMPT --- Poblando tablas maestras y de detalle...
--- NOTA: El script original no contenía datos de inserción. 
--- Esta sección está preparada para futuras inserciones.
-PROMPT --- Confirmando inserciones...
 COMMIT;
 
 -- =============================================================================
