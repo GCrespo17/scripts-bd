@@ -1141,7 +1141,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
         const [museoResult, historiaResult, coleccionesResult, rankingResult] = await Promise.all([
             museoPromise,
             historiaPromise,
-            coleccionesPromise,
+            coleccionesResult,
             rankingPromise
         ]);
 
@@ -1328,6 +1328,103 @@ app.get('/api/empleados', async (req, res) => {
     } catch (err) {
         console.error('Error al obtener empleados:', err);
         res.status(500).json({ message: 'Error al obtener la lista de empleados' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+});
+
+// Endpoint para búsqueda de empleados para expediente (NUEVO - MEJORADO)
+app.get('/api/empleados/buscar', async (req, res) => {
+    const { q } = req.query; // q = query de búsqueda
+    let connection;
+    
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Construir la consulta de búsqueda
+        let sql = `
+            SELECT DISTINCT
+                ep.id_empleado,
+                ep.primer_nombre,
+                ep.segundo_nombre,
+                ep.primer_apellido,
+                ep.segundo_apellido,
+                ep.doc_identidad,
+                -- Información de posición actual (solo empleados activos)
+                he_actual.cargo as cargo_actual,
+                m_actual.nombre as museo_actual,
+                eo_actual.nombre as departamento_actual,
+                he_actual.fecha_inicio as fecha_inicio_actual
+            FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+            -- JOIN para obtener la posición actual (empleados activos)
+            LEFT JOIN ${dbConfig.schema}.HIST_EMPLEADOS he_actual 
+                ON ep.id_empleado = he_actual.id_empleado_prof 
+                AND he_actual.fecha_fin IS NULL
+            LEFT JOIN ${dbConfig.schema}.MUSEOS m_actual 
+                ON he_actual.id_museo = m_actual.id_museo
+            LEFT JOIN ${dbConfig.schema}.EST_ORGANIZACIONAL eo_actual 
+                ON he_actual.id_est_org = eo_actual.id_est_org
+            WHERE 1=1
+        `;
+        
+        const params = {};
+        
+        // Si hay query de búsqueda, filtrar por nombre o documento
+        if (q && q.trim() !== '') {
+            sql += ` AND (
+                UPPER(ep.primer_nombre) LIKE UPPER(:search) 
+                OR UPPER(ep.segundo_nombre) LIKE UPPER(:search) 
+                OR UPPER(ep.primer_apellido) LIKE UPPER(:search) 
+                OR UPPER(ep.segundo_apellido) LIKE UPPER(:search)
+                OR UPPER(ep.doc_identidad) LIKE UPPER(:search)
+                OR UPPER(ep.primer_nombre || ' ' || ep.primer_apellido) LIKE UPPER(:search)
+                OR UPPER(ep.primer_nombre || ' ' || ep.segundo_nombre || ' ' || ep.primer_apellido || ' ' || ep.segundo_apellido) LIKE UPPER(:search)
+            )`;
+            params.search = `%${q.trim()}%`;
+        }
+        
+        sql += ` ORDER BY ep.primer_apellido, ep.primer_nombre`;
+        
+        const result = await connection.execute(sql, params);
+        
+        const empleados = result.rows.map(row => {
+            // Construir nombre completo
+            const nombres = [row[1], row[2], row[3], row[4]].filter(Boolean);
+            const nombreCompleto = nombres.join(' ');
+            
+            return {
+                id: row[0],
+                nombre_completo: nombreCompleto,
+                primer_nombre: row[1],
+                segundo_nombre: row[2],
+                primer_apellido: row[3],
+                segundo_apellido: row[4],
+                doc_identidad: row[5],
+                // Información de posición actual
+                posicion_actual: {
+                    cargo: row[6],
+                    museo: row[7],
+                    departamento: row[8],
+                    fecha_inicio: row[9],
+                    activo: row[6] !== null // Si tiene cargo, está activo
+                }
+            };
+        });
+        
+        res.json(empleados);
+        
+    } catch (err) {
+        console.error('Error en búsqueda de empleados:', err);
+        res.status(500).json({ 
+            message: 'Error al buscar empleados',
+            error: err.message 
+        });
     } finally {
         if (connection) {
             try {

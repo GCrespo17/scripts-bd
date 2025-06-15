@@ -2,109 +2,130 @@
   <div class="empleados-view">
     <div class="empleados-container">
       <header class="view-header">
-        <h1>Reporte de Empleados Profesionales</h1>
-        <p>Visualice los detalles de cada empleado.</p>
+        <h1>Expedientes de Empleados</h1>
+        <p>Busque y visualice los expedientes de empleados profesionales.</p>
       </header>
 
-      <div class="selection-container card">
-        <label for="museo-select">Seleccione un Museo:</label>
-        <select id="museo-select" v-model="selectedMuseo" @change="fetchMuseoSeleccionado">
-          <option disabled value="">Por favor seleccione uno</option>
-          <option v-for="museo in museos" :key="museo.id" :value="museo.id">
-            {{ museo.nombre }}
-          </option>
-        </select>
+      <!-- Nuevo sistema de búsqueda directa -->
+      <div class="search-container card">
+        <div class="search-wrapper">
+          <label for="empleado-search">🔍 Buscar Empleado:</label>
+          <div class="search-input-wrapper">
+            <input
+              id="empleado-search"
+              type="text"
+              v-model="searchQuery"
+              @input="handleSearchInput"
+              @focus="handleFocus"
+              placeholder="Escriba nombre, apellido o documento de identidad..."
+              class="search-input"
+              autocomplete="off"
+            />
+            <button 
+              v-if="searchQuery" 
+              @click="clearSearch" 
+              class="clear-button"
+              title="Limpiar búsqueda"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <!-- Dropdown de resultados -->
+          <div 
+            v-if="showDropdown && (searchResults.length > 0 || isSearching)" 
+            class="search-dropdown"
+            @click.stop
+          >
+            <div v-if="isSearching" class="dropdown-loading">
+              <span class="loading-spinner"></span>
+              Buscando empleados...
+            </div>
+            
+            <div v-else-if="searchResults.length === 0 && searchQuery.trim()" class="dropdown-empty">
+              No se encontraron empleados que coincidan con "{{ searchQuery }}"
+            </div>
+            
+            <div v-else class="dropdown-results">
+              <div v-if="!searchQuery.trim() && searchResults.length > 0" class="dropdown-header">
+                <span class="result-count">{{ searchResults.length }} empleados encontrados</span>
+                <small>Escriba para filtrar resultados</small>
+              </div>
+              
+              <div 
+                v-for="empleado in searchResults" 
+                :key="empleado.id"
+                @click="selectEmpleado(empleado)"
+                class="dropdown-item"
+                :class="{ 'inactive': !empleado.posicion_actual.activo }"
+              >
+                <div class="empleado-info">
+                  <div class="empleado-name">{{ empleado.nombre_completo }}</div>
+                  <div class="empleado-doc">ID: {{ empleado.doc_identidad }}</div>
+                  <div class="empleado-position" v-if="empleado.posicion_actual.activo">
+                    <strong>{{ empleado.posicion_actual.cargo }}</strong>
+                    <span class="museum-name">{{ empleado.posicion_actual.museo }}</span>
+                    <span v-if="empleado.posicion_actual.departamento" class="department-name">
+                      • {{ empleado.posicion_actual.departamento }}
+                    </span>
+                  </div>
+                  <div v-else class="empleado-inactive">
+                    <span class="inactive-badge">Inactivo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="searchResults.length >= 50" class="dropdown-footer">
+              Mostrando primeros 50 resultados. Refine su búsqueda para mejores resultados.
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- Loading y Error States -->
       <div v-if="loading && !detallesEmpleado" class="loading-state">
-        <p>Cargando reporte...</p>
+        <p>Cargando expediente...</p>
       </div>
 
       <div v-if="error && !detallesEmpleado" class="error-state">
-        <p>Ha ocurrido un error al cargar el reporte: {{ error }}</p>
+        <p>Ha ocurrido un error: {{ error }}</p>
       </div>
 
-
-      <div v-if="museoInfo" class="report-container card employee-select">
-        <div class="report-header">
-          <h2>{{ museoInfo.nombre }}</h2>
-          <div class="header-details">
-            <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
-            <span v-if="museoInfo.ranking && museoInfo.ranking.categoria" class="rank">{{ museoInfo.ranking.categoria }}</span>
-            <span v-if="museoInfo.ranking && museoInfo.ranking.ubicacion" class="location">
-              📍 {{ museoInfo.ranking.ubicacion.ciudad }}, {{ museoInfo.ranking.ubicacion.pais }}
-            </span>
-          </div>
-          <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
-          <div v-if="museoInfo.ranking && museoInfo.ranking.metricas" class="museo-stats">
-            <div class="stat">
-              <span class="stat-number">{{ museoInfo.ranking.metricas.total_empleados || 0 }}</span>
-              <span class="stat-label">Empleados Activos</span>
-            </div>
-            <div class="stat">
-              <span class="stat-number">{{ formatNumber(museoInfo.ranking.metricas.visitas_ultimo_anio) || 0 }}</span>
-              <span class="stat-label">Visitas Anuales</span>
-            </div>
-          </div>
+      <!-- Vista de detalles del empleado -->
+      <div v-if="detallesEmpleado || loadingEmpleado || errorEmpleado" class="employee-detail-view">
+        <EmpleadoDet
+          v-if="detallesEmpleado"
+          :empleado="detallesEmpleado"
+          :empleado-seleccionado="empleadoSeleccionado"
+          @back-to-list="clearDetallesEmpleado"
+        />
+        <div v-if="loadingEmpleado" class="loading-details-message">
+          <span class="loading-spinner"></span>
+          Cargando expediente del empleado...
         </div>
+        <p v-if="errorEmpleado" class="error-details-message">Error al cargar expediente: {{ errorEmpleado }}</p>
+      </div>
 
-
-        <div v-if="detallesEmpleado || loadingEmpleado || errorEmpleado" class="employee-detail-view">
-          <EmpleadoDet
-            v-if="detallesEmpleado"
-            :empleado="detallesEmpleado"
-            @back-to-list="clearDetallesEmpleado"
-          />
-          <p v-if="loadingEmpleado" class="loading-details-message">Cargando detalles del empleado...</p>
-          <p v-if="errorEmpleado" class="error-details-message">Error al cargar detalles: {{ errorEmpleado }}</p>
+      <!-- Mensaje inicial -->
+      <div v-if="!detallesEmpleado && !showDropdown" class="welcome-message card">
+        <div class="welcome-content">
+          <h3>👋 Sistema de Expedientes</h3>
+          <p>Comience escribiendo el nombre, apellido o documento de identidad del empleado que desea consultar.</p>
         </div>
+      </div>
 
-
-        <div v-else class="employee-list-view">
-          <div class="selection-container card">
-            <label for="profesional-select">Seleccione el Cargo del Empleado Profesional: </label>
-            <select id="profesional-select" v-model="tipoProfesional">
-              <option disabled value="">Por favor seleccione uno</option>
-              <option value="curador">Curador</option>
-              <option value="restaurador">Restaurador</option>
-            </select>
-          </div>
-
-          <div v-if="tipoProfesional == 'curador' && empleados" class="report-container card">
-            <div class="empleados-content">
-              <h2>Curadores:</h2>
-              <div class="empleados-root">
-                <EmpleadosNode
-                  v-for="empleado in empleados"
-                  :key="empleado.doc_identidad"
-                  :empleado="empleado"
-                  @employee-selected="fetchDetallesEmpleados"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div v-if="tipoProfesional == 'restaurador' && empleados" class="report-container card">
-            <div class="empleados-content">
-              <h2>Restauradores:</h2>
-              <div class="empleados-root">
-                <EmpleadosNode
-                  v-for="empleado in empleados"
-                  :key="empleado.doc_identidad"
-                  :empleado="empleado"
-                  @employee-selected="fetchDetallesEmpleados"
-                />
-              </div>
-            </div>
-          </div>
-
-
-          <div v-else-if="tipoProfesional && !empleados && !loading && !error" class="no-employees-message">
-            <p>No se encontraron empleados del tipo seleccionado para este museo.</p>
-          </div>
+      <!-- Consejos de búsqueda - Aparecen cuando no hay empleado seleccionado y no se muestra dropdown -->
+      <div v-if="!detallesEmpleado && !showDropdown" class="search-tips-section card">
+        <div class="search-tips">
+          <h4>💡 Consejos de búsqueda:</h4>
+          <ul>
+            <li>Puede buscar por nombre completo o parcial</li>
+            <li>Use el documento de identidad para búsquedas exactas</li>
+            <li>Los resultados muestran la posición actual del empleado</li>
+            <li>Haga clic en el campo de búsqueda para ver todos los empleados</li>
+          </ul>
         </div>
-
-
       </div>
     </div>
   </div>
@@ -112,170 +133,184 @@
 
 <script>
 import EmpleadoDet from '../components/EmpleadoDet.vue';
-import EmpleadosNode from '../components/EmpleadosNode.vue';
 
 export default {
   name: 'EmpleadosView',
   components: {
-    EmpleadosNode,
     EmpleadoDet
   },
   data() {
     return {
-      museos: [],
-      selectedMuseo: '',
-      empleados: null,
-      museoInfo: null,
-      tipoProfesional: null,
+      searchQuery: '',
+      searchResults: [],
+      empleadoSeleccionado: null,
+      showDropdown: false,
+      isSearching: false,
+      searchTimeout: null,
       loading: false,
       error: null,
-      detallesEmpleado: null, 
-      loadingEmpleado: false, 
-      errorEmpleado: null     
+      detallesEmpleado: null,
+      loadingEmpleado: false,
+      errorEmpleado: null
     };
   },
   methods: {
-    async fetchMuseos() {
+    handleSearchInput() {
+      // Debounce para evitar muchas consultas
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+      
+      this.searchTimeout = setTimeout(() => {
+        this.performSearch();
+      }, 300); // Esperar 300ms después de que el usuario deje de escribir
+    },
+
+    async performSearch() {
+      const query = this.searchQuery.trim();
+      
+      if (query.length < 2) {
+        this.searchResults = [];
+        this.showDropdown = false;
+        return;
+      }
+
+      this.isSearching = true;
+      this.showDropdown = true;
+      this.error = null;
+
       try {
-        const response = await fetch('http://localhost:3000/api/museos');
+        const response = await fetch(`http://localhost:3000/api/empleados/buscar?q=${encodeURIComponent(query)}`);
+        
         if (!response.ok) {
-          throw new Error('No se pudieron obtener los museos.');
+          throw new Error('Error al buscar empleados');
         }
-        this.museos = await response.json();
+
+        const empleados = await response.json();
+        this.searchResults = empleados;
+        
+        // Si hay una búsqueda exacta por documento, seleccionar automáticamente
+        if (empleados.length === 1 && empleados[0].doc_identidad === query) {
+          this.selectEmpleado(empleados[0]);
+        }
+        
       } catch (error) {
+        console.error('Error en búsqueda:', error);
         this.error = error.message;
-        console.error(error);
-      }
-    },
-    async fetchMuseoSeleccionado() {
-      if (!this.selectedMuseo)
-        return;
-      this.loading = true;
-      this.error = null;
-      this.museoInfo = null;
-      this.empleados = null; 
-      this.detallesEmpleado = null; 
-
-      try {
-        const response = await fetch(`http://localhost:3000/api/museos/${this.selectedMuseo}`);
-        if (!response.ok) {
-          throw new Error('No se pudo obtener la informacion del museo.');
-        }
-        this.museoInfo = await response.json();
-
-        if (this.tipoProfesional) {
-          if (this.tipoProfesional === 'curador') {
-            this.fetchCuradores();
-          } else if (this.tipoProfesional === 'restaurador') {
-            this.fetchRestauradores();
-          }
-        }
-      } catch (error) {
-        this.error = error.message;
-        console.error(error);
+        this.searchResults = [];
       } finally {
-        this.loading = false;
+        this.isSearching = false;
       }
     },
-    async fetchCuradores() {
-      if (!this.selectedMuseo)
-        return;
-      this.loading = true;
-      this.error = null;
-      this.empleados = null; 
-      this.detallesEmpleado = null; 
 
-      try {
-        const curadoresResponse = await fetch(`http://localhost:3000/api/empleados/curadores/${this.selectedMuseo}`);
-        if (!curadoresResponse.ok) {
-          throw new Error('Error al obtener a los curadores.');
-        }
-
-        this.empleados = await curadoresResponse.json();
-        console.log("Curadores cargados:", this.empleados);
-
-      } catch (error) {
-        this.error = error.message;
-        console.error(error);
-      } finally {
-        this.loading = false;
-      }
+    selectEmpleado(empleado) {
+      this.empleadoSeleccionado = empleado;
+      this.searchQuery = empleado.nombre_completo;
+      this.showDropdown = false;
+      this.fetchDetallesEmpleado(empleado);
     },
-    async fetchRestauradores() {
-      if (!this.selectedMuseo)
-        return;
-      this.loading = true;
-      this.error = null;
-      this.empleados = null; 
-      this.detallesEmpleado = null; 
 
-      try {
-        const restauradoresResponse = await fetch(`http://localhost:3000/api/empleados/restauradores/${this.selectedMuseo}`);
-        if (!restauradoresResponse.ok) {
-          throw new Error('Error al obtener a los curadores.');
-        }
-
-        this.empleados = await restauradoresResponse.json();
-        console.log("Restauradores cargados:", this.empleados);
-
-      } catch (error) {
-        this.error = error.message;
-        console.error(error);
-      } finally {
-        this.loading = false;
-      }
-    },
-    async fetchDetallesEmpleados(empleado) { 
-
-      this.detallesEmpleado = null; 
-      this.loadingEmpleado = true; 
-      this.errorEmpleado = null;   
-
-      try {
-       
-        const fichaResponse = await fetch(`http://localhost:3000/api/empleados/${empleado.id}`); 
-        if (!fichaResponse.ok) {
-          throw new Error('No se pudieron obtener los detalles de este empleado.');
-        }
-        const detalles = await fichaResponse.json(); 
-        this.detallesEmpleado = detalles; 
-        console.log('Frontend: Detalles completos del empleado cargados:', detalles);
-      } catch (error) {
-        console.error('Error al cargar los detalles del empleado:', error);
-        this.errorEmpleado = 'Error al cargar los detalles del empleado: ' + error.message;
-        this.detallesEmpleado = null; 
-      } finally {
-        this.loadingEmpleado = false; 
-      }
-    },
-    clearDetallesEmpleado() {
-      this.detallesEmpleado = null; 
+    async fetchDetallesEmpleado(empleado) {
+      this.detallesEmpleado = null;
+      this.loadingEmpleado = true;
       this.errorEmpleado = null;
-    },
-    formatNumber(num) {
-      if (!num) return '0';
-      return new Intl.NumberFormat('es-ES').format(num);
-    }
-  },
-  watch: {
-    tipoProfesional(newType, oldType) {
-      console.log('WATCH: tipoProfesional changed from', oldType, 'to', newType);
-      this.detallesEmpleado = null;
-      if (newType === 'curador' && this.selectedMuseo) {
-        this.fetchCuradores();
-      } else if (newType === 'restaurador' && this.selectedMuseo) {
-        this.fetchRestauradores();
-      } else {
-        console.log('WATCH: Clearing employee data (no type or museum selected)');
-        this.empleados = null; 
+
+      try {
+        const response = await fetch(`http://localhost:3000/api/empleados/${empleado.id}`);
+        
+        if (!response.ok) {
+          throw new Error('No se pudieron obtener los detalles del empleado');
+        }
+
+        const detalles = await response.json();
+        this.detallesEmpleado = detalles;
+        
+      } catch (error) {
+        console.error('Error al cargar detalles:', error);
+        this.errorEmpleado = error.message;
+      } finally {
+        this.loadingEmpleado = false;
       }
     },
-    selectedMuseo() {
+
+    clearSearch() {
+      this.searchQuery = '';
+      this.searchResults = [];
+      this.showDropdown = false;
+      this.empleadoSeleccionado = null;
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+    },
+
+    clearDetallesEmpleado() {
       this.detallesEmpleado = null;
+      this.errorEmpleado = null;
+      this.empleadoSeleccionado = null;
+      this.searchQuery = '';
+      this.searchResults = [];
+    },
+
+    // Click fuera del dropdown para cerrarlo
+    handleClickOutside(event) {
+      if (!this.$el.contains(event.target)) {
+        this.closeDropdown();
+      }
+    },
+
+    // Mejorar la experiencia cuando se cierra el dropdown
+    closeDropdown() {
+      this.showDropdown = false;
+      // Pequeño delay para que la transición se vea suave
+      setTimeout(() => {
+        if (!this.searchQuery.trim()) {
+          this.searchResults = [];
+        }
+      }, 200);
+    },
+
+    async handleFocus() {
+      this.showDropdown = true;
+      
+      // Si no hay resultados de búsqueda cargados, cargar todos los empleados
+      if (this.searchResults.length === 0 && !this.isSearching) {
+        await this.loadAllEmployees();
+      }
+    },
+
+    async loadAllEmployees() {
+      this.isSearching = true;
+      this.error = null;
+
+      try {
+        const response = await fetch('http://localhost:3000/api/empleados/buscar');
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar la lista de empleados');
+        }
+
+        const empleados = await response.json();
+        this.searchResults = empleados;
+        
+      } catch (error) {
+        console.error('Error al cargar empleados:', error);
+        this.error = error.message;
+        this.searchResults = [];
+      } finally {
+        this.isSearching = false;
+      }
     }
   },
-  created() {
-    this.fetchMuseos();
+  
+  mounted() {
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  
+  beforeUnmount() {
+    document.removeEventListener('click', this.handleClickOutside);
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
   }
 }
 </script>
@@ -285,7 +320,7 @@ export default {
   padding: 2rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100%;
+  min-height: 100vh;
 }
 
 .empleados-container {
@@ -322,37 +357,217 @@ export default {
   border: 1px solid rgba(255,255,255,0.2);
 }
 
-.selection-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+/* ESTILOS DEL SISTEMA DE BÚSQUEDA */
+.search-container {
+  position: relative;
 }
 
-.selection-container label {
+.search-wrapper {
+  position: relative;
+}
+
+.search-wrapper label {
+  display: block;
   font-weight: 600;
   color: #374151;
-  font-size: 1rem;
-  white-space: nowrap;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
 }
 
-select {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  padding-right: 3rem;
   border: 2px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   background-color: white;
-  min-width: 200px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-select:focus {
+.search-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
 }
 
+.clear-button {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.clear-button:hover {
+  color: #ef4444;
+  background-color: #fee2e2;
+}
+
+/* DROPDOWN DE RESULTADOS */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.dropdown-loading, .dropdown-empty {
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.dropdown-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dropdown-results {
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dropdown-item:hover {
+  background-color: #f8fafc;
+  border-left: 4px solid #3b82f6;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item.inactive {
+  opacity: 0.6;
+}
+
+.dropdown-item.inactive:hover {
+  border-left-color: #9ca3af;
+}
+
+.empleado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.empleado-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.empleado-doc {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.empleado-position {
+  font-size: 0.9rem;
+  color: #374151;
+  margin-top: 0.25rem;
+}
+
+.museum-name {
+  color: #3b82f6;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.department-name {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.empleado-inactive {
+  margin-top: 0.25rem;
+}
+
+.inactive-badge {
+  background-color: #fca5a5;
+  color: #dc2626;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.dropdown-header {
+  padding: 0.75rem 1.5rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.dropdown-header .result-count {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.dropdown-header small {
+  display: block;
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.dropdown-footer {
+  padding: 0.75rem 1.5rem;
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.85rem;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* LOADING SPINNER */
+.loading-spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ESTADOS DE CARGA Y ERROR */
 .loading-state, .error-state {
   text-align: center;
   padding: 3rem;
@@ -370,152 +585,94 @@ select:focus {
   border: 1px solid #fecaca;
 }
 
-.report-container {
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-  border: none;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-}
-
-.report-header {
-  border-bottom: 3px solid #f0f0f0;
-  padding-bottom: 2rem;
-  margin-bottom: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, transparent 100%);
-  padding: 2rem;
-  margin: -2rem -2rem 2rem -2rem;
-  border-radius: 16px 16px 0 0;
-}
-
-.report-header h2 {
-  color: #1f2937;
-  margin-top: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.header-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-details span {
-  font-size: 1rem;
-  color: #374151;
-}
-
-.rank {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-  color: white;
-  padding: 0.5rem 1.2rem;
-  border-radius: 25px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.mission {
-  font-style: italic;
-  color: #555;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
-  border-left: 4px solid #3b82f6;
-}
-
-.empleados-content h3 {
-  color: #1f2937;
-  border-bottom: 3px solid #3b82f6;
-  padding-bottom: 0.75rem;
-  margin-bottom: 2rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  position: relative;
-}
-
-.empleados-content h3::after {
-  content: '';
-  position: absolute;
-  bottom: -3px;
-  left: 0;
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-  border-radius: 2px;
-}
-
-.empleados-root {
-  list-style: none;
-  padding: 0;
-  margin: 2rem 0 0 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  padding: 1rem 0;
-}
-
-/* Estilos para los mensajes de carga/error específicos del detalle */
 .loading-details-message, .error-details-message {
   text-align: center;
-  margin-top: 1rem;
-  font-style: italic;
-  color: #888;
+  margin-top: 2rem;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.loading-details-message {
+  background-color: #f8fafc;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .error-details-message {
-  color: #c0392b;
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
-/* Estilos para el ranking y estadísticas del museo */
-.museo-stats {
-  display: flex;
-  gap: 2rem;
-  margin-top: 1rem;
-  padding: 1rem 0;
-}
-
-.stat {
+/* MENSAJE DE BIENVENIDA */
+.welcome-message {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   text-align: center;
-  padding: 1rem;
-  background: rgba(255,255,255,0.1);
-  border-radius: 8px;
-  min-width: 120px;
+  margin-top: 2rem;
 }
 
-.stat-number {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
+.welcome-content h3 {
   color: #1f2937;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
 }
 
-.stat-label {
-  display: block;
-  font-size: 0.8rem;
+.welcome-content p {
   color: #6b7280;
-  margin-top: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+  line-height: 1.6;
 }
 
-.location {
-  background: rgba(255,255,255,0.15);
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-  font-size: 0.85rem;
-  font-weight: 500;
+/* CONSEJOS DE BÚSQUEDA - SECCIÓN SEPARADA */
+.search-tips-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  margin-top: 1rem;
+  border: 1px solid #bae6fd;
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.4s ease-out;
 }
 
-/* Responsive mejoras */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-tips {
+  text-align: left;
+  padding: 0;
+}
+
+.search-tips h4 {
+  color: #1e40af;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-tips ul {
+  color: #374151;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.search-tips li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* RESPONSIVE */
 @media (max-width: 768px) {
   .empleados-view {
     padding: 1rem;
@@ -529,28 +686,21 @@ select:focus {
     padding: 1.5rem;
   }
 
-  .selection-container {
-    flex-direction: column;
-    align-items: stretch;
+  .search-input {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
   }
 
-  .header-details {
-    flex-direction: column;
-    align-items: flex-start;
+  .dropdown-item {
+    padding: 1rem;
   }
 
-  .report-header {
-    padding: 1.5rem;
-    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  .empleado-name {
+    font-size: 0.95rem;
   }
 
-  .museo-stats {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .stat {
-    min-width: auto;
+  .search-tips {
+    padding: 1rem;
   }
 }
 </style>
