@@ -197,13 +197,13 @@ INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin)
 VALUES (TO_DATE('01-01-2015', 'DD-MM-YYYY'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), 0.00, 'INFANTIL', NULL);
 
 --INSERT TICKETS
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ADULTO', 7.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ESTUDIANTE', 5.00);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'INFANTIL', 0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ADULTO', 7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'ESTUDIANTE', 5.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo Nacional de Varsovia'), SYSDATE, 'INFANTIL', 0.00);
 
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ADULTO', 8.20);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ESTUDIANTE', 5.50);
-INSERT INTO TICKETS (id_museo, fecha_hora_emision, tipo, precio) VALUES ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'INFANTIL', 0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ADULTO', 8.20);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'ESTUDIANTE', 5.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Nieborow y Arkadia'), SYSDATE, 'INFANTIL', 0.00);
 
 
 --INSERT EST_FISICA

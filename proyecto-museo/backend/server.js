@@ -1496,34 +1496,78 @@ app.get('/api/tickets/ingresos', async (req, res) => {
 });
 
 // Endpoint para registrar la venta de un ticket
+// ACTUALIZADO: Ahora maneja la lógica que antes realizaba el trigger TRG_TICKETS_BEFORE_INSERT
 app.post('/api/tickets', async (req, res) => {
-    // El id_num_ticket y el precio se calcularán con triggers en la BD.
     const { id_museo, tipo } = req.body;
     let connection;
 
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        const sql = `
-            INSERT INTO ${dbConfig.schema}.TICKETS (id_museo, tipo, fecha_hora_emision) 
-            VALUES (:id_museo, :tipo, SYSDATE)
-            RETURNING id_num_ticket, precio INTO :out_id, :out_precio
-        `;
+        // PASO 1: Validar entrada
+        if (!id_museo || !tipo) {
+            return res.status(400).json({ 
+                message: 'Error: id_museo y tipo son obligatorios' 
+            });
+        }
 
-        const params = {
-            id_museo: id_museo,
-            tipo: tipo,
-            out_id: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT },
-            out_precio: { type: oracledb.NUMBER, dir: oracledb.BIND_OUT }
-        };
+        // PASO 2: Obtener el precio correcto desde TIPO_TICKETS
+        const precioResult = await connection.execute(
+            `SELECT precio 
+             FROM ${dbConfig.schema}.TIPO_TICKETS 
+             WHERE id_museo = :id_museo 
+               AND tipo = :tipo 
+               AND SYSDATE >= fecha_inicio 
+               AND (fecha_fin IS NULL OR SYSDATE <= fecha_fin)`,
+            { id_museo, tipo }
+        );
 
-        const result = await connection.execute(sql, params, { autoCommit: true });
+        if (precioResult.rows.length === 0) {
+            return res.status(400).json({ 
+                message: `Error: No se encontró un precio válido para el ticket tipo "${tipo}" en el museo ${id_museo} para la fecha actual.`
+            });
+        }
+
+        if (precioResult.rows.length > 1) {
+            return res.status(400).json({ 
+                message: `Error: Se encontraron múltiples precios válidos. Verifique los datos en TIPO_TICKETS para evitar solapamientos de fechas.`
+            });
+        }
+
+        const precio = precioResult.rows[0][0];
+
+        // PASO 3: Generar el siguiente ID de ticket para el museo
+        const maxIdResult = await connection.execute(
+            `SELECT NVL(MAX(id_num_ticket), 0) + 1 as next_id 
+             FROM ${dbConfig.schema}.TICKETS 
+             WHERE id_museo = :id_museo`,
+            { id_museo }
+        );
+
+        const nuevoIdTicket = maxIdResult.rows[0][0];
+
+        // PASO 4: Insertar el ticket con los valores calculados
+        const insertResult = await connection.execute(
+            `INSERT INTO ${dbConfig.schema}.TICKETS (
+                id_num_ticket, id_museo, tipo, precio, fecha_hora_emision
+             ) VALUES (
+                :id_num_ticket, :id_museo, :tipo, :precio, SYSDATE
+             )`,
+            {
+                id_num_ticket: nuevoIdTicket,
+                id_museo: id_museo,
+                tipo: tipo,
+                precio: precio
+            },
+            { autoCommit: true }
+        );
 
         const nuevoTicket = {
-            id_num_ticket: result.outBinds.out_id[0],
+            id_num_ticket: nuevoIdTicket,
             id_museo: id_museo,
             tipo: tipo,
-            precio: result.outBinds.out_precio[0]
+            precio: precio,
+            fecha_hora_emision: new Date()
         };
 
         res.status(201).json({ 
@@ -1533,10 +1577,19 @@ app.post('/api/tickets', async (req, res) => {
         
     } catch (err) {
         console.error('Error al vender ticket:', err);
-        res.status(500).json({ 
-            message: 'Error al vender el ticket',
-            error: err.message 
-        });
+        
+        // Manejo específico de errores comunes
+        if (err.message && err.message.includes('ORA-00001')) {
+            res.status(409).json({ 
+                message: 'Error: Ya existe un ticket con ese ID. Intente nuevamente.',
+                error: 'Duplicated ID' 
+            });
+        } else {
+            res.status(500).json({ 
+                message: 'Error al vender el ticket',
+                error: err.message 
+            });
+        }
     } finally {
         if (connection) {
             try {
