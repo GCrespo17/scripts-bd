@@ -403,11 +403,11 @@ PopularidadVisitas AS (
         COUNT(*) as visitas_ultimo_anio,
         -- Asignar puntaje de popularidad (0 a 10)
         CASE 
-            WHEN COUNT(*) > 1000000 THEN 10
-            WHEN COUNT(*) > 500000 THEN 8
-            WHEN COUNT(*) > 250000 THEN 6
-            WHEN COUNT(*) > 100000 THEN 4
-            WHEN COUNT(*) > 50000 THEN 2
+            WHEN COUNT(*) > 100 THEN 10
+            WHEN COUNT(*) > 50 THEN 8
+            WHEN COUNT(*) > 25 THEN 6
+            WHEN COUNT(*) > 15 THEN 4
+            WHEN COUNT(*) > 5 THEN 2
             ELSE 1
         END as popularidad_score
     FROM TICKETS t
@@ -681,11 +681,11 @@ BEGIN
     WHERE id_museo = p_id_museo AND fecha_hora_emision >= (SYSDATE - 365);
     p_visitas_ultimo_anio := v_visitas_anuales;
 
-    IF v_visitas_anuales > 1000000 THEN v_popularidad_score := 10;
-    ELSIF v_visitas_anuales > 500000 THEN v_popularidad_score := 8;
-    ELSIF v_visitas_anuales > 250000 THEN v_popularidad_score := 6;
-    ELSIF v_visitas_anuales > 100000 THEN v_popularidad_score := 4;
-    ELSIF v_visitas_anuales > 50000 THEN v_popularidad_score := 2;
+    IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
+    ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
+    ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
+    ELSIF v_visitas_anuales > 15 THEN v_popularidad_score := 4;
+    ELSIF v_visitas_anuales > 5 THEN v_popularidad_score := 2;
     ELSE v_popularidad_score := 1;
     END IF;
 
