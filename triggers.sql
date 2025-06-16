@@ -441,3 +441,59 @@ EXCEPTION
             ', tipo ' || :NEW.tipo || ': ' || SQLERRM);
 END TRG_GESTIONAR_HISTORIAL_PRECIOS;
 /
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_LUGAR_PADRE
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Valida que el lugar padre corresponda siempre a un pais
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_LUGAR_PADRE
+BEFORE INSERT ON LUGARES
+FOR EACH ROW
+DECLARE
+    v_tipo_lugar_padre LUGARES.tipo%TYPE;
+BEGIN
+    IF :NEW.tipo = 'CIUDAD' THEN
+        SELECT tipo INTO v_tipo_lugar_padre
+        FROM LUGARES
+        WHERE
+            id_lugar = :NEW.id_lugar_padre;
+        
+        IF v_tipo_lugar_padre <> 'PAIS' THEN    
+            RAISE_APPLICATION_ERROR(-20101, 'El lugar padre ingresado no corresponde a PAIS. ');
+        END IF;
+    END IF;
+END TRG_VALIDAR_LUGAR_PADRE;
+/
+
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_EMPLEADO_INACTIVO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 06-JUN-2025
+-- Descripción:
+-- Valida que el empleado a insertar tenga su historico cerrado
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_EMPLEADO_INACTIVO
+BEFORE INSERT ON HIST_EMPLEADOS
+FOR EACH ROW
+DECLARE
+    v_contador_registros_activos NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_contador_registros_activos
+    FROM HIST_EMPLEADOS
+    WHERE id_empleado_prof = :NEW.id_empleado_prof AND
+    fecha_fin IS NOT NULL;
+    
+    IF v_contador_registros_activos > 0 THEN
+        RAISE_APPLICATION_ERROR(-20450, 'Error, el empleado con ID: '|| :NEW.id_empleado_prof ||' tiene un historico de trabajo abierto.');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20451, 'Error inesperado en el trigger TRG_VALIDAR_EMPLEADO_INACTIVO: ' || SQLERRM);
+END TRG_VALIDAR_EMPLEADO_INACTIVO;
+
