@@ -164,7 +164,7 @@ app.get('/api/lugares', async (req, res) => {
     }
 });
 
-// Endpoint para registrar un artista (Corregido)
+// Endpoint para registrar un artista (Corregido con asociación de obras)
 app.post('/api/artistas', async (req, res) => {
     const { 
         primer_nombre, 
@@ -175,7 +175,8 @@ app.post('/api/artistas', async (req, res) => {
         fecha_difuncion, 
         apodo, 
         resumen_caracteristicas, 
-        id_lugar 
+        id_lugar,
+        obras_asociadas = [] // Campo obligatorio para obras asociadas
     } = req.body;
     
     let connection;
@@ -183,8 +184,18 @@ app.post('/api/artistas', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        // Preparar la consulta SQL con los campos correctos
-        const sql = `
+        // Validar que se envíen obras asociadas
+        if (!obras_asociadas || obras_asociadas.length === 0) {
+            return res.status(400).json({ 
+                message: 'Debe asociar al menos una obra al artista' 
+            });
+        }
+        
+        // Iniciar transacción
+        await connection.execute('BEGIN');
+        
+        // 1. Insertar el artista y obtener su ID
+        const sqlArtista = `
             INSERT INTO ${dbConfig.schema}.ARTISTAS (
                 primer_nombre, 
                 segundo_nombre, 
@@ -205,11 +216,11 @@ app.post('/api/artistas', async (req, res) => {
                 :apodo,
                 :resumen_caracteristicas,
                 :id_lugar
-            )
+            ) RETURNING id_artista INTO :id_artista
         `;
         
-        // Preparar los parámetros
-        const params = {
+        // Preparar los parámetros del artista
+        const paramsArtista = {
             primer_nombre: primer_nombre || null,
             segundo_nombre: segundo_nombre || null,
             primer_apellido: primer_apellido || null,
@@ -218,13 +229,45 @@ app.post('/api/artistas', async (req, res) => {
             fecha_difuncion: fecha_difuncion ? new Date(fecha_difuncion) : null,
             apodo: apodo || null,
             resumen_caracteristicas: resumen_caracteristicas,
-            id_lugar: id_lugar || null
+            id_lugar: id_lugar || null,
+            id_artista: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
         };
         
-        await connection.execute(sql, params, { autoCommit: true });
-        res.status(201).json({ message: 'Artista registrado exitosamente' });
+        const resultArtista = await connection.execute(sqlArtista, paramsArtista);
+        const idArtistaGenerado = resultArtista.outBinds.id_artista[0];
+        
+        // 2. Insertar las asociaciones con obras (ahora obligatorias)
+        const sqlAsociacion = `
+            INSERT INTO ${dbConfig.schema}.ARTISTAS_OBRAS (id_artista, id_obra) 
+            VALUES (:id_artista, :id_obra)
+        `;
+        
+        for (const id_obra of obras_asociadas) {
+            await connection.execute(sqlAsociacion, {
+                id_artista: idArtistaGenerado,
+                id_obra: id_obra
+            });
+        }
+        
+        // Confirmar transacción
+        await connection.execute('COMMIT');
+        
+        res.status(201).json({ 
+            message: 'Artista registrado exitosamente', 
+            id_artista: idArtistaGenerado,
+            obras_asociadas: obras_asociadas.length
+        });
         
     } catch (err) {
+        // Rollback en caso de error
+        if (connection) {
+            try {
+                await connection.execute('ROLLBACK');
+            } catch (rollbackErr) {
+                console.error('Error en rollback:', rollbackErr);
+            }
+        }
+        
         console.error('Error al registrar artista:', err);
         res.status(500).json({ 
             message: 'Error al registrar el artista',

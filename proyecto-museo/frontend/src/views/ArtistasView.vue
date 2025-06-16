@@ -1,34 +1,5 @@
 <script setup>
 import FormularioArtista from '../components/FormularioArtista.vue'
-import { ref, onMounted } from 'vue';
-
-const stats = ref({
-  totalArtistas: 0,
-  paisesRepresentados: 0,
-  artistasDestacados: 0
-});
-const loadingStats = ref(true);
-
-const fetchStats = async () => {
-  loadingStats.value = true;
-  try {
-    const response = await fetch('http://localhost:3000/api/estadisticas/artistas');
-    if (response.ok) {
-      const data = await response.json();
-      stats.value = data;
-    } else {
-      console.error('Error fetching stats');
-    }
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-  } finally {
-    loadingStats.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchStats();
-});
 </script>
 
 <template>
@@ -47,15 +18,6 @@ onMounted(() => {
     <!-- Main Content -->
     <section class="main-content">
       <div class="content-wrapper">
-        <!-- Info Card -->
-        <div class="info-card">
-          <div class="info-icon">ℹ️</div>
-          <div class="info-content">
-            <h3>Registro de Nuevos Artistas</h3>
-            <p>Complete el formulario con la información del artista. Los campos marcados con asterisco (*) son obligatorios.</p>
-          </div>
-        </div>
-
         <!-- Form Container -->
         <div class="form-container">
           <div class="form-header">
@@ -63,31 +25,6 @@ onMounted(() => {
             <p>Ingrese los datos del artista que desea registrar</p>
           </div>
           <FormularioArtista />
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="stats-container">
-          <div class="stat-item">
-            <div class="stat-icon">📈</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.totalArtistas }}</div>
-              <div class="stat-label">Artistas Registrados</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">🎭</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.paisesRepresentados }}</div>
-              <div class="stat-label">Países Representados</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">⭐</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.artistasDestacados }}</div>
-              <div class="stat-label">Artistas Destacados</div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
@@ -150,52 +87,14 @@ onMounted(() => {
 }
 
 .content-wrapper {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  grid-template-rows: auto 1fr auto;
-  gap: 2rem;
-  grid-template-areas: 
-    "info form"
-    "stats form"
-    "stats form";
-}
-
-.info-card {
-  grid-area: info;
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-200);
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.info-icon {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin-top: 0.25rem;
-}
-
-.info-content h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.5rem;
-}
-
-.info-content p {
-  color: var(--gray-600);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0;
+  justify-content: center;
 }
 
 .form-container {
-  grid-area: form;
+  width: 100%;
   background: white;
   border-radius: 20px;
   padding: 2.5rem;
@@ -222,78 +121,7 @@ onMounted(() => {
   margin: 0;
 }
 
-.stats-container {
-  grid-area: stats;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.stat-item {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-200);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all 0.3s ease;
-}
-
-.stat-item:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--primary-color);
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-  color: var(--primary-color);
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--gray-800);
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
-}
-
 /* Responsive */
-@media (max-width: 1024px) {
-  .content-wrapper {
-    grid-template-columns: 1fr;
-    grid-template-areas: 
-      "info"
-      "form"
-      "stats";
-  }
-  
-  .stats-container {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-  
-  .stat-item {
-    flex: 1;
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-  }
-}
-
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -315,15 +143,6 @@ onMounted(() => {
   
   .form-container {
     padding: 1.5rem;
-  }
-  
-  .stats-container {
-    flex-direction: column;
-  }
-  
-  .stat-item {
-    flex-direction: row;
-    text-align: left;
   }
 }
 

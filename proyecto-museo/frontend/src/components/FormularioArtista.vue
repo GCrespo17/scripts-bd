@@ -11,11 +11,13 @@ const fecha_difuncion = ref('');
 const apodo = ref('');
 const resumen_caracteristicas = ref('');
 const id_lugar = ref('');
+const obras_asociadas = ref([]); // Campo obligatorio para obras asociadas
 
 // Datos para selectores
 const lugares = ref([]);
 const paises = ref([]);
 const ciudades = ref([]);
+const obras = ref([]); // Lista de obras disponibles
 
 // Estados del formulario
 const loading = ref(false);
@@ -34,9 +36,10 @@ const nuevoLugar = ref({
   id_lugar_padre: ''
 });
 
-// Cargar lugares al montar el componente
+// Cargar lugares y obras al montar el componente
 onMounted(async () => {
   await cargarLugares();
+  await cargarObras();
 });
 
 async function cargarLugares() {
@@ -51,6 +54,17 @@ async function cargarLugares() {
     }
   } catch (error) {
     console.error('Error al cargar lugares:', error);
+  }
+}
+
+async function cargarObras() {
+  try {
+    const response = await fetch('http://localhost:3000/api/obras');
+    if (response.ok) {
+      obras.value = await response.json();
+    }
+  } catch (error) {
+    console.error('Error al cargar obras:', error);
   }
 }
 
@@ -149,6 +163,11 @@ async function registrarArtista() {
     return;
   }
 
+  if (!obras_asociadas.value || obras_asociadas.value.length === 0) {
+    error.value = 'Debe seleccionar al menos una obra para asociar al artista';
+    return;
+  }
+
   loading.value = true;
   error.value = '';
 
@@ -167,7 +186,8 @@ async function registrarArtista() {
         fecha_difuncion: fecha_difuncion.value || null,
         apodo: apodo.value.trim() || null,
         resumen_caracteristicas: resumen_caracteristicas.value.trim(),
-        id_lugar: id_lugar.value || null
+        id_lugar: id_lugar.value || null,
+        obras_asociadas: obras_asociadas.value // Incluir obras asociadas
       }),
     });
 
@@ -196,6 +216,7 @@ function limpiarFormulario() {
   apodo.value = '';
   resumen_caracteristicas.value = '';
   id_lugar.value = '';
+  obras_asociadas.value = []; // Limpiar obras asociadas
   error.value = '';
 }
 </script>
@@ -332,6 +353,29 @@ function limpiarFormulario() {
         rows="4"
         placeholder="Describa las características principales del artista, su estilo, época, movimiento artístico, etc."
       />
+    </div>
+
+    <!-- Selección de obras asociadas -->
+    <div class="form-group">
+      <label for="obras_asociadas">Obras Asociadas *</label>
+      <select 
+        v-model="obras_asociadas" 
+        id="obras_asociadas" 
+        multiple
+        required
+        class="obras-select"
+      >
+        <option 
+          v-for="obra in obras" 
+          :key="obra.id_obra" 
+          :value="obra.id_obra"
+        >
+          {{ obra.nombre_obra || obra.nombre }}
+        </option>
+      </select>
+      <small class="help-text">
+        Seleccione al menos una obra para asociar al artista. Mantenga presionado Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples obras.
+      </small>
     </div>
     
     <!-- Botones -->
@@ -533,6 +577,34 @@ function limpiarFormulario() {
 
 .btn-add-lugar:hover {
   background-color: #059669;
+}
+
+/* Estilo para el selector de obras múltiples */
+.obras-select {
+  min-height: 120px;
+  max-height: 200px;
+}
+
+.obras-select option {
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.obras-select option:hover {
+  background-color: #e5f3ff;
+}
+
+.obras-select option:checked {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
 }
 
 .form-actions {
