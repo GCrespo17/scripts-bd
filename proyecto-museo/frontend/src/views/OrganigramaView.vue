@@ -41,7 +41,7 @@
           <h2>{{ museoInfo.nombre }}</h2>
           <div class="header-details">
             <span><strong>Fundado en:</strong> {{ new Date(museoInfo.fecha_fundacion).getFullYear() }}</span>
-            <span class="rank"><strong>Ranking:</strong> {{ museoInfo.ranking.categoria }}</span>
+            <span class="rank"><strong>Ranking:</strong> {{ museoInfo.ranking?.categoria || 'Sin clasificar' }}</span>
           </div>
           <p class="mission"><strong>Misión:</strong> {{ museoInfo.mision }}</p>
           <small><em>(El ranking se calcula basado en la estabilidad del personal y el volumen de visitas anuales)</em></small>

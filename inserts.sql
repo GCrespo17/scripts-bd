@@ -3526,9 +3526,9 @@ INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALU
 -- Tabla: MUSEOS
 -- ---------------------------------------------------------------
 INSERT INTO MUSEOS(id_lugar, nombre, fecha_fundacion, mision) VALUES
-    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée Jacquemart André', TO_DATE('1913-01-01', 'YYYY-MM-DD'), 'Preservar y exhibir la vasta y exquisita colección de arte que fue reunida por Édouard André y su esposa Nélie Jacquemart durante sus vidas');
+    ((SELECT id_lugar FROM LUGARES WHERE nombre='Paris'), 'Musée Jacquemart André', TO_DATE('1913-01-01', 'YYYY-MM-DD'), 'Preservar y exhibir la vasta y exquisita colección de arte que fue reunida por Édouard André y su esposa Nélie Jacquemart durante sus vidas');
 INSERT INTO MUSEOS(id_lugar, nombre, fecha_fundacion, mision) VALUES
-    ((SELECT id_lugar FROM LUGARES WHERE nombre='Francia'), 'Musée du Petit Palais', TO_DATE('1902-01-01', 'YYYY-MM-DD'), 'Preservar, exhibir y hacer accesible al público una vasta colección de arte desde la Antigüedad hasta el siglo XIX. También busca educar e inspirar a través de exposiciones temporales y actividades culturales en su icónico edificio');
+    ((SELECT id_lugar FROM LUGARES WHERE nombre='Paris'), 'Musée du Petit Palais', TO_DATE('1902-01-01', 'YYYY-MM-DD'), 'Preservar, exhibir y hacer accesible al público una vasta colección de arte desde la Antigüedad hasta el siglo XIX. También busca educar e inspirar a través de exposiciones temporales y actividades culturales en su icónico edificio');
 
 -- ---------------------------------------------------------------
 -- Tabla: EST_FISICA
@@ -4068,7 +4068,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
         'Departamento de Colecciones y Exposiciones',
         'DEPARTAMENTO',
-        3,
+        2,
         'Gestión, conservación, investigación y exhibición de colecciones permanentes. Planificación y curaduría de exposiciones temporales del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'))
     );
@@ -4077,7 +4077,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
         'Departamento de Operaciones y Servicios al Visitante',
         'DEPARTAMENTO',
-        3,
+        2,
         'Gestión de infraestructura, seguridad, mantenimiento, logística, taquillas, tienda del museo, personal de sala y experiencia del visitante.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'))
     );
@@ -4086,7 +4086,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
         'Departamento de Desarrollo y Comunicación',
         'DEPARTAMENTO',
-        3,
+        2,
         'Recaudación de fondos, patrocinios, marketing, prensa, redes sociales, desarrollo de audiencias, eventos especiales y programas de fidelización.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'))
     );
@@ -4095,7 +4095,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
         'Departamento Financiero y Administrativo',
         'DEPARTAMENTO',
-        3,
+        2,
         'Contabilidad, presupuestos, recursos humanos, gestión legal y administración general del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'))
     );
@@ -4104,7 +4104,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
         'Departamento de Educación y Mediación Cultural',
         'DEPARTAMENTO',
-        3,
+        2,
         'Diseño y ejecución de programas educativos para diversos públicos (escolares, familias, adultos), talleres, visitas guiadas y materiales didácticos.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'))
     );
@@ -4133,7 +4133,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Servicio de Comunicación',
         'DEPARTAMENTO',
-        3,
+        2,
         'Responsable de las estrategias de comunicación, relaciones con la prensa y difusión de la imagen del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4142,7 +4142,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Secretaría de Operaciones',
         'DEPARTAMENTO',
-        3,
+        2,
         'Encargada de la gestión operativa de las instalaciones del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4151,7 +4151,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Secretaría de Asuntos Generales',
         'DEPARTAMENTO',
-        3,
+        2,
         'Gestiona los asuntos administrativos generales y el apoyo a las diferentes áreas del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4160,7 +4160,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Centro de Recursos de Documentación',
         'DEPARTAMENTO',
-        3,
+        2,
         'Gestiona la biblioteca y archivos del museo, proporcionando recursos para la investigación y el estudio.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4169,7 +4169,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Servicio Educativo y Cultural',
         'DEPARTAMENTO',
-        3,
+        2,
         'Diseña e implementa programas educativos, visitas guiadas y actividades culturales para diversos públicos.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4178,7 +4178,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Servicio de Exposiciones y Gestión de Colecciones',
         'DEPARTAMENTO',
-        3,
+        2,
         'Encargado de la curaduría y logística de exposiciones, así como la gestión y registro de las colecciones.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4187,34 +4187,34 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Infraestructura y Logística',
         'SECCION',
-        4,
+        3,
         'Gestión del mantenimiento técnico del museo y la logística de sus instalaciones.',
-        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Explotación' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
+        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Operaciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
     (
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Seguridad',
         'SECCION',
-        4,
+        3,
         'Garantiza la protección de las obras de arte, las instalaciones y la seguridad de los visitantes.',
-        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Explotación' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
+        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Operaciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
     (
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Recepción y Vigilancia',
         'SECCION',
-        4,
+        3,
         'Responsable de la bienvenida a los visitantes y de la vigilancia de las salas de exposición.',
-        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Explotación' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
+        (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Operaciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
     (
         (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
         'Gestión de Obras',
         'SECCION',
-        4,
+        3,
         'Gestiona el registro, la ubicación y el movimiento físico de las obras de arte dentro y fuera del museo.',
         (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'))
     );
@@ -4883,1456 +4883,581 @@ INSERT INTO SALAS_COLECCIONES(id_coleccion, id_est_org, id_museo, id_sala, id_es
 -- Tabla: HIST_EMPLEADOS
 -- ---------------------------------------------------------------
 -- MUSEO JACQUEMART ANDRE
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2000-05-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'DIRECTOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Dirección General'
-        AND ep.doc_identidad = 2010;
+-- CONSEJO DE ADMINISTRACIÓN (NIVEL SUPERIOR - FALTABA PARA COMPLETAR JERARQUÍA)
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('1995-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Consejo de Administración' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2010),
+ 'DIRECTOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2008-04-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2001;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2000-05-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2010),
+ 'DIRECTOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2013-08-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2002;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2008-04-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2005-12-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'RESTAURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2003;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2013-08-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('1999-02-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento Financiero y Administrativo'
-        AND ep.doc_identidad = 2004;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2005-12-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2003),
+ 'RESTAURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2016-06-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2005;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('1999-02-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento Financiero y Administrativo' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2004),
+ 'ADMINISTRATIVO', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2003-10-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'RESTAURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2006;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2016-06-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2018-03-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'RESTAURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento de Colecciones y Exposiciones'
-        AND ep.doc_identidad = 2007;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2003-10-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2006),
+ 'RESTAURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2009-07-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento Financiero y Administrativo'
-        AND ep.doc_identidad = 2008;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-03-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2007),
+ 'RESTAURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2013-01-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée Jacquemart André'
-        AND eo.nombre = 'Departamento Financiero y Administrativo'
-        AND ep.doc_identidad = 2009;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2009-07-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento Financiero y Administrativo' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2008),
+ 'ADMINISTRATIVO', NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2013-01-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento Financiero y Administrativo' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2009),
+ 'ADMINISTRATIVO', NULL);
 
 -- MUSEO PETIT PALAIS
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2006-10-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'DIRECTOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Dirección y Conservaduría en Jefe del Petit Palais'
-        AND ep.doc_identidad = 2018;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2006-10-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección y Conservaduría en Jefe del Petit Palais' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2018),
+ 'DIRECTOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2015-09-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Secretaría de Asuntos Generales'
-        AND ep.doc_identidad = 2011;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-09-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Asuntos Generales' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2011),
+ 'ADMINISTRATIVO', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2006-11-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2012;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2006-11-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2015-02-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2013;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-02-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2010-08-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'RESTAURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2014;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2010-08-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2014),
+ 'RESTAURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2019-05-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'RESTAURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2015;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-05-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2015),
+ 'RESTAURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2010-12-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Secretaría de Asuntos Generales'
-        AND ep.doc_identidad = 2016;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2010-12-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Asuntos Generales' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2016),
+ 'ADMINISTRATIVO', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2019-04-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'ADMINISTRATIVO',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Secretaría de Asuntos Generales'
-        AND ep.doc_identidad = 2017;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-04-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Secretaría de Asuntos Generales' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2017),
+ 'ADMINISTRATIVO', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2013-07-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2019;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2013-07-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019),
+ 'CURADOR', NULL);
 
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin)
-    SELECT
-        TO_DATE('2007-03-01', 'YYYY-MM-DD'),
-        eo.id_est_org,
-        m.id_museo,
-        ep.id_empleado,
-        'CURADOR',
-        NULL
-    FROM
-        MUSEOS m
-    JOIN
-        EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-    JOIN
-        EMPLEADOS_PROFESIONALES ep ON 1=1
-    WHERE
-        m.nombre = 'Musée du Petit Palais'
-        AND eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones'
-        AND ep.doc_identidad = 2020;
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2007-03-01', 'YYYY-MM-DD'),
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020),
+ 'CURADOR', NULL);
 
 
 -- ---------------------------------------------------------------
 -- Tabla: HIST_OBRAS_MOV
 -- ---------------------------------------------------------------
 -- MUSEO JACQUEMART ANDRE
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-SELECT
-    o.id_obra,
-    cp.id_coleccion,
-    se.id_sala,
-    ep.id_empleado,
-    eo.id_est_org,
-    m.id_museo,
-    ef.id_est,
-    TO_DATE('1915-01-15', 'YYYY-MM-DD'), -- Fecha estimada de adquisición
-    'DONADA',
-    'SI',
-    NULL,
-    1,
-    NULL
-FROM
-    MUSEOS m
-JOIN
-    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-JOIN
-    SALAS_EXP se ON se.id_museo = m.id_museo
-JOIN
-    EMPLEADOS_PROFESIONALES ep ON 1=1
-JOIN
-    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-JOIN
-    EST_FISICA ef ON ef.id_museo = m.id_museo
-JOIN
-    OBRAS o ON 1=1
-WHERE
-    m.nombre = 'Musée Jacquemart André' AND
-    o.nombre = 'Portrait of Comte Antoine Français de Nantes' AND
-    cp.nombre = 'Arte del Siglo XIX' AND
-    se.nombre = 'Le Salon Des Peintures' AND
-    ep.doc_identidad = 2001 AND -- Sophie Dubois
-    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-    ef.nombre = 'Les Grands Salons';
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-11', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    2,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Ruined Gallery' AND
-	    cp.nombre = 'Arte del Siglo XIX' AND
-	    se.nombre = 'Le Salon Des Peintures' AND
-	    ep.doc_identidad = 2002 AND -- Lucas Martin
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Grands Salons';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Portrait of Comte Antoine Français de Nantes'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte del Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Salon Des Peintures' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Grands Salons' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1915-01-15', 'YYYY-MM-DD'), -- Fecha estimada de adquisición
+ 'DONADA',
+ 'SI',
+ NULL,
+ 1,
+ NULL);
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Ruined Gallery'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte del Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Salon Des Peintures' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), -- Lucas Martin
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Grands Salons' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-11', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 2,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    3,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Virgin and Child on a Throne' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle Florentine' AND
-	    ep.doc_identidad = 2005 AND -- Manon Marie Lefevre
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Virgin and Child on a Throne'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle Florentine' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), -- Manon Marie Lefevre
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 3,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'NO',
-	    NULL,
-	    NULL,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'The New Model' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'Le Salon des Tapisseries' AND
-	    ep.doc_identidad = 2001 AND -- Sophie Dubois
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'The New Model'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Salon des Tapisseries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'NO',
+ NULL,
+ NULL,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1916-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'NO',
-	    NULL,
-	    NULL,
-	    500000
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Imaginary Portico' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'Le Salon de Musique' AND
-	    ep.doc_identidad = 2002 AND -- Lucas Martin
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Grands Salons';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Imaginary Portico'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Salon de Musique' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), -- Lucas Martin
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Grands Salons' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1916-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'NO',
+ NULL,
+ NULL,
+ 500000);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1915-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'NO',
-	    NULL,
-	    NULL,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'La fuite en Egypte' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle Florentine' AND
-	    ep.doc_identidad = 2005 AND -- Manon Marie Lefevre
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'La fuite en Egypte'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle Florentine' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), -- Manon Marie Lefevre
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1915-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'NO',
+ NULL,
+ NULL,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-08-22', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    4,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Les Pèlerins d''Emmaüs' AND
-	    cp.nombre = 'Arte Flamenco y Holandés' AND
-	    se.nombre = 'La Bibliothèque' AND
-	    ep.doc_identidad = 2001 AND -- Sophie Dubois
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Les Pèlerins d''Emmaüs'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Flamenco y Holandés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Bibliothèque' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-08-22', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 4,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1916-04-26', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    5,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Les Attributs des Sciences et des Arts' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'La Salle à Manger' AND
-	    ep.doc_identidad = 2002 AND -- Lucas Martin
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Grands Salons';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Les Attributs des Sciences et des Arts'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle à Manger' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), -- Lucas Martin
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Grands Salons' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1916-04-26', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 5,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    6,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Saint Georges terrassant le dragon' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle Florentine' AND
-	    ep.doc_identidad = 2005 AND -- Manon Marie Lefevre
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Saint Georges terrassant le dragon'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle Florentine' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), -- Manon Marie Lefevre
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 6,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1914-03-17', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    7,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Ecce Homo' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle Florentine' AND
-	    ep.doc_identidad = 2001 AND -- Sophie Dubois
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Ecce Homo'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle Florentine' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1914-03-17', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 7,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1916-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    8,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Portrait d''homme' AND
-	    cp.nombre = 'Arte Flamenco y Holandés' AND
-	    se.nombre = 'La Bibliothèque' AND
-	    ep.doc_identidad = 2002 AND -- Lucas Martin
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Portrait d''homme'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Flamenco y Holandés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Bibliothèque' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), -- Lucas Martin
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1916-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 8,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-10-10', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    9,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Portrait de Françoise-Renée de Carbonnel de Canisy, marquise d''Antin' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'Le Boudoir' AND
-	    ep.doc_identidad = 2005 AND -- Manon Marie Lefevre
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Portrait de Françoise-Renée de Carbonnel de Canisy, marquise d''Antin'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Boudoir' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), -- Manon Marie Lefevre
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-10-10', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 9,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1916-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    10,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Buste de Grégoire XV' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle des Sculptures' AND
-	    ep.doc_identidad = 2001 AND -- Sophie Dubois
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Buste de Grégoire XV'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle des Sculptures' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1916-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 10,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    11,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Le Martyre de Saint Sébastien' AND
-	    cp.nombre = 'Arte Italiano' AND
-	    se.nombre = 'La Salle des Sculptures' AND
-	    ep.doc_identidad = 2002 AND -- Lucas Martin
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Le Musée Italien';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Le Martyre de Saint Sébastien'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Italiano' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'La Salle des Sculptures' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2002), -- Lucas Martin
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Le Musée Italien' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 11,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1913-01-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    12,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Buste de l''architecte Jacques V Gabriel' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'Le Fumoir' AND
-	    ep.doc_identidad = 2005 AND -- Manon Marie Lefevre
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Buste de l''architecte Jacques V Gabriel'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Fumoir' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2005), -- Manon Marie Lefevre
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1913-01-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 12,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1914-04-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    13,
-	    3000000
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre = 'Musée Jacquemart André' AND
-	    o.nombre = 'Buste d''Antoine-Louis François Le Fèvre de Caumartin' AND
-	    cp.nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND
-	    se.nombre = 'Le Fumoir' AND
-	    ep.doc_identidad = 2001 AND -- Sophie Dubois
-	    eo.nombre = 'Departamento de Colecciones y Exposiciones' AND
-	    ef.nombre = 'Les Salons Privés';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Buste d''Antoine-Louis François Le Fèvre de Caumartin'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Arte Francés del sigo XVIII y Artes Decorativas' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'Le Fumoir' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2001), -- Sophie Dubois
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Les Salons Privés' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
+ TO_DATE('1914-04-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 13,
+ 3000000);
 
 -- MUSEO PETIT PALAIS
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1905-03-10', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    1,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Ugolino' AND
-	    cp.nombre = 'Siglo XIX' AND
-	    se.nombre = 'XIXᵉ SALLE 4' AND
-	    ep.doc_identidad = 2020 AND -- Alexandre Vincent
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Ugolino'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ SALLE 4' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), -- Alexandre Vincent
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1905-03-10', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 1,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1903-07-20', 'YYYY-MM-DD'),
-	    'COMPRADA',
-	    'SI',
-	    NULL,
-	    2,
-	    50000.00
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Ephebe from the Fins d''Annecy' AND
-	    cp.nombre = 'Mundo Clásico' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2019 AND -- Clara Fournier
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Ephebe from the Fins d''Annecy'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Mundo Clásico' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), -- Clara Fournier
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1903-07-20', 'YYYY-MM-DD'),
+ 'COMPRADA',
+ 'SI',
+ NULL,
+ 2,
+ 50000.00);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1904-01-05', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'NO',
-	    NULL,
-	    3,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='White ground hydria' AND
-	    cp.nombre = 'Mundo Clásico' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2013 AND -- Alice Michel
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'White ground hydria'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Mundo Clásico' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), -- Alice Michel
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1904-01-05', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'NO',
+ NULL,
+ 3,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1906-02-15', 'YYYY-MM-DD'),
-	    'COMPRADA',
-	    'SI',
-	    NULL,
-	    4,
-	    35000.00
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Knight, Death and the Devil (Bartsch 98)' AND
-	    cp.nombre = 'Renacimiento' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2012 AND -- Paul Simon
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Knight, Death and the Devil (Bartsch 98)'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Renacimiento' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), -- Paul Simon
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1906-02-15', 'YYYY-MM-DD'),
+ 'COMPRADA',
+ 'SI',
+ NULL,
+ 4,
+ 35000.00);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1907-09-01', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    5,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Le Nouvelin de Vénerie' AND
-	    cp.nombre = 'Renacimiento' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2020 AND -- Alexandre Vincent
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Le Nouvelin de Vénerie'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Renacimiento' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), -- Alexandre Vincent
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1907-09-01', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 5,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1908-04-25', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'NO',
-	    NULL,
-	    6,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='The Carcass or On the Sabbath Road' AND
-	    cp.nombre = 'Renacimiento' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2019 AND -- Clara Fournier
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'The Carcass or On the Sabbath Road'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Renacimiento' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), -- Clara Fournier
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1908-04-25', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'NO',
+ NULL,
+ 6,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1909-11-12', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    7,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='A Jaunt by Carriage' AND
-	    cp.nombre = 'Siglo XVIII' AND
-	    se.nombre = 'GALERIE TUCK' AND
-	    ep.doc_identidad = 2013 AND -- Alice Michel
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'A Jaunt by Carriage'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XVIII' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'GALERIE TUCK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), -- Alice Michel
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1909-11-12', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 7,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1910-06-30', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    8,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Jérôme de La Lande' AND
-	    cp.nombre = 'Siglo XVIII' AND
-	    se.nombre = 'GALERIE TUCK' AND
-	    ep.doc_identidad = 2012 AND -- Paul Simon
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Jérôme de La Lande'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XVIII' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'GALERIE TUCK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), -- Paul Simon
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1910-06-30', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 8,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1912-08-01', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    9,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='A Parisian Woman' AND
-	    cp.nombre = 'Siglo XIX' AND
-	    se.nombre = 'XIXᵉ SALLE 7' AND
-	    ep.doc_identidad = 2020 AND -- Alexandre Vincent
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'A Parisian Woman'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ SALLE 7' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2020), -- Alexandre Vincent
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1912-08-01', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 9,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1915-05-20', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    10,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Combat of the Giaour and the Pasha' AND
-	    cp.nombre = 'Siglo XIX' AND
-	    se.nombre = 'XIXᵉ SALLE 8' AND
-	    ep.doc_identidad = 2019 AND -- Clara Fournier
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Combat of the Giaour and the Pasha'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ SALLE 8' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2019), -- Clara Fournier
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1915-05-20', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 10,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1918-09-05', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    11,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Dante' AND
-	    cp.nombre = 'Siglo XIX' AND
-	    se.nombre = 'XIXᵉ SALLE 8' AND
-	    ep.doc_identidad = 2013 AND -- Alice Michel
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Dante'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'Siglo XIX' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ SALLE 8' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2013), -- Alice Michel
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1918-09-05', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 11,
+ NULL);
 
-INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
-	SELECT
-	    o.id_obra,
-	    cp.id_coleccion,
-	    se.id_sala,
-	    ep.id_empleado,
-	    eo.id_est_org,
-	    m.id_museo,
-	    ef.id_est,
-	    TO_DATE('1920-03-15', 'YYYY-MM-DD'),
-	    'DONADA',
-	    'SI',
-	    NULL,
-	    12,
-	    NULL
-	FROM
-	    MUSEOS m
-	JOIN
-	    COLECCIONES_PERMANENTES cp ON cp.id_museo = m.id_museo
-	JOIN
-	    SALAS_EXP se ON se.id_museo = m.id_museo
-	JOIN
-	    EMPLEADOS_PROFESIONALES ep ON 1=1
-	JOIN
-	    EST_ORGANIZACIONAL eo ON eo.id_museo = m.id_museo
-	JOIN
-	    EST_FISICA ef ON ef.id_museo = m.id_museo
-	JOIN
-	    OBRAS o ON 1=1
-	WHERE
-	    m.nombre='Musée du Petit Palais' AND
-	    o.nombre ='Cascade Pendant' AND
-	    cp.nombre = 'París 1900' AND
-	    se.nombre = 'XIXᵉ et XXᵉ' AND
-	    ep.doc_identidad = 2012 AND -- Paul Simon
-	    eo.nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND
-	    ef.nombre = 'Galeries';
+INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES
+((SELECT id_obra FROM OBRAS WHERE nombre = 'Cascade Pendant'),
+ (SELECT id_coleccion FROM COLECCIONES_PERMANENTES WHERE nombre = 'París 1900' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_sala FROM SALAS_EXP WHERE nombre = 'XIXᵉ et XXᵉ' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2012), -- Paul Simon
+ (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Servicio de Exposiciones y Gestión de Colecciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),
+ (SELECT id_est FROM EST_FISICA WHERE nombre = 'Galeries' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais')),
+ TO_DATE('1920-03-15', 'YYYY-MM-DD'),
+ 'DONADA',
+ 'SI',
+ NULL,
+ 12,
+ NULL);
+
 
 -- ---------------------------------------------------------------
 -- Tabla: PROGRAMAS_MANT
@@ -6880,76 +6005,99 @@ INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUE
 INSERT INTO TIPO_TICKETS (fecha_inicio, id_museo, precio, tipo, fecha_fin) VALUES 
 (TO_DATE('2024-01-01', 'YYYY-MM-DD'), (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'), 0.00, 'INFANTIL', NULL);
 
-
 -- ---------------------------------------------------------------
 -- Tabla: TICKETS
 -- ---------------------------------------------------------------
 -- MUSEO JACQUEMART ANDRE
 
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-01 10:25:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'INFANTIL',9.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-02 11:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-03 12:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 09:45:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'INFANTIL',9.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-04 14:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-05 15:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-06 18:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',9.50);
+VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'INFANTIL',9.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:20:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',17.00);
+VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),TO_DATE('2025-06-07 11:25:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',15.00);
+VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
 
 -- MUSEO PETIT PALAIS
 
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (1, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+VALUES (2, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-01 10:15:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+VALUES (3, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'INFANTIL',0.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:30:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (4, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-02 11:35:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (5, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+VALUES (6, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-03 13:05:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (7, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 09:50:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+VALUES (8, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'INFANTIL',0.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-04 14:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (9, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:40:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+VALUES (10, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-05 15:45:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (11, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:00:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (12, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-06 17:05:00', 'YYYY-MM-DD HH24:MI:SS'),'INFANTIL',0.00);
+VALUES (13, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'INFANTIL',0.00);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:10:00', 'YYYY-MM-DD HH24:MI:SS'),'ADULTO',15.50);
+VALUES (14, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
 INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio)
-VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),TO_DATE('2025-06-07 11:15:00', 'YYYY-MM-DD HH24:MI:SS'),'ESTUDIANTE',7.50);
+VALUES (15, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
 
+-- TICKETS ADICIONALES PARA MEJORAR RANKING DE POPULARIDAD
+-- MUSEO JACQUEMART ANDRE - Tickets adicionales distribuidos en 2024
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (16, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (17, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (18, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (19, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'INFANTIL',9.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (20, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (21, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (22, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (23, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ADULTO',17.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (24, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'INFANTIL',9.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (25, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),SYSDATE,'ESTUDIANTE',15.00);
+
+-- MUSEO PETIT PALAIS - Tickets adicionales distribuidos en 2024
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (16, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (17, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (18, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (19, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'INFANTIL',0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (20, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (21, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (22, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (23, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ADULTO',15.50);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (24, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'INFANTIL',0.00);
+INSERT INTO TICKETS (id_num_ticket, id_museo, fecha_hora_emision, tipo, precio) VALUES (25, (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée du Petit Palais'),SYSDATE,'ESTUDIANTE',7.50);
 
 -- ---------------------------------------------------------------
 -- Tabla: HIST_MUSEO

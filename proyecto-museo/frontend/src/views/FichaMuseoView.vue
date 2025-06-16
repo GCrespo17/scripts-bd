@@ -54,55 +54,23 @@
           </div>
         </div>
   
-        <!-- Ranking Comparativo -->
-        <div v-if="fichaMuseo.ranking && fichaMuseo.ranking.ranking" class="ranking-card">
+                <!-- Ranking Comparativo -->
+        <div v-if="fichaMuseo.ranking" class="ranking-card">
           <h2 class="section-title">🏆 Ranking y Evaluación</h2>
           
           <!-- Score y Categoría -->
           <div class="ranking-header">
             <div class="score-display">
-              <div class="score-number">{{ fichaMuseo.ranking.ranking.score_final || 0 }}</div>
+              <div class="score-number">{{ (fichaMuseo.ranking.puntuaciones?.score_final || 0).toFixed(1) }}</div>
               <div class="score-label">Puntaje Final</div>
             </div>
             <div class="categoria-display">
-              <div class="categoria-badge" :class="getCategoriaClass(fichaMuseo.ranking.ranking.categoria)">
-                {{ fichaMuseo.ranking.ranking.categoria || 'Sin clasificar' }}
+                              <div class="categoria-badge" :class="getCategoriaClass(fichaMuseo.ranking?.categoria)">
+                  {{ fichaMuseo.ranking?.categoria || 'Sin clasificar' }}
               </div>
             </div>
           </div>
-  
-          <!-- Rankings Comparativos -->
-          <div class="rankings-grid">
-            <div class="ranking-item nacional">
-              <h4>🏅 Ranking Nacional</h4>
-              <div class="ranking-position">
-                <span class="position-number">{{ fichaMuseo.ranking.ranking.posicion_nacional || 'N/A' }}</span>
-                <span class="position-separator">de</span>
-                <span class="total-number">{{ fichaMuseo.ranking.ranking.total_nacional || 'N/A' }}</span>
-              </div>
-              <div class="ranking-context">
-                en {{ fichaMuseo.ranking.ubicacion?.pais || 'País no disponible' }}
-              </div>
-              <div class="ranking-percentage" v-if="fichaMuseo.ranking.ranking.posicion_nacional && fichaMuseo.ranking.ranking.total_nacional">
-                Top {{ Math.round((fichaMuseo.ranking.ranking.posicion_nacional / fichaMuseo.ranking.ranking.total_nacional) * 100) }}%
-              </div>
-            </div>
-            <div class="ranking-item mundial">
-              <h4>🌍 Ranking Mundial</h4>
-              <div class="ranking-position">
-                <span class="position-number">{{ fichaMuseo.ranking.ranking.posicion_mundial || 'N/A' }}</span>
-                <span class="position-separator">de</span>
-                <span class="total-number">{{ fichaMuseo.ranking.ranking.total_mundial || 'N/A' }}</span>
-              </div>
-              <div class="ranking-context">
-                a nivel mundial
-              </div>
-              <div class="ranking-percentage" v-if="fichaMuseo.ranking.ranking.posicion_mundial && fichaMuseo.ranking.ranking.total_mundial">
-                Top {{ Math.round((fichaMuseo.ranking.ranking.posicion_mundial / fichaMuseo.ranking.ranking.total_mundial) * 100) }}%
-              </div>
-            </div>
-          </div>
-  
+
           <!-- Métricas Detalladas -->
           <div class="metricas-section">
             <h4>📊 Métricas de Evaluación</h4>
@@ -131,27 +99,69 @@
             </div>
           </div>
 
-          <!-- Indicador de Posición Visual -->
-          <div class="posicion-visual" v-if="fichaMuseo.ranking.ranking.posicion_nacional && fichaMuseo.ranking.ranking.posicion_mundial">
-            <h4>🎯 Posición Comparativa</h4>
-            <div class="indicadores-posicion">
-              <div class="indicador nacional-indicator">
-                <div class="indicador-label">Nacional ({{ fichaMuseo.ranking.ubicacion?.pais }})</div>
-                <div class="progress-bar">
-                  <div class="progress-fill nacional" 
-                       :style="{ width: `${Math.max(10, 100 - ((fichaMuseo.ranking.ranking.posicion_nacional - 1) / (fichaMuseo.ranking.ranking.total_nacional - 1)) * 100)}%` }">
-                  </div>
+          <!-- Posiciones en Rankings -->
+          <div v-if="fichaMuseo.ranking.posiciones" class="posiciones-section">
+            <h4>🏆 Posiciones en Rankings</h4>
+            <div class="posiciones-grid">
+              <div class="posicion-item nacional" v-if="fichaMuseo.ranking.posiciones.nacional.posicion">
+                <div class="posicion-header">
+                  <div class="posicion-icon">🇳🇦</div>
+                  <div class="posicion-titulo">Ranking Nacional</div>
                 </div>
-                <div class="posicion-texto">Posición {{ fichaMuseo.ranking.ranking.posicion_nacional }}</div>
+                <div class="posicion-numeros">
+                  <span class="posicion-actual">{{ fichaMuseo.ranking.posiciones.nacional.posicion }}</span>
+                  <span class="posicion-separador">/</span>
+                  <span class="posicion-total">{{ fichaMuseo.ranking.posiciones.nacional.total }}</span>
+                </div>
+                <div class="posicion-contexto">
+                  en {{ fichaMuseo.ranking.ubicacion?.pais || 'el país' }}
+                </div>
+                <div class="posicion-porcentaje">
+                  Top {{ Math.round((fichaMuseo.ranking.posiciones.nacional.posicion / fichaMuseo.ranking.posiciones.nacional.total) * 100) }}%
+                </div>
               </div>
-              <div class="indicador mundial-indicator">
-                <div class="indicador-label">Mundial</div>
+
+              <div class="posicion-item mundial" v-if="fichaMuseo.ranking.posiciones.mundial.posicion">
+                <div class="posicion-header">
+                  <div class="posicion-icon">🌍</div>
+                  <div class="posicion-titulo">Ranking Mundial</div>
+                </div>
+                <div class="posicion-numeros">
+                  <span class="posicion-actual">{{ fichaMuseo.ranking.posiciones.mundial.posicion }}</span>
+                  <span class="posicion-separador">/</span>
+                  <span class="posicion-total">{{ fichaMuseo.ranking.posiciones.mundial.total }}</span>
+                </div>
+                <div class="posicion-contexto">
+                  a nivel global
+                </div>
+                <div class="posicion-porcentaje">
+                  Top {{ Math.round((fichaMuseo.ranking.posiciones.mundial.posicion / fichaMuseo.ranking.posiciones.mundial.total) * 100) }}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Puntuaciones por Categoría -->
+          <div class="puntuaciones-section metricas-detalle">
+            <h4>📊 Métricas Detalladas</h4>
+            <div class="puntuaciones-grid">
+              <div class="puntuacion-item">
+                <div class="puntuacion-label">Estabilidad del Personal</div>
                 <div class="progress-bar">
-                  <div class="progress-fill mundial" 
-                       :style="{ width: `${Math.max(5, 100 - ((fichaMuseo.ranking.ranking.posicion_mundial - 1) / (fichaMuseo.ranking.ranking.total_mundial - 1)) * 100)}%` }">
+                  <div class="progress-fill estabilidad" 
+                       :style="{ width: `${(fichaMuseo.ranking.puntuaciones?.estabilidad_score || 0) * 10}%` }">
                   </div>
                 </div>
-                <div class="posicion-texto">Posición {{ fichaMuseo.ranking.ranking.posicion_mundial }}</div>
+                <div class="puntuacion-valor">{{ (fichaMuseo.ranking.puntuaciones?.estabilidad_score || 0).toFixed(1) }}/10</div>
+              </div>
+              <div class="puntuacion-item">
+                <div class="puntuacion-label">Popularidad por Visitas</div>
+                <div class="progress-bar">
+                  <div class="progress-fill popularidad" 
+                       :style="{ width: `${(fichaMuseo.ranking.puntuaciones?.popularidad_score || 0) * 10}%` }">
+                  </div>
+                </div>
+                <div class="puntuacion-valor">{{ (fichaMuseo.ranking.puntuaciones?.popularidad_score || 0).toFixed(1) }}/10</div>
               </div>
             </div>
           </div>
@@ -180,12 +190,12 @@
         <!-- Colecciones Permanentes -->
         <div v-if="fichaMuseo.colecciones && fichaMuseo.colecciones.length > 0" class="colecciones-card">
           <h2 class="section-title">🎨 Colecciones Permanentes</h2>
-          <div class="colecciones-grid">
-            <div v-for="coleccion in fichaMuseo.colecciones" :key="coleccion.id" class="coleccion-item">
-              <h4 class="coleccion-nombre">{{ coleccion.nombre }}</h4>
-              <p class="coleccion-caracteristicas">{{ coleccion.caracteristicas }}</p>
-              <div class="coleccion-tag">{{ coleccion.palabra_clave }}</div>
-            </div>
+          <div class="colecciones-lista">
+            <ol class="lista-colecciones">
+              <li v-for="(coleccion, index) in fichaMuseo.colecciones" :key="index" class="coleccion-item">
+                {{ coleccion }}
+              </li>
+            </ol>
           </div>
         </div>
   
@@ -341,7 +351,7 @@
     yPosition = addDivider(yPosition + 5)
     
     // RANKING Y EVALUACIÓN
-    if (fichaMuseo.value.ranking?.ranking) {
+    if (fichaMuseo.value.ranking) {
       doc.setFontSize(16)
       doc.setFont(undefined, 'bold')
       doc.text('RANKING Y EVALUACIÓN', leftMargin, yPosition)
@@ -353,45 +363,48 @@
       doc.setFont(undefined, 'bold')
       doc.text('Puntaje Final:', leftMargin, yPosition)
       doc.setFont(undefined, 'normal')
-      doc.text(`${fichaMuseo.value.ranking.ranking.score_final || 0}/10`, leftMargin + 30, yPosition)
+      doc.text(`${(fichaMuseo.value.ranking.puntuaciones?.score_final || 0).toFixed(1)}/10`, leftMargin + 30, yPosition)
       yPosition += 7
       
       doc.setFont(undefined, 'bold')
       doc.text('Categoría:', leftMargin, yPosition)
       doc.setFont(undefined, 'normal')
-      doc.text(`${fichaMuseo.value.ranking.ranking.categoria || 'Sin clasificar'}`, leftMargin + 25, yPosition)
-      yPosition += 5
+              doc.text(`${fichaMuseo.value.ranking?.categoria || 'Sin clasificar'}`, leftMargin + 25, yPosition)
+      yPosition += 7
       
-      // Rankings comparativos
-      if (fichaMuseo.value.ranking.ranking.posicion_nacional) {
+      // Posiciones en rankings
+      if (fichaMuseo.value.ranking.posiciones) {
         doc.setFont(undefined, 'bold')
-        doc.text('Ranking Nacional:', leftMargin, yPosition)
-        doc.setFont(undefined, 'normal')
-        const rankingNacionalText = `Posición ${fichaMuseo.value.ranking.ranking.posicion_nacional} de ${fichaMuseo.value.ranking.ranking.total_nacional} museos en ${fichaMuseo.value.ranking.ubicacion?.pais || 'el país'}`
-        yPosition = addWrappedText(rankingNacionalText, leftMargin + 35, yPosition, rightMargin - leftMargin - 35)
-        yPosition += 3
-        
-        // Calcular porcentaje nacional
-        const porcentajeNacional = Math.round((fichaMuseo.value.ranking.ranking.posicion_nacional / fichaMuseo.value.ranking.ranking.total_nacional) * 100)
-        doc.setFont(undefined, 'italic')
-        doc.text(`(Top ${porcentajeNacional}% nacional)`, leftMargin + 35, yPosition)
+        doc.text('Posiciones en Rankings:', leftMargin, yPosition)
         yPosition += 7
+        
+        doc.setFont(undefined, 'normal')
+        if (fichaMuseo.value.ranking.posiciones.nacional?.posicion) {
+          const posNacional = fichaMuseo.value.ranking.posiciones.nacional
+          const pctNacional = Math.round((posNacional.posicion / posNacional.total) * 100)
+          doc.text(`• Ranking Nacional: Posición ${posNacional.posicion} de ${posNacional.total} (Top ${pctNacional}%)`, leftMargin + 5, yPosition)
+          yPosition += 6
+        }
+        
+        if (fichaMuseo.value.ranking.posiciones.mundial?.posicion) {
+          const posMundial = fichaMuseo.value.ranking.posiciones.mundial
+          const pctMundial = Math.round((posMundial.posicion / posMundial.total) * 100)
+          doc.text(`• Ranking Mundial: Posición ${posMundial.posicion} de ${posMundial.total} (Top ${pctMundial}%)`, leftMargin + 5, yPosition)
+          yPosition += 6
+        }
+        yPosition += 5
       }
       
-      if (fichaMuseo.value.ranking.ranking.posicion_mundial) {
-        doc.setFont(undefined, 'bold')
-        doc.text('Ranking Mundial:', leftMargin, yPosition)
-        doc.setFont(undefined, 'normal')
-        const rankingMundialText = `Posición ${fichaMuseo.value.ranking.ranking.posicion_mundial} de ${fichaMuseo.value.ranking.ranking.total_mundial} museos a nivel mundial`
-        yPosition = addWrappedText(rankingMundialText, leftMargin + 35, yPosition, rightMargin - leftMargin - 35)
-        yPosition += 3
-        
-        // Calcular porcentaje mundial
-        const porcentajeMundial = Math.round((fichaMuseo.value.ranking.ranking.posicion_mundial / fichaMuseo.value.ranking.ranking.total_mundial) * 100)
-        doc.setFont(undefined, 'italic')
-        doc.text(`(Top ${porcentajeMundial}% mundial)`, leftMargin + 35, yPosition)
-        yPosition += 7
-      }
+      // Puntuaciones por categoría
+      doc.setFont(undefined, 'bold')
+      doc.text('Puntuaciones:', leftMargin, yPosition)
+      yPosition += 7
+      
+      doc.setFont(undefined, 'normal')
+      doc.text(`• Estabilidad del personal: ${(fichaMuseo.value.ranking.puntuaciones?.estabilidad_score || 0).toFixed(1)}/10`, leftMargin + 5, yPosition)
+      yPosition += 6
+      doc.text(`• Popularidad por visitas: ${(fichaMuseo.value.ranking.puntuaciones?.popularidad_score || 0).toFixed(1)}/10`, leftMargin + 5, yPosition)
+      yPosition += 8
       
       yPosition = addDivider(yPosition + 5)
     }
@@ -474,26 +487,18 @@
       doc.text('COLECCIONES PERMANENTES', leftMargin, yPosition)
       yPosition += 10
       
-      doc.setFontSize(10)
+      doc.setFontSize(11)
       doc.setFont(undefined, 'normal')
       
       fichaMuseo.value.colecciones.forEach((coleccion, index) => {
         // Verificar espacio en página
-        if (yPosition > 260) {
+        if (yPosition > 270) {
           doc.addPage()
           yPosition = 20
         }
         
-        doc.setFont(undefined, 'bold')
-        yPosition = addWrappedText(`${index + 1}. ${coleccion.nombre}`, leftMargin, yPosition, rightMargin - leftMargin, 6)
-        
-        doc.setFont(undefined, 'normal')
-        yPosition = addWrappedText(`Características: ${coleccion.caracteristicas}`, leftMargin + 5, yPosition, rightMargin - leftMargin - 5, 5)
-        
-        if (coleccion.palabra_clave) {
-          yPosition = addWrappedText(`Palabra clave: ${coleccion.palabra_clave}`, leftMargin + 5, yPosition, rightMargin - leftMargin - 5, 5)
-        }
-        yPosition += 5
+        doc.text(`${index + 1}. ${coleccion}`, leftMargin, yPosition)
+        yPosition += 7
       })
     }
     
@@ -1002,45 +1007,195 @@
     padding-left: 0;
   }
   
-  .colecciones-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
+  .colecciones-lista {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 25px;
+  }
+  
+  .lista-colecciones {
+    margin: 0;
+    padding-left: 20px;
+    line-height: 1.8;
   }
   
   .coleccion-item {
-    padding: 25px;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    transition: all 0.3s ease;
+    color: #495057;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: 500;
   }
   
   .coleccion-item:hover {
-    border-color: #007bff;
+    color: #007bff;
+    transition: color 0.3s ease;
+  }
+  
+  /* Estilos para las posiciones en rankings */
+  .posiciones-section {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 25px;
+    border: 2px solid #f59e0b;
+  }
+
+  .posiciones-section h4 {
+    margin: 0 0 25px 0;
+    color: #92400e;
+    font-size: 1.3rem;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .posiciones-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+  }
+
+  .posicion-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .posicion-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   }
-  
-  .coleccion-nombre {
-    color: #2c3e50;
+
+  .posicion-item.nacional {
+    border-left: 4px solid #3b82f6;
+  }
+
+  .posicion-item.mundial {
+    border-left: 4px solid #10b981;
+  }
+
+  .posicion-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 15px;
-    font-size: 1.2rem;
   }
-  
-  .coleccion-caracteristicas {
-    color: #6c757d;
-    line-height: 1.5;
-    margin-bottom: 15px;
+
+  .posicion-icon {
+    font-size: 1.5rem;
   }
-  
-  .coleccion-tag {
+
+  .posicion-titulo {
+    font-weight: 700;
+    color: #374151;
+    font-size: 1.1rem;
+  }
+
+  .posicion-numeros {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+
+  .posicion-actual {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #1f2937;
+    line-height: 1;
+  }
+
+  .posicion-separador {
+    font-size: 1.5rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .posicion-total {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #4b5563;
+    line-height: 1;
+  }
+
+  .posicion-contexto {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .posicion-porcentaje {
     display: inline-block;
-    background: #007bff;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     color: white;
     padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.85rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Estilos para las puntuaciones */
+  .puntuaciones-section {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 25px;
+    border: 2px solid #cbd5e1;
+  }
+
+  .puntuaciones-section.metricas-detalle {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-color: #0ea5e9;
+  }
+  
+  .puntuaciones-section h4 {
+    margin: 0 0 20px 0;
+    color: #1e293b;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  
+  .puntuaciones-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .puntuacion-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .puntuacion-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.95rem;
+  }
+  
+  .puntuacion-valor {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 5px;
+  }
+  
+  .progress-fill.estabilidad {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  }
+  
+  .progress-fill.popularidad {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
   }
   
   .print-section {
@@ -1152,15 +1307,20 @@
       grid-template-columns: 1fr;
     }
     
-    .rankings-grid {
+    .posiciones-grid {
       grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    .posicion-actual {
+      font-size: 2.5rem;
+    }
+    
+    .posicion-total {
+      font-size: 1.5rem;
     }
     
     .metricas-grid {
-      grid-template-columns: 1fr;
-    }
-    
-    .colecciones-grid {
       grid-template-columns: 1fr;
     }
   }

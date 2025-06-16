@@ -946,11 +946,11 @@ BEGIN
     p_visitas_ultimo_anio := v_visitas_anuales;
 
     -- Asignar un puntaje de popularidad (0 a 10)
-    IF v_visitas_anuales > 1000000 THEN v_popularidad_score := 10;
-    ELSIF v_visitas_anuales > 500000 THEN v_popularidad_score := 8;
-    ELSIF v_visitas_anuales > 250000 THEN v_popularidad_score := 6;
-    ELSIF v_visitas_anuales > 100000 THEN v_popularidad_score := 4;
-    ELSIF v_visitas_anuales > 50000 THEN v_popularidad_score := 2;
+    IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
+    ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
+    ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
+    ELSIF v_visitas_anuales > 15 THEN v_popularidad_score := 4;
+    ELSIF v_visitas_anuales > 5 THEN v_popularidad_score := 2;
     ELSE v_popularidad_score := 1;
     END IF;
 
@@ -982,8 +982,7 @@ END SP_CALCULAR_RANKING_MUSEO;
 -- Fecha de Creación: 15-NOV-2024
 -- Descripción:
 -- Vista que calcula los puntajes de ranking para todos los museos, permitiendo
--- comparaciones nacionales y mundiales. Reutiliza la lógica del SP_CALCULAR_RANKING_MUSEO
--- pero de forma eficiente para múltiples museos.
+-- comparaciones nacionales y mundiales. Incluye posiciones de ranking pre-calculadas.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE VIEW V_MUSEOS_RANKING_SCORES AS
 WITH EstabilidadPersonal AS (
@@ -1005,11 +1004,11 @@ PopularidadVisitas AS (
         COUNT(*) as visitas_ultimo_anio,
         -- Asignar puntaje de popularidad (0 a 10)
         CASE 
-            WHEN COUNT(*) > 1000000 THEN 10
-            WHEN COUNT(*) > 500000 THEN 8
-            WHEN COUNT(*) > 250000 THEN 6
-            WHEN COUNT(*) > 100000 THEN 4
-            WHEN COUNT(*) > 50000 THEN 2
+            WHEN COUNT(*) > 100 THEN 10
+            WHEN COUNT(*) > 50 THEN 8
+            WHEN COUNT(*) > 25 THEN 6
+            WHEN COUNT(*) > 15 THEN 4
+            WHEN COUNT(*) > 5 THEN 2
             ELSE 1
         END as popularidad_score
     FROM TICKETS t
@@ -1028,34 +1027,53 @@ UbicacionMuseos AS (
     JOIN LUGARES ciudad ON m.id_lugar = ciudad.id_lugar
     JOIN LUGARES pais ON ciudad.id_lugar_padre = pais.id_lugar
     WHERE ciudad.tipo = 'CIUDAD' AND pais.tipo = 'PAIS'
+),
+ScoresBase AS (
+    -- Calcular scores base para todos los museos
+    SELECT 
+        um.id_museo,
+        um.nombre_museo,
+        um.ciudad,
+        um.id_pais,
+        um.pais,
+        COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
+        COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
+        COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
+        COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
+        COALESCE(pv.popularidad_score, 1) as popularidad_score,
+        -- Calcular puntaje final (60% estabilidad, 40% popularidad)
+        (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final
+    FROM UbicacionMuseos um
+    LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
+    LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
 )
 SELECT 
-    um.id_museo,
-    um.nombre_museo,
-    um.ciudad,
-    um.id_pais,
-    um.pais,
-    COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
-    COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
-    COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
-    COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
-    COALESCE(pv.popularidad_score, 1) as popularidad_score,
-    -- Calcular puntaje final (60% estabilidad, 40% popularidad)
-    (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final,
+    sb.id_museo,
+    sb.nombre_museo,
+    sb.ciudad,
+    sb.id_pais,
+    sb.pais,
+    sb.antiguedad_promedio_anios,
+    sb.tasa_rotacion_alta_pct,
+    sb.visitas_ultimo_anio,
+    sb.estabilidad_score,
+    sb.popularidad_score,
+    sb.score_final,
     -- Asignar categoría descriptiva
     CASE 
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 8 THEN
-            'Excelente (Líder del Sector)'
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 6 THEN
-            'Bueno (Sólido y Reconocido)'
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 4 THEN
-            'Regular (Estable con Potencial)'
-        ELSE
-            'En Desarrollo (Nicho o Volátil)'
-    END as categoria_ranking
-FROM UbicacionMuseos um
-LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
-LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo;
+        WHEN sb.score_final >= 8 THEN 'Excelente (Líder del Sector)'
+        WHEN sb.score_final >= 6 THEN 'Bueno (Sólido y Reconocido)'
+        WHEN sb.score_final >= 4 THEN 'Regular (Estable con Potencial)'
+        ELSE 'En Desarrollo (Nicho o Volátil)'
+    END as categoria_ranking,
+    -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
+    -- Ranking Mundial (todos los museos)
+    RANK() OVER (ORDER BY sb.score_final DESC) as posicion_mundial,
+    COUNT(*) OVER () as total_mundial,
+    -- Ranking Nacional (museos del mismo país)
+    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final DESC) as posicion_nacional,
+    COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
+FROM ScoresBase sb;
 /
 
 -- -----------------------------------------------------------------------------
@@ -2281,6 +2299,9 @@ JOIN OBRAS o ON hom.id_obra = o.id_obra
 JOIN MUSEOS m ON hom.id_museo = m.id_museo
 WHERE hom.fecha_salida IS NULL  -- Solo movimientos activos
 ORDER BY m.nombre, hom.fecha_entrada DESC;
+
+
+COMMIT;
 
 -- =============================================================================
 -- FIN DEL SCRIPT DE CREACIÓN UNIFICADA

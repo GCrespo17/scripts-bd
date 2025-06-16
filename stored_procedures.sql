@@ -475,11 +475,11 @@ BEGIN
     p_visitas_ultimo_anio := v_visitas_anuales;
 
     -- Asignar un puntaje de popularidad (0 a 10)
-    IF v_visitas_anuales > 1000000 THEN v_popularidad_score := 10;
-    ELSIF v_visitas_anuales > 500000 THEN v_popularidad_score := 8;
-    ELSIF v_visitas_anuales > 250000 THEN v_popularidad_score := 6;
-    ELSIF v_visitas_anuales > 100000 THEN v_popularidad_score := 4;
-    ELSIF v_visitas_anuales > 50000 THEN v_popularidad_score := 2;
+    IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
+    ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
+    ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
+    ELSIF v_visitas_anuales > 15 THEN v_popularidad_score := 4;
+    ELSIF v_visitas_anuales > 5 THEN v_popularidad_score := 2;
     ELSE v_popularidad_score := 1;
     END IF;
 

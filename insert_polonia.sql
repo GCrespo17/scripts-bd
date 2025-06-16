@@ -2295,11 +2295,3 @@ INSERT INTO SALAS_COLECCIONES (id_coleccion, id_est_org, id_museo, id_sala, id_e
     1);
 
 
-
-
-
-
-
-
-
-

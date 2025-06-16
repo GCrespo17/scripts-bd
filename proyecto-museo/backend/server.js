@@ -1088,7 +1088,7 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     }
 });
 
-// Endpoint para obtener la ficha detallada de un museo (VERSIÓN SIMPLIFICADA)
+// Endpoint para obtener la ficha detallada de un museo (AJUSTADO SEGÚN TUTORA)
 app.get('/api/museos/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
@@ -1096,7 +1096,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
 
-        // --- Consultas Básicas (sin ranking complejo para evitar errores) ---
+        // --- Consultas Básicas ---
         const museoPromise = connection.execute(
             `SELECT id_museo, nombre, fecha_fundacion, mision 
              FROM ${dbConfig.schema}.MUSEOS 
@@ -1112,28 +1112,33 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             [id_museo]
         );
         
+        // --- Colecciones Simplificadas (solo nombres, sin descripciones) ---
         const coleccionesPromise = connection.execute(
-            `SELECT id_coleccion, nombre, caracteristicas, palabra_clave 
+            `SELECT nombre 
              FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
              WHERE id_museo = :id 
              ORDER BY orden_recorrido ASC`,
             [id_museo]
         );
 
-        // --- Ranking Simplificado (sin vista compleja) ---
+                // --- Ranking desde la vista mejorada (consulta simple) ---
         const rankingPromise = connection.execute(
             `SELECT 
-                l_ciudad.nombre as ciudad,
-                l_pais.nombre as pais,
-                COUNT(DISTINCT he.id_empleado_prof) as total_empleados,
-                COUNT(DISTINCT t.id_num_ticket) as visitas_ultimo_anio
-             FROM ${dbConfig.schema}.MUSEOS m
-             LEFT JOIN ${dbConfig.schema}.LUGARES l_ciudad ON m.id_lugar = l_ciudad.id_lugar
-             LEFT JOIN ${dbConfig.schema}.LUGARES l_pais ON l_ciudad.id_lugar_padre = l_pais.id_lugar
-             LEFT JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON m.id_museo = he.id_museo AND he.fecha_fin IS NULL
-             LEFT JOIN ${dbConfig.schema}.TICKETS t ON m.id_museo = t.id_museo AND t.fecha_hora_emision >= (SYSDATE - 365)
-             WHERE m.id_museo = :id
-             GROUP BY l_ciudad.nombre, l_pais.nombre`,
+                ciudad,
+                pais,
+                antiguedad_promedio_anios,
+                tasa_rotacion_alta_pct,
+                visitas_ultimo_anio,
+                estabilidad_score,
+                popularidad_score,
+                score_final,
+                categoria_ranking,
+                posicion_mundial,
+                total_mundial,
+                posicion_nacional,
+                total_nacional
+             FROM ${dbConfig.schema}.V_MUSEOS_RANKING_SCORES 
+             WHERE id_museo = :id`,
             [id_museo]
         );
         
@@ -1141,7 +1146,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
         const [museoResult, historiaResult, coleccionesResult, rankingResult] = await Promise.all([
             museoPromise,
             historiaPromise,
-            coleccionesResult,
+            coleccionesPromise,
             rankingPromise
         ]);
 
@@ -1149,10 +1154,8 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             return res.status(404).json({ message: 'Museo no encontrado' });
         }
 
-        // --- Procesamiento del Ranking Simplificado ---
-        let rankingData = {
-            categoria: 'Bueno (Sólido y Reconocido)'  // Valor por defecto
-        };
+        // --- Procesamiento del Ranking con Posiciones ---
+        let rankingData = null;
         
         if (rankingResult.rows.length > 0) {
             const r = rankingResult.rows[0];
@@ -1162,10 +1165,26 @@ app.get('/api/museos/:id_museo', async (req, res) => {
                     pais: r[1] || 'No especificado'
                 },
                 metricas: {
-                    total_empleados: r[2] || 0,
-                    visitas_ultimo_anio: r[3] || 0
+                    antiguedad_promedio_anios: r[2] || 0,
+                    tasa_rotacion_alta_pct: r[3] || 0,
+                    visitas_ultimo_anio: r[4] || 0
                 },
-                categoria: 'Bueno (Sólido y Reconocido)'
+                puntuaciones: {
+                    estabilidad_score: r[5] || 0,
+                    popularidad_score: r[6] || 0,
+                    score_final: r[7] || 0
+                },
+                categoria: r[8] || 'Sin clasificar',
+                posiciones: {
+                    mundial: {
+                        posicion: r[9] || null,
+                        total: r[10] || null
+                    },
+                    nacional: {
+                        posicion: r[11] || null,
+                        total: r[12] || null
+                    }
+                }
             };
         }
 
@@ -1177,12 +1196,7 @@ app.get('/api/museos/:id_museo', async (req, res) => {
             mision: museoResult.rows[0][3],
             ranking: rankingData,
             historia: historiaResult.rows.map(r => ({ anio: r[0], hecho: r[1] })),
-            colecciones: coleccionesResult.rows.map(r => ({
-                id: r[0],
-                nombre: r[1],
-                caracteristicas: r[2],
-                palabra_clave: r[3]
-            }))
+            colecciones: coleccionesResult.rows.map(r => r[0]) // Solo nombres de colecciones
         };
         
         res.json(museoData);

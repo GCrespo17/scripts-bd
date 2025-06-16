@@ -385,19 +385,23 @@ PROMPT --- Creando Vistas de acceso a datos...
 --- para todos los museos, facilitando análisis comparativos a nivel nacional y mundial.
 CREATE OR REPLACE VIEW V_MUSEOS_RANKING_SCORES AS
 WITH EstabilidadPersonal AS (
+    -- Calcular métricas de estabilidad del personal por museo
     SELECT 
         he.id_museo,
         COUNT(*) as total_empleados,
         AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) as antiguedad_promedio_anios,
         SUM(CASE WHEN (COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) < (365.25 * 5) THEN 1 ELSE 0 END) / COUNT(*) * 100 as tasa_rotacion_alta_pct,
+        -- Asignar puntaje de estabilidad (0 a 10)
         LEAST(AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25), 10) as estabilidad_score
     FROM HIST_EMPLEADOS he
     GROUP BY he.id_museo
 ),
 PopularidadVisitas AS (
+    -- Calcular métricas de popularidad por visitas anuales
     SELECT 
         t.id_museo,
         COUNT(*) as visitas_ultimo_anio,
+        -- Asignar puntaje de popularidad (0 a 10)
         CASE 
             WHEN COUNT(*) > 1000000 THEN 10
             WHEN COUNT(*) > 500000 THEN 8
@@ -411,6 +415,7 @@ PopularidadVisitas AS (
     GROUP BY t.id_museo
 ),
 UbicacionMuseos AS (
+    -- Obtener la ubicación (país) de cada museo
     SELECT 
         m.id_museo,
         m.nombre as nombre_museo,
@@ -421,59 +426,55 @@ UbicacionMuseos AS (
     JOIN LUGARES ciudad ON m.id_lugar = ciudad.id_lugar
     JOIN LUGARES pais ON ciudad.id_lugar_padre = pais.id_lugar
     WHERE ciudad.tipo = 'CIUDAD' AND pais.tipo = 'PAIS'
+),
+ScoresBase AS (
+    -- Calcular scores base para todos los museos
+    SELECT 
+        um.id_museo,
+        um.nombre_museo,
+        um.ciudad,
+        um.id_pais,
+        um.pais,
+        COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
+        COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
+        COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
+        COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
+        COALESCE(pv.popularidad_score, 1) as popularidad_score,
+        -- Calcular puntaje final (60% estabilidad, 40% popularidad)
+        (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final
+    FROM UbicacionMuseos um
+    LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
+    LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
 )
 SELECT 
-    um.id_museo,
-    um.nombre_museo,
-    um.ciudad,
-    um.id_pais,
-    um.pais,
-    COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
-    COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
-    COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
-    COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
-    COALESCE(pv.popularidad_score, 1) as popularidad_score,
-    (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final,
+    sb.id_museo,
+    sb.nombre_museo,
+    sb.ciudad,
+    sb.id_pais,
+    sb.pais,
+    sb.antiguedad_promedio_anios,
+    sb.tasa_rotacion_alta_pct,
+    sb.visitas_ultimo_anio,
+    sb.estabilidad_score,
+    sb.popularidad_score,
+    sb.score_final,
+    -- Asignar categoría descriptiva
     CASE 
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 8 THEN
-            'Excelente (Líder del Sector)'
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 6 THEN
-            'Bueno (Sólido y Reconocido)'
-        WHEN (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) >= 4 THEN
-            'Regular (Estable con Potencial)'
-        ELSE
-            'En Desarrollo (Nicho o Volátil)'
-    END as categoria_ranking
-FROM UbicacionMuseos um
-LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
-LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo;
+        WHEN sb.score_final >= 8 THEN 'Excelente (Líder del Sector)'
+        WHEN sb.score_final >= 6 THEN 'Bueno (Sólido y Reconocido)'
+        WHEN sb.score_final >= 4 THEN 'Regular (Estable con Potencial)'
+        ELSE 'En Desarrollo (Nicho o Volátil)'
+    END as categoria_ranking,
+    -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
+    -- Ranking Mundial (todos los museos)
+    RANK() OVER (ORDER BY sb.score_final DESC) as posicion_mundial,
+    COUNT(*) OVER () as total_mundial,
+    -- Ranking Nacional (museos del mismo país)
+    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final DESC) as posicion_nacional,
+    COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
+FROM ScoresBase sb;
 /
 
---- VW_MOVIMIENTOS_ACTIVOS: Facilita la consulta de obras que se encuentran actualmente
---- en alguna ubicación dentro de un museo, excluyendo las que ya tienen fecha de salida.
-CREATE OR REPLACE VIEW VW_MOVIMIENTOS_ACTIVOS AS
-SELECT 
-    hom.id_catalogo_museo,
-    hom.id_obra,
-    o.nombre as nombre_obra,
-    m.nombre as museo,
-    hom.fecha_entrada,
-    hom.fecha_salida,
-    hom.tipo_adquisicion,
-    hom.destacada,
-    hom.orden_recorrido,
-    hom.valor_monetario,
-    CASE 
-        WHEN hom.fecha_salida IS NULL THEN 'ACTIVA'
-        ELSE 'FINALIZADA'
-    END as estado_movimiento,
-    SYSDATE - hom.fecha_entrada as dias_en_ubicacion
-FROM HIST_OBRAS_MOV hom
-JOIN OBRAS o ON hom.id_obra = o.id_obra
-JOIN MUSEOS m ON hom.id_museo = m.id_museo
-WHERE hom.fecha_salida IS NULL
-ORDER BY m.nombre, hom.fecha_entrada DESC;
-/
 
 PROMPT --- Creando Paquetes de estado...
 

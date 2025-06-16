@@ -79,7 +79,7 @@
 
       <!-- SECCIÓN DE HISTORIAL DE MOVIMIENTOS EN MUSEOS -->
       <div v-if="empleado.historial && empleado.historial.length" class="info-section">
-        <h5 class="section-title">🏛️ Historial de Movimientos en Museos</h5>
+        <h5 class="section-title">🏛️ Historial de Movimientos en Museo</h5>
         <div class="timeline">
           <div v-for="(movimiento, index) in empleado.historial" :key="index" class="timeline-item movement-item">
             <div class="timeline-period">
@@ -353,7 +353,7 @@ export default {
         if (empleado.historial && empleado.historial.length > 0) {
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(16);
-          doc.text('HISTORIAL DE MOVIMIENTOS EN MUSEOS', 20, y);
+          doc.text('HISTORIAL DE MOVIMIENTOS EN MUSEO', 20, y);
           y += 10;
           
           doc.setFont('helvetica', 'normal');
