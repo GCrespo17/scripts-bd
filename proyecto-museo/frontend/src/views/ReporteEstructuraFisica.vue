@@ -42,58 +42,6 @@
         <!-- Encabezado del Museo -->
         <section class="museum-info">
           <h2>{{ reporte.museo.nombre }}</h2>
-          <div class="museum-details">
-            <div class="detail-item">
-              <strong>Fecha de Fundación:</strong> 
-              {{ formatearFecha(reporte.museo.fecha_fundacion) }}
-            </div>
-            <div class="detail-item">
-              <strong>Misión:</strong> 
-              {{ reporte.museo.mision }}
-            </div>
-          </div>
-        </section>
-
-        <!-- Resumen Ejecutivo -->
-        <section class="executive-summary">
-          <h3>📈 Resumen Ejecutivo</h3>
-          <div class="summary-grid">
-            <div class="summary-card">
-              <div class="card-icon">🏢</div>
-              <div class="card-content">
-                <span class="card-number">{{ reporte.resumen.total_edificios }}</span>
-                <span class="card-label">Edificios</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="card-icon">🏠</div>
-              <div class="card-content">
-                <span class="card-number">{{ reporte.resumen.total_pisos }}</span>
-                <span class="card-label">Pisos</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="card-icon">📦</div>
-              <div class="card-content">
-                <span class="card-number">{{ reporte.resumen.total_areas }}</span>
-                <span class="card-label">Áreas</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="card-icon">🖼️</div>
-              <div class="card-content">
-                <span class="card-number">{{ reporte.resumen.total_salas }}</span>
-                <span class="card-label">Salas de Exposición</span>
-              </div>
-            </div>
-            <div class="summary-card">
-              <div class="card-icon">🎨</div>
-              <div class="card-content">
-                <span class="card-number">{{ reporte.resumen.total_exposiciones_activas }}</span>
-                <span class="card-label">Exposiciones Activas</span>
-              </div>
-            </div>
-          </div>
         </section>
 
         <!-- Estructura Física Detallada -->
@@ -118,20 +66,12 @@
                 <tr>
                   <th>Nombre del Evento</th>
                   <th>Sala</th>
-                  <th>Fecha Inicio</th>
-                  <th>Fecha Fin</th>
-                  <th>Costo</th>
-                  <th>Visitantes</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="expo in reporte.exposiciones_actuales" :key="expo.nombre">
                   <td class="expo-name">{{ expo.nombre }}</td>
                   <td>{{ expo.sala }}</td>
-                  <td>{{ formatearFecha(expo.fecha_inicio) }}</td>
-                  <td>{{ formatearFecha(expo.fecha_fin) }}</td>
-                  <td class="cost">{{ formatearMoneda(expo.costo_persona) }}</td>
-                  <td class="visitors">{{ expo.visitantes || 'N/A' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -284,49 +224,10 @@ const exportToPDF = async () => {
     yPosition += 8
     
     pdf.setFont('helvetica', 'bold')
-    pdf.text('FUNDADO:', 20, yPosition)
-    pdf.setFont('helvetica', 'normal')
-    pdf.text(new Date(reporte.value.museo.fecha_fundacion).getFullYear().toString(), 50, yPosition)
-    yPosition += 8
-    
-    pdf.setFont('helvetica', 'bold')
     pdf.text('FECHA REPORTE:', 20, yPosition)
     pdf.setFont('helvetica', 'normal')
     pdf.text(new Date().toLocaleDateString('es-ES'), 70, yPosition)
-    yPosition += 8
-    
-    // MISIÓN
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('MISION:', 20, yPosition)
-    yPosition += 6
-    pdf.setFont('helvetica', 'italic')
-    yPosition = addWrappedText(reporte.value.museo.mision, 20, pageWidth - 40, 10)
     yPosition += 10
-    
-    // Línea separadora
-    pdf.setLineWidth(0.3)
-    pdf.line(20, yPosition, pageWidth - 20, yPosition)
-    yPosition += 10
-    
-    // RESUMEN EJECUTIVO
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('RESUMEN EJECUTIVO:', 20, yPosition)
-    yPosition += 8
-    
-    // Datos en formato de tabla
-    const resumen = reporte.value.resumen
-    pdf.setFontSize(11)
-    pdf.setFont('helvetica', 'normal')
-    
-    pdf.text(`Edificios: ${resumen.total_edificios}`, 25, yPosition)
-    pdf.text(`Pisos: ${resumen.total_pisos}`, 80, yPosition)
-    pdf.text(`Áreas: ${resumen.total_areas}`, 120, yPosition)
-    yPosition += 6
-    
-    pdf.text(`Salas: ${resumen.total_salas}`, 25, yPosition)
-    pdf.text(`Exposiciones Activas: ${resumen.total_exposiciones_activas}`, 80, yPosition)
-    yPosition += 12
     
     // Línea separadora
     pdf.setLineWidth(0.3)
@@ -507,7 +408,7 @@ const exportToPDF = async () => {
       yPosition += 10
       
       reporte.value.exposiciones_actuales.forEach((expo, index) => {
-        checkNewPage(25) // Aumentado por si acaso
+        checkNewPage(15)
         
         pdf.setFontSize(11)
         pdf.setFont('helvetica', 'bold')
@@ -517,16 +418,7 @@ const exportToPDF = async () => {
         pdf.setFontSize(9)
         pdf.setFont('helvetica', 'normal')
         pdf.text(`Sala: ${expo.sala}`, 30, yPosition)
-        yPosition += 4
-        pdf.text(`Fecha: ${formatearFecha(expo.fecha_inicio)} - ${formatearFecha(expo.fecha_fin)}`, 30, yPosition)
-        yPosition += 4
-        pdf.text(`Costo: ${formatearMoneda(expo.costo_persona)}`, 30, yPosition)
-        yPosition += 4
-        if (expo.visitantes) {
-          pdf.text(`Visitantes: ${expo.visitantes}`, 30, yPosition)
-          yPosition += 4
-        }
-        yPosition += 4
+        yPosition += 6
       })
     }
     
@@ -717,69 +609,7 @@ select:focus {
   margin-bottom: 1rem;
 }
 
-.museum-details {
-  display: grid;
-  gap: 0.75rem;
-}
 
-.detail-item {
-  font-size: 1.1rem;
-}
-
-.detail-item strong {
-  color: var(--gray-700);
-}
-
-/* Resumen ejecutivo */
-.executive-summary {
-  margin-bottom: 2rem;
-}
-
-.executive-summary h3 {
-  color: var(--gray-800);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.summary-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--gray-200);
-}
-
-.card-icon {
-  font-size: 2rem;
-  opacity: 0.8;
-}
-
-.card-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.card-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  line-height: 1;
-}
-
-.card-label {
-  font-size: 0.9rem;
-  color: var(--gray-600);
-  font-weight: 500;
-}
 
 /* Estructura detallada */
 .structure-detail {
@@ -841,16 +671,6 @@ select:focus {
   color: var(--primary-color);
 }
 
-.cost {
-  font-weight: 600;
-  color: var(--success-color);
-}
-
-.visitors {
-  text-align: center;
-  font-weight: 600;
-}
-
 /* Pie del reporte */
 .report-footer {
   margin-top: 3rem;
@@ -883,9 +703,7 @@ select:focus {
     display: none;
   }
   
-  .summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+
   
   .reporte-estructura-container {
     padding: 1rem;
@@ -905,9 +723,7 @@ select:focus {
     align-items: stretch;
   }
   
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
   
   .exhibitions-table {
     font-size: 0.875rem;
