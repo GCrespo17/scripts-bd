@@ -2387,9 +2387,9 @@ PROMPT -------------------------------------------------------------------------
 PROMPT Inserting data into EMPLEADOS_PROFESIONALES table...
 
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(9155789, 'José', 'Pérez', TO_DATE('1970-05-12', 'YYYY-MM-DD'), 584121234567, 'Antonio', NULL); -- Director Museo de Arte Caracas
+(9155789, 'José', 'Pérez', TO_DATE('1970-05-12', 'YYYY-MM-DD'), 584121234567, 'Antonio', NULL); -- Restaurador de Arte Caracas
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(8345878, 'María', 'González', TO_DATE('1965-11-20', 'YYYY-MM-DD'), 584241234567, NULL, 'Ramírez'); -- Directora Galería Nacional
+(8345878, 'María', 'González', TO_DATE('1965-11-20', 'YYYY-MM-DD'), 584241234567, NULL, 'Ramírez'); -- Restauradora Galería Nacional
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (15310561, 'Carlos', 'Rodríguez', TO_DATE('1982-02-28', 'YYYY-MM-DD'), 584141234567, 'Eduardo', NULL); -- Curador Museo de Arte Caracas
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
@@ -2820,6 +2820,38 @@ PROMPT -------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------
 -- Tabla: HIST_EMPLEADOS
 -- Descripción: Registra el historial de cargos de los empleados profesionales en las unidades organizativas.
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-06-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Curaduría de Arte Universal' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Bellas Artes')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Bellas Artes'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 15310561),
+ 'CURADOR',
+ NULL);
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-09-15', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Educación y Programas Públicos' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Bellas Artes')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Bellas Artes'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 9155789),
+ 'RESTAURADOR',
+ NULL);
+
+-- Historial de empleados en la Galería Nacional de Arte
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2012-04-10', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Curaduría y Colecciones' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 834 5878),
+ 'RESTAURADOR',
+ TO_DATE('2023-12-30', 'YYYY-MM-DD'));
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-07-22', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Administración' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 11230566),
+ 'CURADOR',
+ NULL);
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into HIST_EMPLEADOS table...
 

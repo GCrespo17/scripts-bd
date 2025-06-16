@@ -31,148 +31,41 @@
   
       <!-- Ficha del Museo -->
       <div v-if="fichaMuseo && !loading" class="ficha-content">
-        <!-- Información Básica -->
-        <div class="info-basica-card">
-          <h2 class="section-title">🏛️ Información Básica</h2>
+        <div class="info-basica-card card">
+          <h2 class="section-title">Información del Museo</h2>
           <div class="info-grid">
             <div class="info-item">
               <strong>Nombre:</strong>
               <span>{{ fichaMuseo.nombre }}</span>
             </div>
-            <div class="info-item">
-              <strong>Fecha de Fundación:</strong>
-              <span>{{ formatearFecha(fichaMuseo.fecha_fundacion) }}</span>
-            </div>
             <div class="info-item" v-if="fichaMuseo.ranking?.ubicacion">
               <strong>Ubicación:</strong>
               <span>{{ fichaMuseo.ranking.ubicacion.ciudad }}, {{ fichaMuseo.ranking.ubicacion.pais }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Fecha de Fundación:</strong>
+              <span>{{ formatearFecha(fichaMuseo.fecha_fundacion) }}</span>
             </div>
             <div class="info-item mision">
               <strong>Misión:</strong>
               <span>{{ fichaMuseo.mision }}</span>
             </div>
-          </div>
-        </div>
-  
-                <!-- Ranking Comparativo -->
-        <div v-if="fichaMuseo.ranking" class="ranking-card">
-          <h2 class="section-title">🏆 Ranking y Evaluación</h2>
-          
-          <!-- Score y Categoría -->
-          <div class="ranking-header">
-            <div class="score-display">
-              <div class="score-number">{{ (fichaMuseo.ranking.puntuaciones?.score_final || 0).toFixed(1) }}</div>
-              <div class="score-label">Puntaje Final</div>
+            <!-- Ranking Nacional -->
+            <div class="info-item" v-if="fichaMuseo.ranking?.posiciones">
+              <strong>Ranking Nacional:</strong>
+              <span v-if="fichaMuseo.ranking.posiciones.nacional?.posicion">
+                {{ fichaMuseo.ranking.posiciones.nacional.posicion }} / {{ fichaMuseo.ranking.posiciones.nacional.total }}
+              </span>
+              <span v-else>No disponible</span>
             </div>
-            <div class="categoria-display">
-                              <div class="categoria-badge" :class="getCategoriaClass(fichaMuseo.ranking?.categoria)">
-                  {{ fichaMuseo.ranking?.categoria || 'Sin clasificar' }}
-              </div>
+            <!-- Ranking Mundial -->
+            <div class="info-item" v-if="fichaMuseo.ranking?.posiciones">
+              <strong>Ranking Mundial:</strong>
+              <span v-if="fichaMuseo.ranking.posiciones.mundial?.posicion">
+                {{ fichaMuseo.ranking.posiciones.mundial.posicion }} / {{ fichaMuseo.ranking.posiciones.mundial.total }}
+              </span>
+              <span v-else>No disponible</span>
             </div>
-          </div>
-
-          <!-- Métricas Detalladas -->
-          <div class="metricas-section">
-            <h4>📊 Métricas de Evaluación</h4>
-            <div class="metricas-grid">
-              <div class="metrica-item">
-                <div class="metrica-icon">⏱️</div>
-                <div class="metrica-content">
-                  <div class="metrica-value">{{ (fichaMuseo.ranking.metricas?.antiguedad_promedio_anios || 0).toFixed(1) }} años</div>
-                  <div class="metrica-label">Antigüedad Promedio del Personal</div>
-                </div>
-              </div>
-              <div class="metrica-item">
-                <div class="metrica-icon">🔄</div>
-                <div class="metrica-content">
-                  <div class="metrica-value">{{ (fichaMuseo.ranking.metricas?.tasa_rotacion_alta_pct || 0).toFixed(1) }}%</div>
-                  <div class="metrica-label">Tasa de Rotación Alta</div>
-                </div>
-              </div>
-              <div class="metrica-item">
-                <div class="metrica-icon">👥</div>
-                <div class="metrica-content">
-                  <div class="metrica-value">{{ (fichaMuseo.ranking.metricas?.visitas_ultimo_anio || 0).toLocaleString() }}</div>
-                  <div class="metrica-label">Visitas Último Año</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Posiciones en Rankings -->
-          <div v-if="fichaMuseo.ranking.posiciones" class="posiciones-section">
-            <h4>🏆 Posiciones en Rankings</h4>
-            <div class="posiciones-grid">
-              <div class="posicion-item nacional" v-if="fichaMuseo.ranking.posiciones.nacional.posicion">
-                <div class="posicion-header">
-                  <div class="posicion-icon">🇳🇦</div>
-                  <div class="posicion-titulo">Ranking Nacional</div>
-                </div>
-                <div class="posicion-numeros">
-                  <span class="posicion-actual">{{ fichaMuseo.ranking.posiciones.nacional.posicion }}</span>
-                  <span class="posicion-separador">/</span>
-                  <span class="posicion-total">{{ fichaMuseo.ranking.posiciones.nacional.total }}</span>
-                </div>
-                <div class="posicion-contexto">
-                  en {{ fichaMuseo.ranking.ubicacion?.pais || 'el país' }}
-                </div>
-                <div class="posicion-porcentaje">
-                  Top {{ Math.round((fichaMuseo.ranking.posiciones.nacional.posicion / fichaMuseo.ranking.posiciones.nacional.total) * 100) }}%
-                </div>
-              </div>
-
-              <div class="posicion-item mundial" v-if="fichaMuseo.ranking.posiciones.mundial.posicion">
-                <div class="posicion-header">
-                  <div class="posicion-icon">🌍</div>
-                  <div class="posicion-titulo">Ranking Mundial</div>
-                </div>
-                <div class="posicion-numeros">
-                  <span class="posicion-actual">{{ fichaMuseo.ranking.posiciones.mundial.posicion }}</span>
-                  <span class="posicion-separador">/</span>
-                  <span class="posicion-total">{{ fichaMuseo.ranking.posiciones.mundial.total }}</span>
-                </div>
-                <div class="posicion-contexto">
-                  a nivel global
-                </div>
-                <div class="posicion-porcentaje">
-                  Top {{ Math.round((fichaMuseo.ranking.posiciones.mundial.posicion / fichaMuseo.ranking.posiciones.mundial.total) * 100) }}%
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Puntuaciones por Categoría -->
-          <div class="puntuaciones-section metricas-detalle">
-            <h4>📊 Métricas Detalladas</h4>
-            <div class="puntuaciones-grid">
-              <div class="puntuacion-item">
-                <div class="puntuacion-label">Estabilidad del Personal</div>
-                <div class="progress-bar">
-                  <div class="progress-fill estabilidad" 
-                       :style="{ width: `${(fichaMuseo.ranking.puntuaciones?.estabilidad_score || 0) * 10}%` }">
-                  </div>
-                </div>
-                <div class="puntuacion-valor">{{ (fichaMuseo.ranking.puntuaciones?.estabilidad_score || 0).toFixed(1) }}/10</div>
-              </div>
-              <div class="puntuacion-item">
-                <div class="puntuacion-label">Popularidad por Visitas</div>
-                <div class="progress-bar">
-                  <div class="progress-fill popularidad" 
-                       :style="{ width: `${(fichaMuseo.ranking.puntuaciones?.popularidad_score || 0) * 10}%` }">
-                  </div>
-                </div>
-                <div class="puntuacion-valor">{{ (fichaMuseo.ranking.puntuaciones?.popularidad_score || 0).toFixed(1) }}/10</div>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- Mensaje cuando no hay datos de ranking -->
-        <div v-else-if="fichaMuseo && !fichaMuseo.ranking" class="ranking-card no-ranking">
-          <h2 class="section-title">🏆 Ranking y Evaluación</h2>
-          <div class="no-data-message">
-            <p>📊 No hay suficientes datos disponibles para calcular el ranking de este museo.</p>
-            <p>Esto puede deberse a que el museo no tiene empleados registrados o no hay registros de ventas de tickets.</p>
           </div>
         </div>
   
