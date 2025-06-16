@@ -1400,7 +1400,7 @@ END SP_REGISTRAR_OBRA_NUEVA;
 -- -----------------------------------------------------------------------------
 -- Fecha de Creación: 14-JUN-2025
 -- Descripción:
--- Automatiza el registro de las obras en un museo
+-- Automatiza el movimiento de una obra en un museo, o hacia otro museo
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_MOVER_OBRA
 (
@@ -1628,5 +1628,95 @@ BEGIN
 END;
 /
 */
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MOVER_EMPLEADO_ACTVO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de un empleado activo
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_ACTIVO
+(
+    n_id_empleado IN EMPLEADOS.id_empleado%TYPE,
+    n_id_museo IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    n_id_est_org IN EST_ORGANIZACIONAL.id_est_org%TYPE DEFAULT NULL,
+    n_cargo IN HIST_EMPLEADOS.cargo%TYPE DEFAULT NULL
+)
+IS
+    v_current_museo HIST_EMPLEADOS.id_museo%TYPE;
+    v_current_org HIST_EMPLEADOS.id_est_org%TYPE;
+    v_current_cargo HIST_EMPLEADOS.cargo%TYPE;
+    v_current_fecha_inicio HIST_EMPLEADOS.fecha_inicio%TYPE;
+    v_destino_museo HIST_EMPLEADOS.id_museo%TYPE;
+    v_destino_org HIST_EMPLEADOS.id_est_org%TYPE;
+    v_destino_cargo HIST_EMPLEADOS.cargo%TYPE;
+BEGIN
+
+    BEGIN
+        SELECT fecha_inicio, id_museo, id_est_org, cargo
+        INTO v_current_fecha_inicio, v_current_museo, v_current_org, v_current_cargo
+        FROM HIST_EMPLEADOS
+        WHERE id_empleado_prof = n_id_empleado AND
+        fecha_fin IS NULL;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20401, 'Error: No se encontró un registro histórico ACTIVO para el empleado con ID ' || n_id_empleado || '. Este procedimiento es solo para empleados activos.');
+        WHEN TOO_MANY_ROWS THEN
+            RAISE_APPLICATION_ERROR(-20402, 'Error de consistencia de datos: El empleado con ID ' || n_id_empleado || ' tiene múltiples registros históricos activos (fecha_fin IS NULL).');
+    END;
+
+    v_destino_museo := NVL(n_id_museo, v_current_museo);
+    v_destino_org := NVL(n_id_est_org, v_current_org);
+    v_destino_cargo := NVL(n_cargo, v_current_cargo);
+    
+    IF v_destino_museo = v_current_museo AND
+       v_destino_org = v_current_org AND
+       v_destino_cargo = v_current_cargo THEN
+        RAISE_APPLICATION_ERROR(-20403, 'No hay cambios en la ubicación o cargo del empleado. Operación no realizada.');
+    END IF;
+    
+    
+    UPDATE HIST_EMPLEADOS SET fecha_fin = SYSDATE
+    WHERE id_empleado_prof = n_id_empleado AND
+    id_museo = v_current_museo AND
+    id_est_org = v_current_org AND
+    fecha_inicio = v_current_fecha_incio;
+    
+    INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, v_destino_org, v_destino_museo, n_id_empleado,
+        v_destino_cargo, NULL);
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO: ' || SQLERRM);
+END SP_MOVER_EMPLEADO_ACTIVO;
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MOVER_EMPLEADO_INACTIVO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de un empleado inactivo, con historico cerrado en ese
+-- museo o un nuevo empleado en general
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_INACTIVO
+(
+    n_id_empleado IN HIST_EMPLEADOS.id_empleado_prof%TYPE,
+    n_id_museo IN HIST_EMPLEADOS.id_museo%TYPE,
+    n_id_est_org IN HIST_EMPLEADOS.id_est_org%TYPE,
+    n_cargo IN HIST_EMPLEADOS.cargo%TYPE
+)
+IS
+BEGIN
+    
+    INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado_prof,
+        n_cargo, NULL);
+
+END SP_MOVER_EMPLEADO_INACTIVO;
 
 
