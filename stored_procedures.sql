@@ -1316,6 +1316,7 @@ IS
     v_id_est_org NUMBER;
     v_id_est_fis NUMBER;
     v_orden_ultima_nodestacada NUMBER;
+    v_orden_recorrido_final NUMBER; -- Variable local para manejar el orden
 BEGIN
     -- INSERTAR LA OBRA EN TABLA OBRAS
     INSERT INTO OBRAS(nombre, fecha_periodo, tipo_obra, dimensiones, desc_materiales_tecnicas, desc_estilos_generos)
@@ -1324,9 +1325,10 @@ BEGIN
     
     IF n_destacada = 'SI' THEN
         IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 THEN
+            v_orden_recorrido_final := n_orden_recorrido;
             UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
             WHERE id_museo = n_id_museo AND
-            orden_recorrido >= n_orden_recorrido AND
+            orden_recorrido >= v_orden_recorrido_final AND
             fecha_salida IS NULL;
         ELSIF n_orden_recorrido IS NULL THEN
             -- SELECCIONA EL ORDEN DE RECORRIDO DE LA ULTIMA OBRA DESTACADA
@@ -1336,7 +1338,7 @@ BEGIN
             destacada = 'SI' AND
             orden_recorrido IS NOT NULL;
             
-            n_orden_recorrido := v_orden_ultima_destacada+1;
+            v_orden_recorrido_final := v_orden_ultima_destacada+1;
             
             UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
             WHERE id_museo = n_id_museo AND
@@ -1355,9 +1357,10 @@ BEGIN
                 RAISE_APPLICATION_ERROR(-20200, 'La obra no destacada no puede 
                     tener un orden de recorrido mayor o igual a una destacada');
             ELSE
+                v_orden_recorrido_final := n_orden_recorrido;
                 UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
                 WHERE id_museo = n_id_museo AND
-                orden_recorrido >= n_orden_recorrido AND
+                orden_recorrido >= v_orden_recorrido_final AND
                 fecha_salida IS NULL;
             END IF;
         ELSIF n_orden_recorrido IS NULL THEN
@@ -1367,7 +1370,7 @@ BEGIN
             destacada = 'NO' AND
             orden_recorrido IS NOT NULL AND
             fecha_salida IS NULL;
-            n_orden_recorrido := v_orden_ultima_nodestacada+1;
+            v_orden_recorrido_final := v_orden_ultima_nodestacada+1;
         END IF;
     END IF;
     
@@ -1377,7 +1380,7 @@ BEGIN
     WHERE id_coleccion = n_id_coleccion;
     
     --CONSULTA PARA ENCONTRAR A LA EST_FIS
-    SELECT id_est_fis INTO v_id_est_fis
+    SELECT id_est INTO v_id_est_fis
     FROM SALAS_EXP
     WHERE id_sala = n_id_sala;
     
@@ -1385,8 +1388,11 @@ BEGIN
     INSERT INTO HIST_OBRAS_MOV(id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, 
         id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
         VALUES(v_id_obra, n_id_coleccion, n_id_sala, n_id_empleado, v_id_est_org, n_id_museo, 
-        v_id_est_fis, SYSDATE,n_tipo_adq, n_destacada, NULL, n_orden_recorrido, n_valor_monetario);
+        v_id_est_fis, SYSDATE,n_tipo_adq, n_destacada, NULL, v_orden_recorrido_final, n_valor_monetario);
     
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20100, 'Error inesperado en SP_REGISTRAR_OBRA_NUEVA: ' || SQLERRM);
 END SP_REGISTRAR_OBRA_NUEVA;
 /
 
@@ -1639,7 +1645,7 @@ END;
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_ACTIVO
 (
-    n_id_empleado IN EMPLEADOS.id_empleado%TYPE,
+    n_id_empleado IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE,
     n_id_museo IN MUSEOS.id_museo%TYPE DEFAULT NULL,
     n_id_est_org IN EST_ORGANIZACIONAL.id_est_org%TYPE DEFAULT NULL,
     n_cargo IN HIST_EMPLEADOS.cargo%TYPE DEFAULT NULL
@@ -1682,7 +1688,7 @@ BEGIN
     WHERE id_empleado_prof = n_id_empleado AND
     id_museo = v_current_museo AND
     id_est_org = v_current_org AND
-    fecha_inicio = v_current_fecha_incio;
+    fecha_inicio = v_current_fecha_inicio;
     
     INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
         cargo, fecha_fin) VALUES (SYSDATE, v_destino_org, v_destino_museo, n_id_empleado,
@@ -1690,10 +1696,9 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO_ACTIVO: ' || SQLERRM);
 END SP_MOVER_EMPLEADO_ACTIVO;
-
-
+/
 
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_MOVER_EMPLEADO_INACTIVO
@@ -1714,9 +1719,11 @@ IS
 BEGIN
     
     INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
-        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado,
         n_cargo, NULL);
 
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20406, 'Error inesperado en SP_MOVER_EMPLEADO_INACTIVO: ' || SQLERRM);
 END SP_MOVER_EMPLEADO_INACTIVO;
-
-
+/
