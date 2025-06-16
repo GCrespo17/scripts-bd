@@ -4892,13 +4892,6 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  'DIRECTOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2000-05-01', 'YYYY-MM-DD'),
- (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
- (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 2010),
- 'DIRECTOR', NULL);
-
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2008-04-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Musée Jacquemart André'),
@@ -7085,21 +7078,6 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
  (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000004), -- Olga Vostretsova
  'ADMINISTRATIVO', NULL);
 
--- Departamento de Colecciones (Head of Collections - ACTIVO)
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
- (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
- (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Dr. Jeannette Stoschek (como Jefa de Colecciones)
- 'CURADOR', NULL);
-
--- Departamento de Colecciones Externas (Dr. Jeannette Stoschek también lidera este departamento)
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2020-01-01', 'YYYY-MM-DD'),
- (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones Externas MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
- (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Dr. Jeannette Stoschek (como Jefa del Departamento de Colecciones Externas)
- 'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2015-03-01', 'YYYY-MM-DD'),
