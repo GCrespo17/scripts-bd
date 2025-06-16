@@ -1,3 +1,89 @@
+-- =============================================================================
+-- SECCIÓN 1: LIMPIEZA DEL ENTORNO (DROP OBJECTS)
+-- =============================================================================
+PROMPT --- Eliminando objetos en orden de dependencia inversa...
+
+-- Triggers
+PROMPT --- Eliminando Triggers...
+DROP TRIGGER TRG_MANEJAR_HIST_EMPLEADOS;
+DROP TRIGGER TRG_HIST_OBRAS_MOV_FECHAS;
+DROP TRIGGER TRG_EVITAR_CIERRE_CON_EXPOSICION;
+DROP TRIGGER TRG_MANEJAR_MANTENIMIENTOS_OBRAS;
+DROP TRIGGER TRG_AUTOMATIZAR_CIERRES_TEMPORALES;
+DROP TRIGGER TRG_GESTIONAR_HISTORIAL_PRECIOS;
+
+-- Vistas
+PROMPT --- Eliminando Vistas...
+DROP VIEW V_MUSEOS_RANKING_SCORES;
+DROP VIEW VW_MOVIMIENTOS_ACTIVOS;
+
+-- Procedimientos
+PROMPT --- Eliminando Procedimientos...
+DROP PROCEDURE SP_VENDER_TICKET;
+DROP PROCEDURE SP_REGISTRAR_NUEVO_EMPLEADO;
+DROP PROCEDURE SP_FINALIZAR_EXPOSICION;
+DROP PROCEDURE SP_CALCULAR_RANKING_MUSEO;
+DROP PROCEDURE SP_ASIGNAR_OBRA_A_EXPOSICION;
+DROP PROCEDURE SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO;
+DROP PROCEDURE SP_GESTIONAR_ESTADO_EXPOSICIONES;
+DROP PROCEDURE SP_CONSOLIDAR_OPERACIONES_DIARIAS;
+DROP PROCEDURE SP_INSERTAR_COLECCION;
+DROP PROCEDURE SP_MODIFICAR_ORDEN_COLECCION;
+DROP PROCEDURE SP_ELIMINAR_COLECCION;
+
+-- Paquetes
+PROMPT --- Eliminando Paquetes...
+DROP PACKAGE trigger_state_pkg;
+
+-- Tablas
+PROMPT --- Eliminando Tablas...
+DROP TABLE MANTENIMIENTOS_OBRAS_REALIZADOS CASCADE CONSTRAINTS;
+DROP TABLE PROGRAMAS_MANT CASCADE CONSTRAINTS;
+DROP TABLE HIST_OBRAS_MOV CASCADE CONSTRAINTS;
+DROP TABLE SALAS_COLECCIONES CASCADE CONSTRAINTS;
+DROP TABLE COLECCIONES_PERMANENTES CASCADE CONSTRAINTS;
+DROP TABLE CIERRES_TEMPORALES CASCADE CONSTRAINTS;
+DROP TABLE EXPOSICIONES_EVENTOS CASCADE CONSTRAINTS;
+DROP TABLE SALAS_EXP CASCADE CONSTRAINTS;
+DROP TABLE ASIGNACIONES_MES CASCADE CONSTRAINTS;
+DROP TABLE EST_FISICA CASCADE CONSTRAINTS;
+DROP TABLE HIST_EMPLEADOS CASCADE CONSTRAINTS;
+DROP TABLE EST_ORGANIZACIONAL CASCADE CONSTRAINTS;
+DROP TABLE FORMACIONES CASCADE CONSTRAINTS;
+DROP TABLE EMPLEADOS_IDIOMAS CASCADE CONSTRAINTS;
+DROP TABLE ARTISTAS_OBRAS CASCADE CONSTRAINTS;
+DROP TABLE ARTISTAS CASCADE CONSTRAINTS;
+DROP TABLE EMPLEADOS_PROFESIONALES CASCADE CONSTRAINTS;
+DROP TABLE EMPLEADOS_VIGILANTE_mant CASCADE CONSTRAINTS;
+DROP TABLE TICKETS CASCADE CONSTRAINTS;
+DROP TABLE TIPO_TICKETS CASCADE CONSTRAINTS;
+DROP TABLE HORARIOS CASCADE CONSTRAINTS;
+DROP TABLE HIST_MUSEOS CASCADE CONSTRAINTS;
+DROP TABLE MUSEOS CASCADE CONSTRAINTS;
+DROP TABLE IDIOMAS CASCADE CONSTRAINTS;
+DROP TABLE OBRAS CASCADE CONSTRAINTS;
+DROP TABLE LUGARES CASCADE CONSTRAINTS;
+
+-- Secuencias
+PROMPT --- Eliminando Secuencias...
+DROP SEQUENCE seq_lugar;
+DROP SEQUENCE seq_obra;
+DROP SEQUENCE seq_idioma;
+DROP SEQUENCE seq_empleado_vigilante_mant;
+DROP SEQUENCE seq_artista;
+DROP SEQUENCE seq_empleado_profesional;
+DROP SEQUENCE seq_formacion;
+DROP SEQUENCE seq_museo;
+DROP SEQUENCE seq_est_fisica;
+DROP SEQUENCE seq_sala_exp;
+DROP SEQUENCE seq_exposicion_evento;
+DROP SEQUENCE seq_est_organizacional;
+DROP SEQUENCE seq_coleccion_permanente;
+DROP SEQUENCE seq_hist_obra_mov;
+DROP SEQUENCE seq_programa_mant;
+DROP SEQUENCE seq_mant_obra_realizado;
+
+
 /******************************************************************************
 * -- PROYECTO: Gestión de Museos
 * -- GRUPO 3
@@ -381,8 +467,10 @@ COMMIT;
 -- =============================================================================
 PROMPT --- Creando Vistas de acceso a datos...
 
---- V_MUSEOS_RANKING_SCORES: Vista agregada que calcula y expone los scores de ranking 
---- para todos los museos, facilitando análisis comparativos a nivel nacional y mundial.
+-- V_MUSEOS_RANKING_SCORES: 
+-- Vista que calcula los puntajes de ranking para todos los museos, permitiendo
+-- comparaciones nacionales y mundiales. Incluye posiciones de ranking pre-calculadas.
+-- -----------------------------------------------------------------------------
 CREATE OR REPLACE VIEW V_MUSEOS_RANKING_SCORES AS
 WITH EstabilidadPersonal AS (
     -- Calcular métricas de estabilidad del personal por museo
@@ -391,8 +479,13 @@ WITH EstabilidadPersonal AS (
         COUNT(*) as total_empleados,
         AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) as antiguedad_promedio_anios,
         SUM(CASE WHEN (COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) < (365.25 * 5) THEN 1 ELSE 0 END) / COUNT(*) * 100 as tasa_rotacion_alta_pct,
-        -- Asignar puntaje de estabilidad (0 a 10)
-        LEAST(AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25), 10) as estabilidad_score
+        -- Asignar puntaje de estabilidad según nueva lógica (menor es mejor)
+        -- 1 = >10 años (excelente), 2 = 5-10 años (bueno), 3 = <5 años (alta rotación)
+        CASE 
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) > 10 THEN 1
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) >= 5 THEN 2
+            ELSE 3
+        END as estabilidad_score
     FROM HIST_EMPLEADOS he
     GROUP BY he.id_museo
 ),
@@ -438,10 +531,11 @@ ScoresBase AS (
         COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
         COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
         COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
-        COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
+        COALESCE(ep.estabilidad_score, 3) as estabilidad_score,
         COALESCE(pv.popularidad_score, 1) as popularidad_score,
-        -- Calcular puntaje final (60% estabilidad, 40% popularidad)
-        (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final
+        -- Score final basado en estabilidad (1=mejor, 3=peor) como criterio principal
+        -- Se multiplica por 1000 para dar prioridad y se resta popularidad para desempate
+        (COALESCE(ep.estabilidad_score, 3) * 1000) - COALESCE(pv.popularidad_score, 1) as score_final
     FROM UbicacionMuseos um
     LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
     LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
@@ -458,22 +552,57 @@ SELECT
     sb.estabilidad_score,
     sb.popularidad_score,
     sb.score_final,
-    -- Asignar categoría descriptiva
+    -- Asignar categoría descriptiva basada en score de estabilidad
     CASE 
-        WHEN sb.score_final >= 8 THEN 'Excelente (Líder del Sector)'
-        WHEN sb.score_final >= 6 THEN 'Bueno (Sólido y Reconocido)'
-        WHEN sb.score_final >= 4 THEN 'Regular (Estable con Potencial)'
+        WHEN sb.estabilidad_score = 1 THEN 'Excelente (Líder del Sector)'
+        WHEN sb.estabilidad_score = 2 THEN 'Bueno (Sólido y Reconocido)'
+        WHEN sb.estabilidad_score = 3 AND sb.popularidad_score >= 6 THEN 'Regular (Estable con Potencial)'
         ELSE 'En Desarrollo (Nicho o Volátil)'
     END as categoria_ranking,
     -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
-    -- Ranking Mundial (todos los museos)
-    RANK() OVER (ORDER BY sb.score_final DESC) as posicion_mundial,
+    -- Ranking Mundial (todos los museos) - menor score_final es mejor
+    RANK() OVER (ORDER BY sb.score_final ASC) as posicion_mundial,
     COUNT(*) OVER () as total_mundial,
-    -- Ranking Nacional (museos del mismo país)
-    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final DESC) as posicion_nacional,
+    -- Ranking Nacional (museos del mismo país) - menor score_final es mejor
+    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final ASC) as posicion_nacional,
     COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
 FROM ScoresBase sb;
 /
+
+
+
+-- -----------------------------------------------------------------------------
+-- VISTA: VW_MOVIMIENTOS_ACTIVOS
+-- -----------------------------------------------------------------------------
+-- Descripción: Vista que facilita la consulta de movimientos de obras activos
+-- utilizando únicamente las tablas del modelo ER original
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE VIEW VW_MOVIMIENTOS_ACTIVOS AS
+SELECT 
+    hom.id_catalogo_museo,
+    hom.id_obra,
+    o.nombre as nombre_obra,
+    m.nombre as museo,
+    hom.fecha_entrada,
+    hom.fecha_salida,
+    hom.tipo_adquisicion,
+    hom.destacada,
+    hom.orden_recorrido,
+    hom.valor_monetario,
+    CASE 
+        WHEN hom.fecha_salida IS NULL THEN 'ACTIVA'
+        ELSE 'FINALIZADA'
+    END as estado_movimiento,
+    -- Información adicional útil
+    SYSDATE - hom.fecha_entrada as dias_en_ubicacion
+FROM HIST_OBRAS_MOV hom
+JOIN OBRAS o ON hom.id_obra = o.id_obra
+JOIN MUSEOS m ON hom.id_museo = m.id_museo
+WHERE hom.fecha_salida IS NULL  -- Solo movimientos activos
+ORDER BY m.nombre, hom.fecha_entrada DESC;
+/
+
 
 
 PROMPT --- Creando Paquetes de estado...
@@ -625,8 +754,11 @@ END SP_FINALIZAR_EXPOSICION;
 /
 
 --- SP_CALCULAR_RANKING_MUSEO: Calcula un índice de rendimiento para un museo,
---- ponderando la estabilidad del personal (antigüedad, rotación) y la popularidad
---- (visitas anuales) para generar una categoría de ranking.
+-- Calcula el ranking de un museo basándose en la permanencia de su personal.
+-- Devuelve la antigüedad promedio en años, la tasa de rotación alta (personal
+-- con menos de 5 años de servicio) y una categoría descriptiva del ranking.
+-- Este procedimiento es llamado por la API para enriquecer el reporte de Ficha de Museo.
+-- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
     p_id_museo                  IN  MUSEOS.id_museo%TYPE,
     p_antiguedad_promedio_anios OUT NUMBER,
@@ -635,24 +767,37 @@ CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
     p_categoria_ranking         OUT VARCHAR2
 )
 AS
+    -- Variables para el cálculo de estabilidad del personal
     v_total_antiguedad_dias   NUMBER := 0;
     v_total_empleados         NUMBER := 0;
     v_empleados_alta_rotacion NUMBER := 0;
     v_antiguedad_promedio_anios NUMBER := 0;
     v_estabilidad_score       NUMBER := 0;
+
+    -- Variables para el cálculo de popularidad
     v_visitas_anuales         NUMBER := 0;
     v_popularidad_score       NUMBER := 0;
+
+    -- Variable para el ranking final
     v_ranking_final_score     NUMBER;
+    
+    -- Variable para validar que el museo existe
     v_museo_existe            NUMBER;
+
 BEGIN
+    -- ========= VALIDACIÓN INICIAL: Verificar que el museo existe =========
     BEGIN
-        SELECT 1 INTO v_museo_existe
-        FROM MUSEOS WHERE id_museo = p_id_museo;
+        SELECT 1
+        INTO v_museo_existe
+        FROM MUSEOS
+        WHERE id_museo = p_id_museo;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20030, 'Error: No existe un museo con el ID ' || p_id_museo || '. Verifique el parámetro de entrada.');
+            RAISE_APPLICATION_ERROR(-20030, 
+                'Error: No existe un museo con el ID ' || p_id_museo || '. Verifique el parámetro de entrada.');
     END;
 
+    -- ========= PASO 1: Calcular la Estabilidad del Personal =========
     FOR rec IN (
         SELECT (COALESCE(fecha_fin, SYSDATE) - fecha_inicio) as dias_trabajados
         FROM HIST_EMPLEADOS
@@ -660,6 +805,7 @@ BEGIN
     ) LOOP
         v_total_antiguedad_dias := v_total_antiguedad_dias + rec.dias_trabajados;
         v_total_empleados := v_total_empleados + 1;
+        
         IF rec.dias_trabajados < (365.25 * 5) THEN
             v_empleados_alta_rotacion := v_empleados_alta_rotacion + 1;
         END IF;
@@ -669,18 +815,33 @@ BEGIN
         v_antiguedad_promedio_anios := (v_total_antiguedad_dias / v_total_empleados) / 365.25;
         p_antiguedad_promedio_anios := v_antiguedad_promedio_anios;
         p_tasa_rotacion_alta_pct := (v_empleados_alta_rotacion / v_total_empleados) * 100;
-        v_estabilidad_score := LEAST(v_antiguedad_promedio_anios, 10);
+        
+        -- Asignar puntaje de estabilidad según nueva lógica (menor es mejor)
+        -- 1 = >10 años (excelente), 2 = 5-10 años (bueno), 3 = <5 años (alta rotación)
+        IF v_antiguedad_promedio_anios > 10 THEN
+            v_estabilidad_score := 1;
+        ELSIF v_antiguedad_promedio_anios >= 5 THEN
+            v_estabilidad_score := 2;
+        ELSE
+            v_estabilidad_score := 3;
+        END IF;
     ELSE
+        -- Si no hay empleados, asignar valores por defecto
         p_antiguedad_promedio_anios := 0;
         p_tasa_rotacion_alta_pct := 0;
-        v_estabilidad_score := 1;
+        v_estabilidad_score := 3; -- Peor puntaje por no tener historial
     END IF;
 
-    SELECT COUNT(id_num_ticket) INTO v_visitas_anuales
+    -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
+    SELECT COUNT(id_num_ticket)
+    INTO v_visitas_anuales
     FROM TICKETS
-    WHERE id_museo = p_id_museo AND fecha_hora_emision >= (SYSDATE - 365);
+    WHERE id_museo = p_id_museo
+      AND fecha_hora_emision >= (SYSDATE - 365);
+      
     p_visitas_ultimo_anio := v_visitas_anuales;
 
+    -- Asignar un puntaje de popularidad (0 a 10)
     IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
     ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
     ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
@@ -689,20 +850,31 @@ BEGIN
     ELSE v_popularidad_score := 1;
     END IF;
 
-    v_ranking_final_score := (v_estabilidad_score * 0.6) + (v_popularidad_score * 0.4);
-
-    IF v_ranking_final_score >= 8 THEN
+    -- ========= PASO 3: Calcular Ranking Final y Asignar Categoría =========
+    -- Usar directamente el score de estabilidad (1=mejor, 2=medio, 3=peor) sin normalizarlo
+    -- El ranking se basará principalmente en la estabilidad del personal
+    
+    -- Categorización basada en score de estabilidad del personal (criterio principal)
+    IF v_estabilidad_score = 1 THEN
+        -- Más de 10 años promedio = Excelente estabilidad
         p_categoria_ranking := 'Excelente (Líder del Sector)';
-    ELSIF v_ranking_final_score >= 6 THEN
+    ELSIF v_estabilidad_score = 2 THEN
+        -- Entre 5-10 años promedio = Buena estabilidad
         p_categoria_ranking := 'Bueno (Sólido y Reconocido)';
-    ELSIF v_ranking_final_score >= 4 THEN
-        p_categoria_ranking := 'Regular (Estable con Potencial)';
     ELSE
-        p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+        -- Menos de 5 años promedio = Alta rotación
+        IF v_popularidad_score >= 6 THEN
+            p_categoria_ranking := 'Regular (Estable con Potencial)';
+        ELSE
+            p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+        END IF;
     END IF;
+
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20031, 'Error inesperado al calcular el ranking del museo ID ' || p_id_museo || ': ' || SQLERRM);
+        -- Manejo robusto de errores inesperados
+        RAISE_APPLICATION_ERROR(-20031, 
+            'Error inesperado al calcular el ranking del museo ID ' || p_id_museo || ': ' || SQLERRM);
 END SP_CALCULAR_RANKING_MUSEO;
 /
 
@@ -1014,10 +1186,10 @@ EXCEPTION
 END SP_ELIMINAR_COLECCION;
 /
 
--- -----------------------------------------------------------------------------
+
 -- STORED PROCEDURE: SP_REGISTRAR_OBRA
 -- Automatiza el registro de las obras en un museo
--- -----------------------------------------------------------------------------
+
 CREATE OR REPLACE PROCEDURE SP_REGISTRAR_OBRA_NUEVA
 (
     -- DATOS DE LA OBRA
@@ -1044,6 +1216,7 @@ IS
     v_id_est_org NUMBER;
     v_id_est_fis NUMBER;
     v_orden_ultima_nodestacada NUMBER;
+    v_orden_recorrido_final NUMBER; -- Variable local para manejar el orden
 BEGIN
     -- INSERTAR LA OBRA EN TABLA OBRAS
     INSERT INTO OBRAS(nombre, fecha_periodo, tipo_obra, dimensiones, desc_materiales_tecnicas, desc_estilos_generos)
@@ -1052,9 +1225,10 @@ BEGIN
     
     IF n_destacada = 'SI' THEN
         IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 THEN
+            v_orden_recorrido_final := n_orden_recorrido;
             UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
             WHERE id_museo = n_id_museo AND
-            orden_recorrido >= n_orden_recorrido AND
+            orden_recorrido >= v_orden_recorrido_final AND
             fecha_salida IS NULL;
         ELSIF n_orden_recorrido IS NULL THEN
             -- SELECCIONA EL ORDEN DE RECORRIDO DE LA ULTIMA OBRA DESTACADA
@@ -1064,7 +1238,7 @@ BEGIN
             destacada = 'SI' AND
             orden_recorrido IS NOT NULL;
             
-            n_orden_recorrido := v_orden_ultima_destacada+1;
+            v_orden_recorrido_final := v_orden_ultima_destacada+1;
             
             UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
             WHERE id_museo = n_id_museo AND
@@ -1083,9 +1257,10 @@ BEGIN
                 RAISE_APPLICATION_ERROR(-20200, 'La obra no destacada no puede 
                     tener un orden de recorrido mayor o igual a una destacada');
             ELSE
+                v_orden_recorrido_final := n_orden_recorrido;
                 UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
                 WHERE id_museo = n_id_museo AND
-                orden_recorrido >= n_orden_recorrido AND
+                orden_recorrido >= v_orden_recorrido_final AND
                 fecha_salida IS NULL;
             END IF;
         ELSIF n_orden_recorrido IS NULL THEN
@@ -1095,7 +1270,7 @@ BEGIN
             destacada = 'NO' AND
             orden_recorrido IS NOT NULL AND
             fecha_salida IS NULL;
-            n_orden_recorrido := v_orden_ultima_nodestacada+1;
+            v_orden_recorrido_final := v_orden_ultima_nodestacada+1;
         END IF;
     END IF;
     
@@ -1105,7 +1280,7 @@ BEGIN
     WHERE id_coleccion = n_id_coleccion;
     
     --CONSULTA PARA ENCONTRAR A LA EST_FIS
-    SELECT id_est_fis INTO v_id_est_fis
+    SELECT id_est INTO v_id_est_fis
     FROM SALAS_EXP
     WHERE id_sala = n_id_sala;
     
@@ -1113,10 +1288,15 @@ BEGIN
     INSERT INTO HIST_OBRAS_MOV(id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, 
         id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
         VALUES(v_id_obra, n_id_coleccion, n_id_sala, n_id_empleado, v_id_est_org, n_id_museo, 
-        v_id_est_fis, SYSDATE,n_tipo_adq, n_destacada, NULL, n_orden_recorrido, n_valor_monetario);
+        v_id_est_fis, SYSDATE,n_tipo_adq, n_destacada, NULL, v_orden_recorrido_final, n_valor_monetario);
     
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20100, 'Error inesperado en SP_REGISTRAR_OBRA_NUEVA: ' || SQLERRM);
 END SP_REGISTRAR_OBRA_NUEVA;
 /
+
+
 
 
 
@@ -1315,7 +1495,7 @@ END SP_MOVER_OBRA;
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_ACTIVO
 (
-    n_id_empleado IN EMPLEADOS.id_empleado%TYPE,
+    n_id_empleado IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE,
     n_id_museo IN MUSEOS.id_museo%TYPE DEFAULT NULL,
     n_id_est_org IN EST_ORGANIZACIONAL.id_est_org%TYPE DEFAULT NULL,
     n_cargo IN HIST_EMPLEADOS.cargo%TYPE DEFAULT NULL
@@ -1358,7 +1538,7 @@ BEGIN
     WHERE id_empleado_prof = n_id_empleado AND
     id_museo = v_current_museo AND
     id_est_org = v_current_org AND
-    fecha_inicio = v_current_fecha_incio;
+    fecha_inicio = v_current_fecha_inicio;
     
     INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
         cargo, fecha_fin) VALUES (SYSDATE, v_destino_org, v_destino_museo, n_id_empleado,
@@ -1366,14 +1546,14 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO_ACTIVO: ' || SQLERRM);
 END SP_MOVER_EMPLEADO_ACTIVO;
+/
 
 
 
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_MOVER_EMPLEADO_INACTIVO
--- -----------------------------------------------------------------------------
 -- Automatiza el movimiento de un empleado inactivo, con historico cerrado en ese
 -- museo o un nuevo empleado en general
 -- -----------------------------------------------------------------------------
@@ -1388,11 +1568,14 @@ IS
 BEGIN
     
     INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
-        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado,
         n_cargo, NULL);
 
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20406, 'Error inesperado en SP_MOVER_EMPLEADO_INACTIVO: ' || SQLERRM);
 END SP_MOVER_EMPLEADO_INACTIVO;
-
+/
 
 
 
@@ -1694,7 +1877,7 @@ EXCEPTION
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20451, 'Error inesperado en el trigger TRG_VALIDAR_EMPLEADO_INACTIVO: ' || SQLERRM);
 END TRG_VALIDAR_EMPLEADO_INACTIVO;
-
+/
 
 -- =============================================================================
 -- SECCIÓN 6: CONSULTAS SQL PARA REPORTES

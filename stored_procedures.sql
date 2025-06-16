@@ -1381,7 +1381,7 @@ BEGIN
     
     --CONSULTA PARA ENCONTRAR A LA EST_FIS
     SELECT id_est INTO v_id_est_fis
-    FROM SALAS_EXP
+    FROM SALAS_EXP  
     WHERE id_sala = n_id_sala;
     
     

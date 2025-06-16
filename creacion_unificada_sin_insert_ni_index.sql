@@ -927,13 +927,20 @@ BEGIN
         p_antiguedad_promedio_anios := v_antiguedad_promedio_anios;
         p_tasa_rotacion_alta_pct := (v_empleados_alta_rotacion / v_total_empleados) * 100;
         
-        -- Asignar un puntaje de estabilidad (0 a 10)
-        v_estabilidad_score := LEAST(v_antiguedad_promedio_anios, 10);
+        -- Asignar puntaje de estabilidad: menor permanencia es mejor
+        -- 1 = >10 años (alta rotación), 2 = 5-10 años (bueno), 3 = <5 años (excelente)
+        IF v_antiguedad_promedio_anios > 10 THEN
+            v_estabilidad_score := 1; -- Alta rotación (peor)
+        ELSIF v_antiguedad_promedio_anios >= 5 THEN
+            v_estabilidad_score := 2; -- Bueno (intermedio)
+        ELSE
+            v_estabilidad_score := 3; -- Excelente (mejor)
+        END IF;
     ELSE
         -- Si no hay empleados, asignar valores por defecto
         p_antiguedad_promedio_anios := 0;
         p_tasa_rotacion_alta_pct := 0;
-        v_estabilidad_score := 1; -- Puntaje mínimo por no tener historial
+        v_estabilidad_score := 1; -- Sin historial = peor puntaje
     END IF;
 
     -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
@@ -955,17 +962,23 @@ BEGIN
     END IF;
 
     -- ========= PASO 3: Calcular Ranking Final y Asignar Categoría =========
-    -- Se da un 60% de peso a la estabilidad del personal y 40% a la popularidad.
-    v_ranking_final_score := (v_estabilidad_score * 0.6) + (v_popularidad_score * 0.4);
-
-    IF v_ranking_final_score >= 8 THEN
+    -- Usar directamente el score de estabilidad (1=mejor, 2=medio, 3=peor) sin normalizarlo
+    -- El ranking se basará principalmente en la estabilidad del personal
+    
+    -- Categorización basada en score de estabilidad del personal (criterio principal)
+    IF v_estabilidad_score = 3 THEN
+        -- Menos de 5 años promedio = Excelente (mejor)
         p_categoria_ranking := 'Excelente (Líder del Sector)';
-    ELSIF v_ranking_final_score >= 6 THEN
+    ELSIF v_estabilidad_score = 2 THEN
+        -- Entre 5-10 años promedio = Bueno (intermedio)
         p_categoria_ranking := 'Bueno (Sólido y Reconocido)';
-    ELSIF v_ranking_final_score >= 4 THEN
-        p_categoria_ranking := 'Regular (Estable con Potencial)';
     ELSE
-        p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+        -- Más de 10 años promedio = Alta rotación (peor)
+        IF v_popularidad_score >= 6 THEN
+            p_categoria_ranking := 'Regular (Estable con Potencial)';
+        ELSE
+            p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+        END IF;
     END IF;
 
 EXCEPTION
@@ -992,8 +1005,13 @@ WITH EstabilidadPersonal AS (
         COUNT(*) as total_empleados,
         AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) as antiguedad_promedio_anios,
         SUM(CASE WHEN (COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) < (365.25 * 5) THEN 1 ELSE 0 END) / COUNT(*) * 100 as tasa_rotacion_alta_pct,
-        -- Asignar puntaje de estabilidad (0 a 10)
-        LEAST(AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25), 10) as estabilidad_score
+        -- Asignar puntaje de estabilidad: menor permanencia es mejor
+        -- 1 = >10 años (alta rotación), 2 = 5-10 años (bueno), 3 = <5 años (excelente)
+        CASE 
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) > 10 THEN 1
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) >= 5 THEN 2
+            ELSE 3
+        END as estabilidad_score
     FROM HIST_EMPLEADOS he
     GROUP BY he.id_museo
 ),
@@ -1041,8 +1059,9 @@ ScoresBase AS (
         COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
         COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
         COALESCE(pv.popularidad_score, 1) as popularidad_score,
-        -- Calcular puntaje final (60% estabilidad, 40% popularidad)
-        (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final
+        -- Score final basado en estabilidad (3=mejor, 1=peor) como criterio principal
+        -- Se multiplica por -1000 para que 3 sea mejor que 1, y se suma popularidad para desempate
+        (COALESCE(ep.estabilidad_score, 1) * -1000) + COALESCE(pv.popularidad_score, 1) as score_final
     FROM UbicacionMuseos um
     LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
     LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
@@ -1059,18 +1078,18 @@ SELECT
     sb.estabilidad_score,
     sb.popularidad_score,
     sb.score_final,
-    -- Asignar categoría descriptiva
+    -- Asignar categoría descriptiva basada en score de estabilidad
     CASE 
-        WHEN sb.score_final >= 8 THEN 'Excelente (Líder del Sector)'
-        WHEN sb.score_final >= 6 THEN 'Bueno (Sólido y Reconocido)'
-        WHEN sb.score_final >= 4 THEN 'Regular (Estable con Potencial)'
+        WHEN sb.estabilidad_score = 3 THEN 'Excelente (Líder del Sector)'
+        WHEN sb.estabilidad_score = 2 THEN 'Bueno (Sólido y Reconocido)'
+        WHEN sb.estabilidad_score = 1 AND sb.popularidad_score >= 6 THEN 'Regular (Estable con Potencial)'
         ELSE 'En Desarrollo (Nicho o Volátil)'
     END as categoria_ranking,
     -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
-    -- Ranking Mundial (todos los museos)
+    -- Ranking Mundial (todos los museos) - mayor score_final es mejor (porque usamos números negativos)
     RANK() OVER (ORDER BY sb.score_final DESC) as posicion_mundial,
     COUNT(*) OVER () as total_mundial,
-    -- Ranking Nacional (museos del mismo país)
+    -- Ranking Nacional (museos del mismo país) - mayor score_final es mejor (porque usamos números negativos)
     RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final DESC) as posicion_nacional,
     COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
 FROM ScoresBase sb;
