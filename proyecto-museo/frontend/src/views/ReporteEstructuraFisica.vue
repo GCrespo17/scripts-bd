@@ -6,15 +6,28 @@
         <p>Análisis detallado de la infraestructura del museo</p>
       </header>
 
-      <!-- Selector de Museo -->
+      <!-- Selector de Museo y Filtros -->
       <div class="selection-container card">
-        <label for="museo-select">Seleccionar Museo:</label>
-        <select id="museo-select" v-model="selectedMuseo" @change="fetchReporte">
-          <option disabled value="">Seleccione un museo para generar el reporte</option>
-          <option v-for="museo in museos" :key="museo.id" :value="museo.id">
-            {{ museo.nombre }}
-          </option>
-        </select>
+        <div class="selector-group">
+          <label for="museo-select">Seleccionar Museo:</label>
+          <select id="museo-select" v-model="selectedMuseo" @change="fetchReporte">
+            <option disabled value="">Seleccione un museo para generar el reporte</option>
+            <option v-for="museo in museos" :key="museo.id" :value="museo.id">
+              {{ museo.nombre }}
+            </option>
+          </select>
+        </div>
+        
+        <div class="selector-group" v-if="reporte">
+          <label for="filtro-tipo">Filtrar por tipo:</label>
+          <select id="filtro-tipo" v-model="filtroTipo">
+            <option value="">Todos los elementos</option>
+            <option value="EDIFICIO">Solo Edificios</option>
+            <option value="PISO">Solo Pisos</option>
+            <option value="AREA">Solo Áreas</option>
+          </select>
+        </div>
+        
         <button 
           v-if="reporte" 
           @click="exportToPDF" 
@@ -42,6 +55,10 @@
         <!-- Encabezado del Museo -->
         <section class="museum-info">
           <h2>{{ reporte.museo.nombre }}</h2>
+          <div v-if="filtroTipo" class="filter-badge">
+            <span class="filter-label">🔍 Filtro activo:</span>
+            <span class="filter-value">{{ getFilterLabel(filtroTipo) }}</span>
+          </div>
         </section>
 
         <!-- Estructura Física Detallada -->
@@ -49,11 +66,15 @@
           <h3>🏗️ Estructura Física Detallada</h3>
           <div class="structure-tree">
             <ReporteEstructuraNode 
-              v-for="edificio in reporte.estructura_fisica" 
+              v-for="edificio in estructuraFiltrada" 
               :key="edificio.id" 
               :node="edificio"
               :level="0" 
             />
+          </div>
+          <div v-if="estructuraFiltrada.length === 0 && filtroTipo" class="no-results">
+            <p>No se encontraron elementos del tipo "{{ getFilterLabel(filtroTipo) }}" en este museo.</p>
+            <p class="no-results-hint">Intente con otro tipo de filtro o seleccione "Todos los elementos" para ver la estructura completa.</p>
           </div>
         </section>
 
@@ -101,6 +122,7 @@ const API_URL = 'http://localhost:3000/api'
 // Estado reactivo
 const museos = ref([])
 const selectedMuseo = ref('')
+const filtroTipo = ref('') // Nuevo: filtro por tipo
 const reporte = ref(null)
 const loadingMuseos = ref(false)
 const loadingReporte = ref(false)
@@ -116,6 +138,25 @@ const fechaGeneracion = computed(() => {
     hour: '2-digit',
     minute: '2-digit'
   })
+})
+
+// Nueva computada: estructura filtrada
+const estructuraFiltrada = computed(() => {
+  if (!reporte.value || !reporte.value.estructura_fisica) {
+    return []
+  }
+  
+  if (!filtroTipo.value) {
+    // Sin filtro: devolver estructura completa
+    return reporte.value.estructura_fisica
+  }
+  
+  // Aplicar filtro recursivo
+  const resultado = filtrarEstructura(reporte.value.estructura_fisica, filtroTipo.value)
+  console.log('Filtro aplicado:', filtroTipo.value)
+  console.log('Estructura original:', reporte.value.estructura_fisica)
+  console.log('Estructura filtrada:', resultado)
+  return resultado
 })
 
 // Métodos
@@ -137,6 +178,7 @@ const fetchReporte = async () => {
   loadingReporte.value = true
   errorReporte.value = null
   reporte.value = null
+  filtroTipo.value = '' // Resetear filtro al cambiar museo
   
   try {
     const response = await axios.get(`${API_URL}/reportes/estructura-fisica/${selectedMuseo.value}`)
@@ -147,6 +189,45 @@ const fetchReporte = async () => {
   } finally {
     loadingReporte.value = false
   }
+}
+
+// Nueva función: filtrar estructura por tipo (corregida)
+const filtrarEstructura = (nodos, tipo) => {
+  const resultado = []
+  
+  // Función recursiva para encontrar todos los nodos del tipo especificado
+  const buscarTodosTipos = (nodos, tipoFiltro) => {
+    const encontrados = []
+    
+    for (const nodo of nodos) {
+      // Si el nodo coincide con el tipo buscado, agregarlo
+      if (nodo.tipo === tipoFiltro) {
+        encontrados.push({
+          ...nodo,
+          children: [] // Los nodos filtrados no tendrán hijos para mostrar solo el tipo específico
+        })
+      }
+      
+      // Continuar buscando en los hijos
+      if (nodo.children && nodo.children.length > 0) {
+        encontrados.push(...buscarTodosTipos(nodo.children, tipoFiltro))
+      }
+    }
+    
+    return encontrados
+  }
+  
+  return buscarTodosTipos(nodos, tipo)
+}
+
+// Nueva función: obtener etiqueta del filtro
+const getFilterLabel = (tipo) => {
+  const labels = {
+    'EDIFICIO': 'Solo Edificios',
+    'PISO': 'Solo Pisos', 
+    'AREA': 'Solo Áreas'
+  }
+  return labels[tipo] || 'Todos los elementos'
 }
 
 const formatearFecha = (fecha) => {
@@ -227,7 +308,18 @@ const exportToPDF = async () => {
     pdf.text('FECHA REPORTE:', 20, yPosition)
     pdf.setFont('helvetica', 'normal')
     pdf.text(new Date().toLocaleDateString('es-ES'), 70, yPosition)
-    yPosition += 10
+    yPosition += 8
+    
+    // Información del filtro si está activo
+    if (filtroTipo.value) {
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('FILTRO APLICADO:', 20, yPosition)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(getFilterLabel(filtroTipo.value), 75, yPosition)
+      yPosition += 8
+    }
+    
+    yPosition += 2
     
     // Línea separadora
     pdf.setLineWidth(0.3)
@@ -240,7 +332,7 @@ const exportToPDF = async () => {
     pdf.text('ESTRUCTURA FÍSICA DETALLADA:', 20, yPosition)
     yPosition += 10
     
-    // Función recursiva para dibujar la estructura física (VERSIÓN CORREGIDA)
+    // Función recursiva para dibujar la estructura física (usar estructura filtrada)
     const drawEstructuraNode = (node, level = 0, parentNumber = '', siblingIndex = 0) => {
       const indent = 20 + (level * 15)
       
@@ -391,8 +483,8 @@ const exportToPDF = async () => {
       }
     }
     
-    // Dibujar todos los nodos raíz
-    reporte.value.estructura_fisica.forEach((rootNode, index) => {
+    // Dibujar todos los nodos raíz (usar estructura filtrada)
+    estructuraFiltrada.value.forEach((rootNode, index) => {
       drawEstructuraNode(rootNode, 0, '', index)
     })
     
@@ -440,7 +532,8 @@ const exportToPDF = async () => {
     
     // Generar nombre del archivo
     const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-')
-    const nombreArchivo = `Estructura_Fisica_${reporte.value.museo.nombre.replace(/\s+/g, '_')}_${fecha}.pdf`
+    const filtroSufijo = filtroTipo.value ? `_${filtroTipo.value}` : ''
+    const nombreArchivo = `Estructura_Fisica_${reporte.value.museo.nombre.replace(/\s+/g, '_')}${filtroSufijo}_${fecha}.pdf`
     
     // Descargar el PDF
     pdf.save(nombreArchivo)
@@ -503,11 +596,19 @@ onMounted(() => {
 .selection-container {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
 }
 
-.selection-container label {
+.selector-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.selector-group label {
   font-weight: 600;
   color: #374151;
   font-size: 1rem;
@@ -522,7 +623,7 @@ select {
   font-size: 1rem;
   transition: all 0.2s ease;
   background-color: white;
-  min-width: 200px;
+  min-width: 180px;
 }
 
 select:focus {
@@ -540,6 +641,7 @@ select:focus {
   cursor: pointer;
   font-weight: 600;
   transition: background-color 0.3s ease;
+  white-space: nowrap;
 }
 
 .export-pdf-btn:hover:not(:disabled) {
@@ -609,7 +711,32 @@ select:focus {
   margin-bottom: 1rem;
 }
 
+.filter-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #EBF4FF;
+  border: 1px solid #3B82F6;
+  border-radius: 6px;
+  width: fit-content;
+}
 
+.filter-label {
+  font-size: 0.9rem;
+  color: #1E40AF;
+  font-weight: 600;
+}
+
+.filter-value {
+  font-size: 0.9rem;
+  color: #3B82F6;
+  font-weight: 500;
+  background: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+}
 
 /* Estructura detallada */
 .structure-detail {
@@ -627,6 +754,23 @@ select:focus {
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid var(--gray-200);
+}
+
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-600);
+  font-style: italic;
+  background: var(--gray-50);
+  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+}
+
+.no-results-hint {
+  font-size: 0.9rem;
+  color: var(--gray-500);
+  margin-top: 0.5rem;
+  font-style: normal;
 }
 
 /* Exposiciones actuales */
@@ -688,6 +832,39 @@ select:focus {
   margin: 0.25rem 0;
 }
 
+/* Responsive */
+@media (max-width: 768px) {
+  .selection-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .selector-group {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: auto;
+  }
+  
+  .export-pdf-btn {
+    align-self: stretch;
+  }
+  
+  .filter-badge {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .exhibitions-table {
+    font-size: 0.875rem;
+  }
+  
+  .exhibitions-table th,
+  .exhibitions-table td {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
 /* Estilos para impresión */
 @media print {
   .report-header {
@@ -703,8 +880,6 @@ select:focus {
     display: none;
   }
   
-
-  
   .reporte-estructura-container {
     padding: 1rem;
     max-width: none;
@@ -713,25 +888,6 @@ select:focus {
   .loading-container,
   .error-container {
     display: none;
-  }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .selection-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-
-  
-  .exhibitions-table {
-    font-size: 0.875rem;
-  }
-  
-  .exhibitions-table th,
-  .exhibitions-table td {
-    padding: 0.75rem 0.5rem;
   }
 }
 </style> 
