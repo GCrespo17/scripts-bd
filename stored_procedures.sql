@@ -1,4 +1,3 @@
-
 -- NOTA: No se agrega tabla OBSERVACIONES_MOVIMIENTOS para respetar el modelo ER fijo
 -- Las observaciones se manejan a través de logs en los procedimientos
 
@@ -393,10 +392,16 @@ END;
 -- STORED PROCEDURE: SP_CALCULAR_RANKING_MUSEO
 -- -----------------------------------------------------------------------------
 -- Fecha de Creación: 07-JUN-2025
+-- Fecha de Modificación: 15-DIC-2024
 -- Descripción:
--- Calcula el ranking de un museo basándose en la permanencia de su personal.
--- Devuelve la antigüedad promedio en años, la tasa de rotación alta (personal
--- con menos de 5 años de servicio) y una categoría descriptiva del ranking.
+--c  Calcula el ranking de un museo basándose PRIORITARIAMENTE en la permanencia de su personal.
+-- LÓGICA DE RANKING (CONSISTENTE CON LA VISTA V_MUSEOS_RANKING_SCORES):
+-- 1. PRIORIDAD PRINCIPAL: Rotación de empleados (tiempo de permanencia promedio)
+--    - Promedio > 10 años = puntuación 1 (MEJOR, baja rotación)
+--    - Promedio entre 5-10 años = puntuación 2 (MEDIO)
+--    - Promedio < 5 años = puntuación 3 (PEOR, alta rotación)
+-- 2. CRITERIO DE DESEMPATE: Rangos de tickets vendidos en el último año
+--    - 50+ visitas = puntuación 1, 25-49 = puntuación 2, etc.
 -- Este procedimiento es llamado por la API para enriquecer el reporte de Ficha de Museo.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
@@ -412,14 +417,16 @@ AS
     v_total_empleados         NUMBER := 0;
     v_empleados_alta_rotacion NUMBER := 0;
     v_antiguedad_promedio_anios NUMBER := 0;
-    v_estabilidad_score       NUMBER := 0;
-
-    -- Variables para el cálculo de popularidad
+    
+    -- Variables para el cálculo de popularidad (criterio de desempate)
     v_visitas_anuales         NUMBER := 0;
-    v_popularidad_score       NUMBER := 0;
-
-    -- Variable para el ranking final
-    v_ranking_final_score     NUMBER;
+    v_tickets_anuales         NUMBER := 0;
+    v_visitas_exposiciones    NUMBER := 0;
+    
+    -- Variables para el ranking basado en rotación y visitas
+    v_puntuacion_rotacion     NUMBER := 3; -- Por defecto peor puntuación
+    v_puntuacion_visitas      NUMBER := 6; -- Por defecto peor puntuación
+    v_score_final             NUMBER;
     
     -- Variable para validar que el museo existe
     v_museo_existe            NUMBER;
@@ -446,6 +453,7 @@ BEGIN
         v_total_antiguedad_dias := v_total_antiguedad_dias + rec.dias_trabajados;
         v_total_empleados := v_total_empleados + 1;
         
+        -- Contar empleados con alta rotación (menos de 5 años)
         IF rec.dias_trabajados < (365.25 * 5) THEN
             v_empleados_alta_rotacion := v_empleados_alta_rotacion + 1;
         END IF;
@@ -453,49 +461,80 @@ BEGIN
 
     IF v_total_empleados > 0 THEN
         v_antiguedad_promedio_anios := (v_total_antiguedad_dias / v_total_empleados) / 365.25;
-        p_antiguedad_promedio_anios := v_antiguedad_promedio_anios;
-        p_tasa_rotacion_alta_pct := (v_empleados_alta_rotacion / v_total_empleados) * 100;
+        p_antiguedad_promedio_anios := ROUND(v_antiguedad_promedio_anios, 2);
+        p_tasa_rotacion_alta_pct := ROUND((v_empleados_alta_rotacion / v_total_empleados) * 100, 2);
         
-        -- Asignar un puntaje de estabilidad (0 a 10)
-        v_estabilidad_score := LEAST(v_antiguedad_promedio_anios, 10);
+        -- ========= NUEVA LÓGICA: Asignar puntuación basada en rotación =========
+        -- Promedio > 10 años = puntuación 1 (MEJOR, baja rotación)
+        -- Promedio entre 5-10 años = puntuación 2 (MEDIO)
+        -- Promedio < 5 años = puntuación 3 (PEOR, alta rotación)
+        IF v_antiguedad_promedio_anios > 10 THEN
+            v_puntuacion_rotacion := 1;
+        ELSIF v_antiguedad_promedio_anios >= 5 THEN
+            v_puntuacion_rotacion := 2;
+        ELSE
+            v_puntuacion_rotacion := 3;
+        END IF;
     ELSE
-        -- Si no hay empleados, asignar valores por defecto
+        -- Si no hay empleados, asignar valores por defecto (peor puntuación)
         p_antiguedad_promedio_anios := 0;
-        p_tasa_rotacion_alta_pct := 0;
-        v_estabilidad_score := 1; -- Puntaje mínimo por no tener historial
+        p_tasa_rotacion_alta_pct := 100; -- Máxima rotación por no tener datos
+        v_puntuacion_rotacion := 3; -- Peor puntuación
     END IF;
 
-    -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
-    SELECT COUNT(id_num_ticket)
-    INTO v_visitas_anuales
-    FROM TICKETS
-    WHERE id_museo = p_id_museo
+    -- ========= PASO 2: Calcular las Visitas Anuales y su Puntuación =========
+    -- ===== CÁLCULO DE POPULARIDAD (VOLUMEN TOTAL DE VISITAS) =====
+    -- Incluye: tickets de entrada general + visitantes de exposiciones específicas
+    
+    -- Contar tickets de entrada general del último año
+    SELECT COUNT(*) 
+    INTO v_tickets_anuales
+    FROM TICKETS 
+    WHERE id_museo = p_id_museo 
       AND fecha_hora_emision >= (SYSDATE - 365);
-      
-    p_visitas_ultimo_anio := v_visitas_anuales;
-
-    -- Asignar un puntaje de popularidad (0 a 10)
-    IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
-    ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
-    ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
-    ELSIF v_visitas_anuales > 15 THEN v_popularidad_score := 4;
-    ELSIF v_visitas_anuales > 5 THEN v_popularidad_score := 2;
-    ELSE v_popularidad_score := 1;
-    END IF;
-
-    -- ========= PASO 3: Calcular Ranking Final y Asignar Categoría =========
-    -- Se da un 60% de peso a la estabilidad del personal y 40% a la popularidad.
-    v_ranking_final_score := (v_estabilidad_score * 0.6) + (v_popularidad_score * 0.4);
-
-    IF v_ranking_final_score >= 8 THEN
-        p_categoria_ranking := 'Excelente (Líder del Sector)';
-    ELSIF v_ranking_final_score >= 6 THEN
-        p_categoria_ranking := 'Bueno (Sólido y Reconocido)';
-    ELSIF v_ranking_final_score >= 4 THEN
-        p_categoria_ranking := 'Regular (Estable con Potencial)';
+    
+    -- Sumar visitantes de exposiciones/eventos del último año
+    SELECT COALESCE(SUM(cant_visitantes), 0)
+    INTO v_visitas_exposiciones
+    FROM EXPOSICIONES_EVENTOS 
+    WHERE id_museo = p_id_museo 
+      AND cant_visitantes IS NOT NULL
+      AND fecha_inicio >= (SYSDATE - 365);
+    
+    -- Calcular volumen total de visitas anuales
+    p_visitas_ultimo_anio := v_tickets_anuales + v_visitas_exposiciones;
+    
+    -- Clasificar por rangos de popularidad (1=mejor, 6=peor)
+    IF p_visitas_ultimo_anio >= 50 THEN
+        v_puntuacion_visitas := 1;      -- Excelente afluencia
+    ELSIF p_visitas_ultimo_anio >= 25 THEN
+        v_puntuacion_visitas := 2;      -- Buena afluencia
+    ELSIF p_visitas_ultimo_anio >= 10 THEN
+        v_puntuacion_visitas := 3;      -- Afluencia regular
+    ELSIF p_visitas_ultimo_anio >= 5 THEN
+        v_puntuacion_visitas := 4;      -- Afluencia baja
+    ELSIF p_visitas_ultimo_anio >= 1 THEN
+        v_puntuacion_visitas := 5;      -- Afluencia muy baja
     ELSE
-        p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
+        v_puntuacion_visitas := 6;      -- Sin registro de visitas
     END IF;
+
+    -- ========= PASO 3: Calcular Score Final (Consistente con la Vista) =========
+    -- Score final: Rotación + (Visitas / 100) para mantener prioridad de rotación
+    v_score_final := v_puntuacion_rotacion + (v_puntuacion_visitas / 100.0);
+
+    -- ========= PASO 4: Asignar Categoría basada en la puntuación de rotación =========
+    -- La categoría se basa PRIORITARIAMENTE en la puntuación de rotación
+    CASE v_puntuacion_rotacion
+        WHEN 1 THEN
+            p_categoria_ranking := 'Excelente (Personal Muy Estable - +10 años promedio)';
+        WHEN 2 THEN
+            p_categoria_ranking := 'Bueno (Personal Estable - 5-10 años promedio)';
+        WHEN 3 THEN
+            p_categoria_ranking := 'En Desarrollo (Alta Rotación - <5 años promedio)';
+        ELSE
+            p_categoria_ranking := 'Sin Clasificar (Datos Insuficientes)';
+    END CASE;
 
 EXCEPTION
     WHEN OTHERS THEN

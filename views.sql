@@ -39,9 +39,17 @@ ORDER BY m.nombre, hom.fecha_entrada DESC;
 -- VISTA: V_MUSEOS_RANKING_SCORES
 -- -----------------------------------------------------------------------------
 -- Fecha de Creación: 15-NOV-2024
+-- Fecha de Modificación: 15-DIC-2024
 -- Descripción:
--- Vista que calcula los puntajes de ranking para todos los museos, permitiendo
--- comparaciones nacionales y mundiales. Incluye posiciones de ranking pre-calculadas.
+-- Vista que calcula los puntajes de ranking para todos los museos, implementando
+-- la nueva lógica de ranking basada PRIORITARIAMENTE en rotación de empleados:
+-- 1. PRIORIDAD PRINCIPAL: Rotación de empleados (tiempo de permanencia promedio)
+--    - Promedio > 10 años = puntuación 1 (MEJOR, baja rotación)
+--    - Promedio entre 5-10 años = puntuación 2 (MEDIO)
+--    - Promedio < 5 años = puntuación 3 (PEOR, alta rotación)
+-- 2. CRITERIO DE DESEMPATE: Rangos de tickets vendidos en el último año
+--    - 50+ visitas = puntuación 1, 25-49 = puntuación 2, etc.
+-- Incluye posiciones de ranking pre-calculadas nacionales y mundiales.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE VIEW V_MUSEOS_RANKING_SCORES AS
 WITH EstabilidadPersonal AS (
@@ -51,28 +59,46 @@ WITH EstabilidadPersonal AS (
         COUNT(*) as total_empleados,
         AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) as antiguedad_promedio_anios,
         SUM(CASE WHEN (COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) < (365.25 * 5) THEN 1 ELSE 0 END) / COUNT(*) * 100 as tasa_rotacion_alta_pct,
-        -- Asignar puntaje de estabilidad (0 a 10)
-        LEAST(AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25), 10) as estabilidad_score
+        -- *** NUEVA LÓGICA: Asignar puntuación basada en rotación (1=mejor, 3=peor) ***
+        CASE 
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) > 10 THEN 1  -- MEJOR: baja rotación
+            WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) >= 5 THEN 2  -- MEDIO
+            ELSE 3  -- PEOR: alta rotación
+        END as puntuacion_rotacion
     FROM HIST_EMPLEADOS he
     GROUP BY he.id_museo
 ),
 PopularidadVisitas AS (
-    -- Calcular métricas de popularidad por visitas anuales
+    -- Métricas de afluencia de visitantes (último año) - VOLUMEN TOTAL
+    -- Incluye: tickets de entrada general + visitantes de exposiciones específicas
     SELECT 
-        t.id_museo,
-        COUNT(*) as visitas_ultimo_anio,
-        -- Asignar puntaje de popularidad (0 a 10)
+        id_museo,
+        (tickets_anuales + visitas_exposiciones_anuales) as visitas_ultimo_anio,
+        -- Clasificación por rangos de popularidad (volumen total)
         CASE 
-            WHEN COUNT(*) > 100 THEN 10
-            WHEN COUNT(*) > 50 THEN 8
-            WHEN COUNT(*) > 25 THEN 6
-            WHEN COUNT(*) > 15 THEN 4
-            WHEN COUNT(*) > 5 THEN 2
-            ELSE 1
-        END as popularidad_score
-    FROM TICKETS t
-    WHERE t.fecha_hora_emision >= (SYSDATE - 365)
-    GROUP BY t.id_museo
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 50 THEN 1  -- Excelente afluencia
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 25 THEN 2  -- Buena afluencia
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 10 THEN 3  -- Afluencia regular
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 5 THEN 4   -- Afluencia baja
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 1 THEN 5   -- Afluencia muy baja
+            ELSE 6                                                              -- Sin registro de visitas
+        END as puntuacion_visitas
+    FROM (
+        SELECT 
+            m.id_museo,
+            -- Contar tickets de entrada general (último año)
+            COALESCE((SELECT COUNT(*) 
+                     FROM TICKETS t 
+                     WHERE t.id_museo = m.id_museo 
+                       AND t.fecha_hora_emision >= (SYSDATE - 365)), 0) as tickets_anuales,
+            -- Sumar visitantes de exposiciones/eventos (último año)
+            COALESCE((SELECT SUM(ee.cant_visitantes) 
+                     FROM EXPOSICIONES_EVENTOS ee 
+                     WHERE ee.id_museo = m.id_museo 
+                       AND ee.cant_visitantes IS NOT NULL
+                       AND ee.fecha_inicio >= (SYSDATE - 365)), 0) as visitas_exposiciones_anuales
+        FROM MUSEOS m
+    )
 ),
 UbicacionMuseos AS (
     -- Obtener la ubicación (país) de cada museo
@@ -95,13 +121,16 @@ ScoresBase AS (
         um.ciudad,
         um.id_pais,
         um.pais,
-        COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
-        COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
+        COALESCE(ROUND(ep.antiguedad_promedio_anios, 2), 0) as antiguedad_promedio_anios,
+        COALESCE(ROUND(ep.tasa_rotacion_alta_pct, 2), 100) as tasa_rotacion_alta_pct,
         COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
-        COALESCE(ep.estabilidad_score, 1) as estabilidad_score,
-        COALESCE(pv.popularidad_score, 1) as popularidad_score,
-        -- Calcular puntaje final (60% estabilidad, 40% popularidad)
-        (COALESCE(ep.estabilidad_score, 1) * 0.6) + (COALESCE(pv.popularidad_score, 1) * 0.4) as score_final
+        -- *** NUEVA LÓGICA: Puntuación basada en rotación (1=mejor, 3=peor) ***
+        COALESCE(ep.puntuacion_rotacion, 3) as puntuacion_rotacion,
+        -- *** PUNTUACIÓN DE VISITAS POR RANGOS ***
+        COALESCE(pv.puntuacion_visitas, 6) as puntuacion_visitas,
+        -- *** SCORE FINAL MEJORADO: Rotación + Visitas como decimal ***
+        -- Ejemplo: Rotación 1 + Visitas 3 = 1.03 (mejor que Rotación 2 + Visitas 1 = 2.01)
+        COALESCE(ep.puntuacion_rotacion, 3) + (COALESCE(pv.puntuacion_visitas, 6) / 100.0) as score_final
     FROM UbicacionMuseos um
     LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
     LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
@@ -115,22 +144,31 @@ SELECT
     sb.antiguedad_promedio_anios,
     sb.tasa_rotacion_alta_pct,
     sb.visitas_ultimo_anio,
-    sb.estabilidad_score,
-    sb.popularidad_score,
+    -- Incluir puntuación de rotación para referencia
+    sb.puntuacion_rotacion as estabilidad_score,
+    -- Para compatibilidad, mantener popularidad_score basado en rangos
+    CASE sb.puntuacion_visitas
+        WHEN 1 THEN 10  -- 50+ visitas
+        WHEN 2 THEN 8   -- 25-49 visitas  
+        WHEN 3 THEN 6   -- 10-24 visitas
+        WHEN 4 THEN 4   -- 5-9 visitas
+        WHEN 5 THEN 2   -- 1-4 visitas
+        ELSE 1          -- 0 visitas
+    END as popularidad_score,
     sb.score_final,
-    -- Asignar categoría descriptiva
-    CASE 
-        WHEN sb.score_final >= 8 THEN 'Excelente (Líder del Sector)'
-        WHEN sb.score_final >= 6 THEN 'Bueno (Sólido y Reconocido)'
-        WHEN sb.score_final >= 4 THEN 'Regular (Estable con Potencial)'
-        ELSE 'En Desarrollo (Nicho o Volátil)'
+    -- *** NUEVA LÓGICA: Categoría basada en puntuación de rotación ***
+    CASE sb.puntuacion_rotacion
+        WHEN 1 THEN 'Excelente (Personal Muy Estable - +10 años promedio)'
+        WHEN 2 THEN 'Bueno (Personal Estable - 5-10 años promedio)'
+        WHEN 3 THEN 'En Desarrollo (Alta Rotación - <5 años promedio)'
+        ELSE 'Sin Clasificar (Datos Insuficientes)'
     END as categoria_ranking,
-    -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
-    -- Ranking Mundial (todos los museos)
-    RANK() OVER (ORDER BY sb.score_final DESC) as posicion_mundial,
+    -- *** RANKING CON NUEVA LÓGICA: Primero por rotación, luego por visitas ***
+    -- Ranking Mundial (todos los museos) - menor score_final = mejor posición
+    RANK() OVER (ORDER BY sb.score_final ASC) as posicion_mundial,
     COUNT(*) OVER () as total_mundial,
-    -- Ranking Nacional (museos del mismo país)
-    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final DESC) as posicion_nacional,
+    -- Ranking Nacional (museos del mismo país) - menor score_final = mejor posición
+    RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final ASC) as posicion_nacional,
     COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
 FROM ScoresBase sb;
 /
