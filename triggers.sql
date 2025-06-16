@@ -486,7 +486,7 @@ BEGIN
     INTO v_contador_registros_activos
     FROM HIST_EMPLEADOS
     WHERE id_empleado_prof = :NEW.id_empleado_prof AND
-    fecha_fin IS NOT NULL;
+    fecha_fin IS NULL;
     
     IF v_contador_registros_activos > 0 THEN
         RAISE_APPLICATION_ERROR(-20450, 'Error, el empleado con ID: '|| :NEW.id_empleado_prof ||' tiene un historico de trabajo abierto.');
