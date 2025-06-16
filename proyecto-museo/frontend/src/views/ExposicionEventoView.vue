@@ -14,15 +14,6 @@
     <!-- Main Content -->
     <section class="main-content">
       <div class="content-wrapper">
-        <!-- Info Card -->
-        <div class="info-card">
-          <div class="info-icon">ℹ️</div>
-          <div class="info-content">
-            <h3>Programación de Exposiciones</h3>
-            <p>Complete el formulario para registrar una nueva exposición o evento. El sistema validará automáticamente la disponibilidad de salas y fechas.</p>
-          </div>
-        </div>
-
         <!-- Form Container -->
         <div class="form-container">
           <div class="form-header">
@@ -193,31 +184,6 @@
             <span class="message-text">{{ message }}</span>
           </div>
         </div>
-
-        <!-- Quick Stats -->
-        <div class="stats-container">
-          <div class="stat-item">
-            <div class="stat-icon">🎭</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.exposicionesActivas }}</div>
-              <div class="stat-label">Exposiciones Activas</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">📅</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.eventosProgramados }}</div>
-              <div class="stat-label">Eventos Programados</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">🏛️</div>
-            <div class="stat-content">
-              <div class="stat-number">{{ loadingStats ? '...' : stats.salasDisponibles }}</div>
-              <div class="stat-label">Salas Disponibles</div>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   </div>
@@ -246,12 +212,7 @@ export default {
         costo_persona: null,
         institucion_educativa: ''
       },
-      stats: {
-        exposicionesActivas: 0,
-        eventosProgramados: 0,
-        salasDisponibles: 0,
-      },
-      loadingStats: true,
+
     };
   },
   computed: {
@@ -261,21 +222,7 @@ export default {
     }
   },
   methods: {
-    async fetchStats() {
-      this.loadingStats = true;
-      try {
-        const response = await fetch('http://localhost:3000/api/estadisticas/exposiciones');
-        if (response.ok) {
-          this.stats = await response.json();
-        } else {
-          console.error('Error al cargar estadísticas de exposiciones');
-        }
-      } catch (error) {
-        console.error('Error de red al cargar estadísticas:', error);
-      } finally {
-        this.loadingStats = false;
-      }
-    },
+
     async fetchMuseos() {
       try {
         const response = await fetch('http://localhost:3000/api/museos');
@@ -412,10 +359,6 @@ export default {
         this.showMessage('Exposición/Evento registrado exitosamente', 'success');
         this.resetForm();
         
-        // Actualizar estadísticas (simulado)
-        this.stats.exposicionesActivas++;
-        this.stats.eventosProgramados++;
-        
       } catch (error) {
         this.showMessage('Error: ' + error.message, 'error');
       } finally {
@@ -450,7 +393,6 @@ export default {
   },
   created() {
     this.fetchMuseos();
-    this.fetchStats();
   }
 }
 </script>
@@ -511,52 +453,14 @@ export default {
 }
 
 .content-wrapper {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  grid-template-rows: auto 1fr auto;
-  gap: 2rem;
-  grid-template-areas: 
-    "info form"
-    "stats form"
-    "stats form";
-}
-
-.info-card {
-  grid-area: info;
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-200);
   display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.info-icon {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin-top: 0.25rem;
-}
-
-.info-content h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--gray-800);
-  margin-bottom: 0.5rem;
-}
-
-.info-content p {
-  color: var(--gray-600);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0;
+  justify-content: center;
 }
 
 .form-container {
-  grid-area: form;
+  width: 100%;
   background: white;
   border-radius: 20px;
   padding: 2.5rem;
@@ -749,76 +653,12 @@ export default {
   font-size: 1.2rem;
 }
 
-.stats-container {
-  grid-area: stats;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
 
-.stat-item {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-200);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: transform 0.2s ease;
-}
-
-.stat-item:hover {
-  transform: translateY(-2px);
-}
-
-.stat-icon {
-  font-size: 2.5rem;
-  opacity: 0.8;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-number {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--primary-color);
-  line-height: 1;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: var(--gray-600);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 /* Responsive */
 @media (max-width: 1024px) {
   .content-wrapper {
-    grid-template-columns: 1fr;
-    grid-template-areas: 
-      "info"
-      "form"
-      "stats";
-  }
-
-  .stats-container {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .stat-item {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .stat-number {
-    font-size: 1.5rem;
+    max-width: 700px;
   }
 }
 
@@ -828,10 +668,6 @@ export default {
   }
   
   .form-actions {
-    flex-direction: column;
-  }
-
-  .stats-container {
     flex-direction: column;
   }
 
@@ -851,6 +687,10 @@ export default {
 
   .form-container {
     padding: 1.5rem;
+  }
+  
+  .content-wrapper {
+    max-width: 100%;
   }
 }
 </style>

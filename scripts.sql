@@ -467,48 +467,69 @@ COMMIT;
 -- =============================================================================
 PROMPT --- Creando Vistas de acceso a datos...
 
--- V_MUSEOS_RANKING_SCORES: 
--- Vista que calcula los puntajes de ranking para todos los museos, permitiendo
--- comparaciones nacionales y mundiales. Incluye posiciones de ranking pre-calculadas.
+-- -----------------------------------------------------------------------------
+-- VISTA: V_MUSEOS_RANKING_SCORES
+-- Vista que calcula puntajes de ranking para museos basado en 
+-- estabilidad de personal y popularidad de visitantes.
+-- METODOLOGÍA DE RANKING:
+-- 1. CRITERIO PRINCIPAL: Permanencia promedio del personal (estabilidad institucional)
+--    - Más de 10 años: Score 1 (Excelente estabilidad)
+--    - Entre 5-10 años: Score 2 (Estabilidad moderada)  
+--    - Menos de 5 años: Score 3 (Alta rotación)
+-- 2. CRITERIO DE DESEMPATE: Volumen de visitantes anuales (rangos estratificados)
+-- 3. POSICIONAMIENTO: Rankings nacionales y mundiales pre-calculados
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE VIEW V_MUSEOS_RANKING_SCORES AS
 WITH EstabilidadPersonal AS (
-    -- Calcular métricas de estabilidad del personal por museo
+    -- Análisis de estabilidad de personal por institución
     SELECT 
         he.id_museo,
         COUNT(*) as total_empleados,
         AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) as antiguedad_promedio_anios,
         SUM(CASE WHEN (COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) < (365.25 * 5) THEN 1 ELSE 0 END) / COUNT(*) * 100 as tasa_rotacion_alta_pct,
-        -- Asignar puntaje de estabilidad según nueva lógica (menor es mejor)
-        -- 1 = >10 años (excelente), 2 = 5-10 años (bueno), 3 = <5 años (alta rotación)
+        -- Puntuación de estabilidad: 1=excelente, 2=bueno, 3=deficiente
         CASE 
             WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) > 10 THEN 1
             WHEN AVG((COALESCE(he.fecha_fin, SYSDATE) - he.fecha_inicio) / 365.25) >= 5 THEN 2
             ELSE 3
-        END as estabilidad_score
+        END as puntuacion_rotacion
     FROM HIST_EMPLEADOS he
     GROUP BY he.id_museo
 ),
 PopularidadVisitas AS (
-    -- Calcular métricas de popularidad por visitas anuales
+    -- Métricas de afluencia de visitantes (último año) - VOLUMEN TOTAL
+    -- Incluye: tickets de entrada general + visitantes de exposiciones específicas
     SELECT 
-        t.id_museo,
-        COUNT(*) as visitas_ultimo_anio,
-        -- Asignar puntaje de popularidad (0 a 10)
+        id_museo,
+        (tickets_anuales + visitas_exposiciones_anuales) as visitas_ultimo_anio,
+        -- Clasificación por rangos de popularidad (volumen total)
         CASE 
-            WHEN COUNT(*) > 100 THEN 10
-            WHEN COUNT(*) > 50 THEN 8
-            WHEN COUNT(*) > 25 THEN 6
-            WHEN COUNT(*) > 15 THEN 4
-            WHEN COUNT(*) > 5 THEN 2
-            ELSE 1
-        END as popularidad_score
-    FROM TICKETS t
-    WHERE t.fecha_hora_emision >= (SYSDATE - 365)
-    GROUP BY t.id_museo
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 50 THEN 1  -- Excelente afluencia
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 25 THEN 2  -- Buena afluencia
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 10 THEN 3  -- Afluencia regular
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 5 THEN 4   -- Afluencia baja
+            WHEN (tickets_anuales + visitas_exposiciones_anuales) >= 1 THEN 5   -- Afluencia muy baja
+            ELSE 6                                                              -- Sin registro de visitas
+        END as puntuacion_visitas
+    FROM (
+        SELECT 
+            m.id_museo,
+            -- Contar tickets de entrada general (último año)
+            COALESCE((SELECT COUNT(*) 
+                     FROM TICKETS t 
+                     WHERE t.id_museo = m.id_museo 
+                       AND t.fecha_hora_emision >= (SYSDATE - 365)), 0) as tickets_anuales,
+            -- Sumar visitantes de exposiciones/eventos (último año)
+            COALESCE((SELECT SUM(ee.cant_visitantes) 
+                     FROM EXPOSICIONES_EVENTOS ee 
+                     WHERE ee.id_museo = m.id_museo 
+                       AND ee.cant_visitantes IS NOT NULL
+                       AND ee.fecha_inicio >= (SYSDATE - 365)), 0) as visitas_exposiciones_anuales
+        FROM MUSEOS m
+    )
 ),
 UbicacionMuseos AS (
-    -- Obtener la ubicación (país) de cada museo
+    -- Datos geográficos para segmentación de ranking
     SELECT 
         m.id_museo,
         m.nombre as nombre_museo,
@@ -521,21 +542,20 @@ UbicacionMuseos AS (
     WHERE ciudad.tipo = 'CIUDAD' AND pais.tipo = 'PAIS'
 ),
 ScoresBase AS (
-    -- Calcular scores base para todos los museos
+    -- Consolidación de métricas y cálculo de score final
     SELECT 
         um.id_museo,
         um.nombre_museo,
         um.ciudad,
         um.id_pais,
         um.pais,
-        COALESCE(ep.antiguedad_promedio_anios, 0) as antiguedad_promedio_anios,
-        COALESCE(ep.tasa_rotacion_alta_pct, 0) as tasa_rotacion_alta_pct,
+        COALESCE(ROUND(ep.antiguedad_promedio_anios, 2), 0) as antiguedad_promedio_anios,
+        COALESCE(ROUND(ep.tasa_rotacion_alta_pct, 2), 100) as tasa_rotacion_alta_pct,
         COALESCE(pv.visitas_ultimo_anio, 0) as visitas_ultimo_anio,
-        COALESCE(ep.estabilidad_score, 3) as estabilidad_score,
-        COALESCE(pv.popularidad_score, 1) as popularidad_score,
-        -- Score final basado en estabilidad (1=mejor, 3=peor) como criterio principal
-        -- Se multiplica por 1000 para dar prioridad y se resta popularidad para desempate
-        (COALESCE(ep.estabilidad_score, 3) * 1000) - COALESCE(pv.popularidad_score, 1) as score_final
+        COALESCE(ep.puntuacion_rotacion, 3) as puntuacion_rotacion,
+        COALESCE(pv.puntuacion_visitas, 6) as puntuacion_visitas,
+        -- Score híbrido: prioridad a estabilidad de personal, desempate por popularidad
+        COALESCE(ep.puntuacion_rotacion, 3) + (COALESCE(pv.puntuacion_visitas, 6) / 100.0) as score_final
     FROM UbicacionMuseos um
     LEFT JOIN EstabilidadPersonal ep ON um.id_museo = ep.id_museo
     LEFT JOIN PopularidadVisitas pv ON um.id_museo = pv.id_museo
@@ -549,26 +569,23 @@ SELECT
     sb.antiguedad_promedio_anios,
     sb.tasa_rotacion_alta_pct,
     sb.visitas_ultimo_anio,
-    sb.estabilidad_score,
-    sb.popularidad_score,
+    sb.puntuacion_rotacion as estabilidad_score,
+    sb.puntuacion_visitas as popularidad_score,
     sb.score_final,
-    -- Asignar categoría descriptiva basada en score de estabilidad
-    CASE 
-        WHEN sb.estabilidad_score = 1 THEN 'Excelente (Líder del Sector)'
-        WHEN sb.estabilidad_score = 2 THEN 'Bueno (Sólido y Reconocido)'
-        WHEN sb.estabilidad_score = 3 AND sb.popularidad_score >= 6 THEN 'Regular (Estable con Potencial)'
-        ELSE 'En Desarrollo (Nicho o Volátil)'
+    -- Categorización cualitativa basada en estabilidad de personal
+    CASE sb.puntuacion_rotacion
+        WHEN 1 THEN 'Excelente (Personal Muy Estable - +10 años promedio)'
+        WHEN 2 THEN 'Bueno (Personal Estable - 5-10 años promedio)'
+        WHEN 3 THEN 'En Desarrollo (Alta Rotación - <5 años promedio)'
+        ELSE 'Sin Clasificar (Datos Insuficientes)'
     END as categoria_ranking,
-    -- *** POSICIONES DE RANKING PRE-CALCULADAS ***
-    -- Ranking Mundial (todos los museos) - menor score_final es mejor
+    -- Rankings comparativos: menor score = mejor posición
     RANK() OVER (ORDER BY sb.score_final ASC) as posicion_mundial,
     COUNT(*) OVER () as total_mundial,
-    -- Ranking Nacional (museos del mismo país) - menor score_final es mejor
     RANK() OVER (PARTITION BY sb.id_pais ORDER BY sb.score_final ASC) as posicion_nacional,
     COUNT(*) OVER (PARTITION BY sb.id_pais) as total_nacional
 FROM ScoresBase sb;
 /
-
 
 
 -- -----------------------------------------------------------------------------
@@ -753,11 +770,16 @@ EXCEPTION
 END SP_FINALIZAR_EXPOSICION;
 /
 
---- SP_CALCULAR_RANKING_MUSEO: Calcula un índice de rendimiento para un museo,
--- Calcula el ranking de un museo basándose en la permanencia de su personal.
--- Devuelve la antigüedad promedio en años, la tasa de rotación alta (personal
--- con menos de 5 años de servicio) y una categoría descriptiva del ranking.
--- Este procedimiento es llamado por la API para enriquecer el reporte de Ficha de Museo.
+-- -----------------------------------------------------------------------------
+-- PROCEDIMIENTO: SP_CALCULAR_RANKING_MUSEO
+-- -----------------------------------------------------------------------------
+-- Descripción: Calcula métricas de ranking institucional para un museo específico
+-- basado en estabilidad de personal y popularidad de visitantes.
+-- METODOLOGÍA:
+-- 1. Estabilidad de Personal: Evaluación de permanencia promedio de empleados
+-- 2. Popularidad: Análisis de afluencia de visitantes anual con rangos estratificados
+-- 3. Categorización: Clasificación cualitativa basada en métricas cuantitativas
+-- Parámetros de salida proporcionan datos para reportes de evaluación institucional.
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
     p_id_museo                  IN  MUSEOS.id_museo%TYPE,
@@ -767,25 +789,25 @@ CREATE OR REPLACE PROCEDURE SP_CALCULAR_RANKING_MUSEO (
     p_categoria_ranking         OUT VARCHAR2
 )
 AS
-    -- Variables para el cálculo de estabilidad del personal
+    -- Variables para análisis de estabilidad de personal
     v_total_antiguedad_dias   NUMBER := 0;
     v_total_empleados         NUMBER := 0;
     v_empleados_alta_rotacion NUMBER := 0;
     v_antiguedad_promedio_anios NUMBER := 0;
-    v_estabilidad_score       NUMBER := 0;
-
-    -- Variables para el cálculo de popularidad
-    v_visitas_anuales         NUMBER := 0;
-    v_popularidad_score       NUMBER := 0;
-
-    -- Variable para el ranking final
-    v_ranking_final_score     NUMBER;
     
-    -- Variable para validar que el museo existe
+    -- Variables para análisis de popularidad
+    v_visitas_anuales         NUMBER := 0;
+    v_visitas_exposiciones    NUMBER := 0;
+    v_puntuacion_visitas      NUMBER := 6; -- Valor por defecto (sin visitas)
+    
+    -- Variables para clasificación de ranking
+    v_puntuacion_rotacion     NUMBER := 3; -- Valor por defecto (alta rotación)
+    
+    -- Variable de validación
     v_museo_existe            NUMBER;
 
 BEGIN
-    -- ========= VALIDACIÓN INICIAL: Verificar que el museo existe =========
+    -- ========= VALIDACIÓN: Verificar existencia del museo =========
     BEGIN
         SELECT 1
         INTO v_museo_existe
@@ -794,10 +816,10 @@ BEGIN
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20030, 
-                'Error: No existe un museo con el ID ' || p_id_museo || '. Verifique el parámetro de entrada.');
+                'Museo con ID ' || p_id_museo || ' no encontrado en el sistema.');
     END;
 
-    -- ========= PASO 1: Calcular la Estabilidad del Personal =========
+    -- ========= ANÁLISIS DE ESTABILIDAD DE PERSONAL =========
     FOR rec IN (
         SELECT (COALESCE(fecha_fin, SYSDATE) - fecha_inicio) as dias_trabajados
         FROM HIST_EMPLEADOS
@@ -806,6 +828,7 @@ BEGIN
         v_total_antiguedad_dias := v_total_antiguedad_dias + rec.dias_trabajados;
         v_total_empleados := v_total_empleados + 1;
         
+        -- Contabilizar empleados con alta rotación (< 5 años)
         IF rec.dias_trabajados < (365.25 * 5) THEN
             v_empleados_alta_rotacion := v_empleados_alta_rotacion + 1;
         END IF;
@@ -813,68 +836,76 @@ BEGIN
 
     IF v_total_empleados > 0 THEN
         v_antiguedad_promedio_anios := (v_total_antiguedad_dias / v_total_empleados) / 365.25;
-        p_antiguedad_promedio_anios := v_antiguedad_promedio_anios;
-        p_tasa_rotacion_alta_pct := (v_empleados_alta_rotacion / v_total_empleados) * 100;
+        p_antiguedad_promedio_anios := ROUND(v_antiguedad_promedio_anios, 2);
+        p_tasa_rotacion_alta_pct := ROUND((v_empleados_alta_rotacion / v_total_empleados) * 100, 2);
         
-        -- Asignar puntaje de estabilidad según nueva lógica (menor es mejor)
-        -- 1 = >10 años (excelente), 2 = 5-10 años (bueno), 3 = <5 años (alta rotación)
+        -- Asignación de puntuación de estabilidad
         IF v_antiguedad_promedio_anios > 10 THEN
-            v_estabilidad_score := 1;
+            v_puntuacion_rotacion := 1; -- Excelente estabilidad
         ELSIF v_antiguedad_promedio_anios >= 5 THEN
-            v_estabilidad_score := 2;
+            v_puntuacion_rotacion := 2; -- Estabilidad moderada
         ELSE
-            v_estabilidad_score := 3;
+            v_puntuacion_rotacion := 3; -- Alta rotación
         END IF;
     ELSE
-        -- Si no hay empleados, asignar valores por defecto
+        -- Valores por defecto para instituciones sin registro de personal
         p_antiguedad_promedio_anios := 0;
-        p_tasa_rotacion_alta_pct := 0;
-        v_estabilidad_score := 3; -- Peor puntaje por no tener historial
+        p_tasa_rotacion_alta_pct := 100;
+        v_puntuacion_rotacion := 3;
     END IF;
 
-    -- ========= PASO 2: Calcular la Popularidad por Visitas Anuales =========
+    -- ========= ANÁLISIS DE POPULARIDAD (VOLUMEN TOTAL DE VISITAS) =========
+    -- Incluye: tickets de entrada general + visitantes de exposiciones específicas
+    
+    -- Contar tickets de entrada general del último año
     SELECT COUNT(id_num_ticket)
     INTO v_visitas_anuales
     FROM TICKETS
     WHERE id_museo = p_id_museo
       AND fecha_hora_emision >= (SYSDATE - 365);
-      
-    p_visitas_ultimo_anio := v_visitas_anuales;
-
-    -- Asignar un puntaje de popularidad (0 a 10)
-    IF v_visitas_anuales > 100 THEN v_popularidad_score := 10;
-    ELSIF v_visitas_anuales > 50 THEN v_popularidad_score := 8;
-    ELSIF v_visitas_anuales > 25 THEN v_popularidad_score := 6;
-    ELSIF v_visitas_anuales > 15 THEN v_popularidad_score := 4;
-    ELSIF v_visitas_anuales > 5 THEN v_popularidad_score := 2;
-    ELSE v_popularidad_score := 1;
-    END IF;
-
-    -- ========= PASO 3: Calcular Ranking Final y Asignar Categoría =========
-    -- Usar directamente el score de estabilidad (1=mejor, 2=medio, 3=peor) sin normalizarlo
-    -- El ranking se basará principalmente en la estabilidad del personal
     
-    -- Categorización basada en score de estabilidad del personal (criterio principal)
-    IF v_estabilidad_score = 1 THEN
-        -- Más de 10 años promedio = Excelente estabilidad
-        p_categoria_ranking := 'Excelente (Líder del Sector)';
-    ELSIF v_estabilidad_score = 2 THEN
-        -- Entre 5-10 años promedio = Buena estabilidad
-        p_categoria_ranking := 'Bueno (Sólido y Reconocido)';
+    -- Sumar visitantes de exposiciones/eventos del último año
+    SELECT COALESCE(SUM(cant_visitantes), 0)
+    INTO v_visitas_exposiciones
+    FROM EXPOSICIONES_EVENTOS
+    WHERE id_museo = p_id_museo
+      AND cant_visitantes IS NOT NULL
+      AND fecha_inicio >= (SYSDATE - 365);
+    
+    -- Calcular volumen total de visitas anuales
+    p_visitas_ultimo_anio := v_visitas_anuales + v_visitas_exposiciones;
+
+    -- Asignación de puntuación por rangos de popularidad (volumen total)
+    IF p_visitas_ultimo_anio >= 50 THEN
+        v_puntuacion_visitas := 1; -- Excelente afluencia
+    ELSIF p_visitas_ultimo_anio >= 25 THEN
+        v_puntuacion_visitas := 2; -- Buena afluencia
+    ELSIF p_visitas_ultimo_anio >= 10 THEN
+        v_puntuacion_visitas := 3; -- Afluencia regular
+    ELSIF p_visitas_ultimo_anio >= 5 THEN
+        v_puntuacion_visitas := 4; -- Afluencia baja
+    ELSIF p_visitas_ultimo_anio >= 1 THEN
+        v_puntuacion_visitas := 5; -- Afluencia muy baja
     ELSE
-        -- Menos de 5 años promedio = Alta rotación
-        IF v_popularidad_score >= 6 THEN
-            p_categoria_ranking := 'Regular (Estable con Potencial)';
-        ELSE
-            p_categoria_ranking := 'En Desarrollo (Nicho o Volátil)';
-        END IF;
+        v_puntuacion_visitas := 6; -- Sin registro de visitas
     END IF;
+
+    -- ========= CATEGORIZACIÓN INSTITUCIONAL =========
+    CASE v_puntuacion_rotacion
+        WHEN 1 THEN
+            p_categoria_ranking := 'Excelente (Personal Muy Estable - +10 años promedio)';
+        WHEN 2 THEN
+            p_categoria_ranking := 'Bueno (Personal Estable - 5-10 años promedio)';
+        WHEN 3 THEN
+            p_categoria_ranking := 'En Desarrollo (Alta Rotación - <5 años promedio)';
+        ELSE
+            p_categoria_ranking := 'Sin Clasificar (Datos Insuficientes)';
+    END CASE;
 
 EXCEPTION
     WHEN OTHERS THEN
-        -- Manejo robusto de errores inesperados
         RAISE_APPLICATION_ERROR(-20031, 
-            'Error inesperado al calcular el ranking del museo ID ' || p_id_museo || ': ' || SQLERRM);
+            'Error en cálculo de ranking para museo ID ' || p_id_museo || ': ' || SQLERRM);
 END SP_CALCULAR_RANKING_MUSEO;
 /
 
