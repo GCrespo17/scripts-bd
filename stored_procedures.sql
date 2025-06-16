@@ -1088,7 +1088,7 @@ END SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO;
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_INSERTAR_COLECCION
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 13-JUN-2025
 -- Descripción:
 --Automatiza la insercion de colecciones para que se actualice el orden 
 --de recorrido del resto de las colecciones.
@@ -1139,7 +1139,7 @@ EXEC SP_INSERTAR_COLECCION('Musée du Petit Palais', 'Servicio de Exposiciones y
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_MODIFICAR_ORDEN_COLECCION
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 13-JUN-2025
 -- Descripción:
 --Automatiza la modificacion de colecciones para que se actualice el orden 
 --de recorrido del resto de las colecciones.
@@ -1218,7 +1218,7 @@ END;
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_ELIMINAR_COLECCION
 -- -----------------------------------------------------------------------------
--- Fecha de Creación: 06-JUN-2025
+-- Fecha de Creación: 13-JUN-2025
 -- Descripción:
 --Automatiza la eliminacion de colecciones para que se actualice el orden 
 --de recorrido del resto de las colecciones.
@@ -1282,5 +1282,441 @@ BEGIN
 END;
 /
 */
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_REGISTRAR_OBRA
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el registro de las obras en un museo
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_REGISTRAR_OBRA_NUEVA
+(
+    -- DATOS DE LA OBRA
+    n_nombre IN OBRAS.nombre%TYPE,
+    n_fecha_periodo IN OBRAS.fecha_periodo%TYPE,
+    n_tipo_obra IN OBRAS.tipo_obra%TYPE,
+    n_dimensiones IN OBRAS.dimensiones%TYPE,
+    n_desc_mat_tec IN OBRAS.desc_materiales_tecnicas%TYPE,
+    n_desc_estilos IN OBRAS.desc_estilos_generos%TYPE,
+    -- DATOS DEL HIST DE LA OBRA
+    n_id_museo IN MUSEOS.id_museo%TYPE,
+    n_id_coleccion IN COLECCIONES_PERMANENTES.id_coleccion%TYPE,
+    n_id_sala IN SALAS_EXP.id_sala%TYPE,
+    n_id_empleado IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE,
+    n_tipo_adq IN HIST_OBRAS_MOV.tipo_adquisicion%TYPE,
+    n_destacada IN HIST_OBRAS_MOV.destacada%TYPE,
+    n_orden_recorrido IN HIST_OBRAS_MOV.orden_recorrido%TYPE DEFAULT NULL,
+    n_valor_monetario IN HIST_OBRAS_MOV.valor_monetario%TYPE DEFAULT NULL
+)
+IS
+    v_orden_ultima_destacada NUMBER;
+    v_orden_primera_nodestacada NUMBER;
+    v_id_obra NUMBER;
+    v_id_est_org NUMBER;
+    v_id_est_fis NUMBER;
+    v_orden_ultima_nodestacada NUMBER;
+BEGIN
+    -- INSERTAR LA OBRA EN TABLA OBRAS
+    INSERT INTO OBRAS(nombre, fecha_periodo, tipo_obra, dimensiones, desc_materiales_tecnicas, desc_estilos_generos)
+        VALUES(n_nombre, n_fecha_periodo, n_tipo_obra, n_dimensiones, n_desc_mat_tec, n_desc_estilos)
+        RETURNING id_obra INTO v_id_obra;
+    
+    IF n_destacada = 'SI' THEN
+        IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 THEN
+            UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
+            WHERE id_museo = n_id_museo AND
+            orden_recorrido >= n_orden_recorrido AND
+            fecha_salida IS NULL;
+        ELSIF n_orden_recorrido IS NULL THEN
+            -- SELECCIONA EL ORDEN DE RECORRIDO DE LA ULTIMA OBRA DESTACADA
+            SELECT NVL(MAX(orden_recorrido), 0) INTO v_orden_ultima_destacada
+            FROM HIST_OBRAS_MOV
+            WHERE id_museo = n_id_museo AND
+            destacada = 'SI' AND
+            orden_recorrido IS NOT NULL;
+            
+            n_orden_recorrido := v_orden_ultima_destacada+1;
+            
+            UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
+            WHERE id_museo = n_id_museo AND
+            destacada = 'NO' AND
+            fecha_salida IS NULL;
+        END IF;
+    ELSIF n_destacada = 'NO'THEN
+        SELECT NVL(MAX(orden_recorrido), 0) + 1 INTO v_orden_primera_nodestacada
+            FROM HIST_OBRAS_MOV
+            WHERE id_museo = n_id_museo AND
+            destacada = 'SI' AND
+            orden_recorrido IS NOT NULL AND
+            fecha_salida IS NULL;
+        IF n_orden_recorrido IS NOT NULL AND n_orden_recorrido > 0 THEN
+            IF n_orden_recorrido < v_orden_primera_nodestacada THEN
+                RAISE_APPLICATION_ERROR(-20200, 'La obra no destacada no puede 
+                    tener un orden de recorrido mayor o igual a una destacada');
+            ELSE
+                UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido+1
+                WHERE id_museo = n_id_museo AND
+                orden_recorrido >= n_orden_recorrido AND
+                fecha_salida IS NULL;
+            END IF;
+        ELSIF n_orden_recorrido IS NULL THEN
+            SELECT NVL(MAX(orden_recorrido), 0) INTO v_orden_ultima_nodestacada
+            FROM HIST_OBRAS_MOV
+            WHERE id_museo = n_id_museo AND
+            destacada = 'NO' AND
+            orden_recorrido IS NOT NULL AND
+            fecha_salida IS NULL;
+            n_orden_recorrido := v_orden_ultima_nodestacada+1;
+        END IF;
+    END IF;
+    
+    -- CONSULTA PARA ENCONTRAR A LA EST_ORG
+    SELECT id_est_org INTO v_id_est_org
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = n_id_coleccion;
+    
+    --CONSULTA PARA ENCONTRAR A LA EST_FIS
+    SELECT id_est_fis INTO v_id_est_fis
+    FROM SALAS_EXP
+    WHERE id_sala = n_id_sala;
+    
+    
+    INSERT INTO HIST_OBRAS_MOV(id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, 
+        id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario)
+        VALUES(v_id_obra, n_id_coleccion, n_id_sala, n_id_empleado, v_id_est_org, n_id_museo, 
+        v_id_est_fis, SYSDATE,n_tipo_adq, n_destacada, NULL, n_orden_recorrido, n_valor_monetario);
+    
+END SP_REGISTRAR_OBRA_NUEVA;
+/
+
+
+
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MOVER_OBRA
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de una obra en un museo, o hacia otro museo
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MOVER_OBRA
+(
+    n_id_obra IN OBRAS.id_obra%TYPE,
+    p_id_museo_destino IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    p_id_coleccion_destino IN COLECCIONES_PERMANENTES.id_coleccion%TYPE DEFAULT NULL,
+    p_id_sala_destino IN SALAS_EXP.id_sala%TYPE DEFAULT NULL,
+    p_id_empleado_destino IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE DEFAULT NULL, -- Empleado encargado de la obra en el destino (opcional)
+    p_tipo_adq_destino IN HIST_OBRAS_MOV.tipo_adquisicion%TYPE DEFAULT NULL,
+    p_destacada_destino IN HIST_OBRAS_MOV.destacada%TYPE DEFAULT NULL,
+    p_orden_recorrido_destino IN HIST_OBRAS_MOV.orden_recorrido%TYPE DEFAULT NULL,
+    p_valor_monetario_destino IN HIST_OBRAS_MOV.valor_monetario%TYPE DEFAULT NULL
+)
+IS
+    
+    v_current_id_hist          HIST_OBRAS_MOV.id_catalogo_museo%TYPE;
+    v_current_museo_id         MUSEOS.id_museo%TYPE;
+    v_current_coleccion_id     COLECCIONES_PERMANENTES.id_coleccion%TYPE;
+    v_current_sala_id          SALAS_EXP.id_sala%TYPE;
+    v_current_tipo_adq         HIST_OBRAS_MOV.tipo_adquisicion%TYPE;
+    v_current_destacada        HIST_OBRAS_MOV.destacada%TYPE;
+    v_current_valor_monetario  HIST_OBRAS_MOV.valor_monetario%TYPE;
+    v_current_id_empleado      EMPLEADOS_PROFESIONALES.id_empleado%TYPE;
+    v_current_orden_recorrido  HIST_OBRAS_MOV.orden_recorrido%TYPE;
+
+    
+    v_id_museo_destino_final         MUSEOS.id_museo%TYPE;
+    v_id_coleccion_destino_final     COLECCIONES_PERMANENTES.id_coleccion%TYPE;
+    v_id_sala_destino_final          SALAS_EXP.id_sala%TYPE;
+    v_id_empleado_destino_final      EMPLEADOS_PROFESIONALES.id_empleado%TYPE; 
+    v_tipo_adq_destino_final         HIST_OBRAS_MOV.tipo_adquisicion%TYPE;
+    v_destacada_destino_final        HIST_OBRAS_MOV.destacada%TYPE;
+    v_orden_recorrido_destino_final  HIST_OBRAS_MOV.orden_recorrido%TYPE;
+    v_valor_monetario_destino_final  HIST_OBRAS_MOV.valor_monetario%TYPE;
+
+
+    v_orden_ultima_destacada NUMBER;
+    v_orden_primera_nodestacada NUMBER;
+    v_orden_ultima_nodestacada NUMBER;
+
+
+    v_id_est_org_destino NUMBER;
+    v_id_est_fis_destino NUMBER;
+
+BEGIN
+    -- ENCONTRAR LOS VALORES ACTUALES DEL REGISTRO HISTORICO DE LA OBRA
+    BEGIN
+        SELECT id_catalogo_museo, id_museo, id_coleccion, id_sala,
+               tipo_adquisicion, destacada, valor_monetario, id_empleado, orden_recorrido
+        INTO v_current_id_hist, v_current_museo_id, v_current_coleccion_id, v_current_sala_id,
+             v_current_tipo_adq, v_current_destacada, v_current_valor_monetario, v_current_id_empleado, v_current_orden_recorrido
+        FROM HIST_OBRAS_MOV
+        WHERE id_obra = n_id_obra
+        AND fecha_salida IS NULL; 
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'No se encontró un registro activo para la obra con ID ' || n_id_obra || '. La obra no está en un lugar registrado o ya tiene fecha de salida.');
+    END;
+
+    -- SE ASIGNA LOS VALORES A DONDE SE QUIERE MOVER LA OBRA
+    v_id_museo_destino_final        := NVL(p_id_museo_destino, v_current_museo_id);
+    v_id_coleccion_destino_final    := NVL(p_id_coleccion_destino, v_current_coleccion_id);
+    v_id_sala_destino_final         := NVL(p_id_sala_destino, v_current_sala_id);
+    v_id_empleado_destino_final     := NVL(p_id_empleado_destino, v_current_id_empleado);
+    v_tipo_adq_destino_final        := NVL(p_tipo_adq_destino, v_current_tipo_adq);
+    v_destacada_destino_final       := NVL(p_destacada_destino, v_current_destacada);
+    v_valor_monetario_destino_final := NVL(p_valor_monetario_destino, v_current_valor_monetario);
+
+
+    -- VALIDAR SI LA OBRA YA SE ENCUENTRA DONDE SE QUIERE MOVER
+    IF v_id_museo_destino_final = v_current_museo_id AND
+       v_id_coleccion_destino_final = v_current_coleccion_id AND
+       v_id_sala_destino_final = v_current_sala_id AND
+       v_id_empleado_destino_final = v_current_id_empleado AND 
+       v_tipo_adq_destino_final = v_current_tipo_adq AND
+       v_destacada_destino_final = v_current_destacada AND
+       v_valor_monetario_destino_final = v_current_valor_monetario
+       THEN
+        RAISE_APPLICATION_ERROR(-20002, 'La obra ya se encuentra en la ubicación de destino especificada sin cambios relevantes.');
+    END IF;
+
+    -- SE CIERRA EL ANTERIOR REGISTRO HISTORICO ACTIVO DE ESTA OBRA
+    UPDATE HIST_OBRAS_MOV
+    SET fecha_salida = SYSDATE
+    WHERE id_catalogo_museo = v_current_id_hist;
+
+   
+    -- SE AJUSTA EL ORDEN DE RECORRIDO DEPENDIENDO DE LO QUE SE COLOQUE
+
+
+    IF p_orden_recorrido_destino IS NULL AND v_current_orden_recorrido IS NOT NULL AND v_destacada_destino_final = v_current_destacada THEN
+        v_orden_recorrido_destino_final := v_current_orden_recorrido;
+    ELSE
+        IF v_destacada_destino_final = 'SI' THEN
+            IF p_orden_recorrido_destino IS NOT NULL AND p_orden_recorrido_destino > 0 THEN
+                v_orden_recorrido_destino_final := p_orden_recorrido_destino;
+                UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido + 1
+                WHERE id_museo = v_id_museo_destino_final AND
+                orden_recorrido >= v_orden_recorrido_destino_final
+                AND fecha_salida IS NULL;
+            ELSIF p_orden_recorrido_destino IS NULL THEN
+                -- SE COLOCA AL FINAL DE LAS OBRAS DESTACADAS
+                SELECT NVL(MAX(orden_recorrido), 0) INTO v_orden_ultima_destacada
+                FROM HIST_OBRAS_MOV
+                WHERE id_museo = v_id_museo_destino_final AND
+                destacada = 'SI' AND
+                orden_recorrido IS NOT NULL
+                AND fecha_salida IS NULL;
+    
+                v_orden_recorrido_destino_final := v_orden_ultima_destacada + 1;
+    
+                -- DESPLAZAR LAS OBRAS NO DESTACADAS DE SER NECESARIO
+                UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido + 1
+                WHERE id_museo = v_id_museo_destino_final AND
+                destacada = 'NO'
+                AND fecha_salida IS NULL;
+            END IF;
+        ELSIF v_destacada_destino_final = 'NO' THEN
+            -- CONSULTA PARA OBTENER LA PRIMERA OBRA NO DESTACADA
+            SELECT NVL(MAX(orden_recorrido), 0) + 1 INTO v_orden_primera_nodestacada
+            FROM HIST_OBRAS_MOV
+            WHERE id_museo = v_id_museo_destino_final AND
+            destacada = 'SI' AND
+            orden_recorrido IS NOT NULL
+            AND fecha_salida IS NULL;
+    
+            IF p_orden_recorrido_destino IS NOT NULL AND p_orden_recorrido_destino > 0 THEN
+                IF p_orden_recorrido_destino < v_orden_primera_nodestacada THEN
+                    RAISE_APPLICATION_ERROR(-20204, 'La obra no destacada no puede tener un orden de recorrido menor al siguiente disponible después de las destacadas en el museo destino.');
+                ELSE
+                    v_orden_recorrido_destino_final := p_orden_recorrido_destino;
+                    UPDATE HIST_OBRAS_MOV SET orden_recorrido = orden_recorrido + 1
+                    WHERE id_museo = v_id_museo_destino_final AND
+                    orden_recorrido >= v_orden_recorrido_destino_final
+                    AND fecha_salida IS NULL; 
+                END IF;
+            ELSIF p_orden_recorrido_destino IS NULL THEN
+                -- SE COLOCAL AL FINAL DE LAS OBRAS NO DESTACADAS
+                SELECT NVL(MAX(orden_recorrido), 0) INTO v_orden_ultima_nodestacada
+                FROM HIST_OBRAS_MOV
+                WHERE id_museo = v_id_museo_destino_final AND
+                destacada = 'NO' AND
+                orden_recorrido IS NOT NULL
+                AND fecha_salida IS NULL; 
+    
+                v_orden_recorrido_destino_final := v_orden_ultima_nodestacada + 1;
+            END IF;
+        END IF;
+    END IF;
+    
+    -- ENCONTRAR LA EST ORG DE LA COLECCION Y LE EST FIS DE LA SALA
+    
+    SELECT id_est_org INTO v_id_est_org_destino
+    FROM COLECCIONES_PERMANENTES
+    WHERE id_coleccion = v_id_coleccion_destino_final;
+
+    SELECT id_est INTO v_id_est_fis_destino
+    FROM SALAS_EXP
+    WHERE id_sala = v_id_sala_destino_final;
+
+    
+    -- INSERTAR LOS NUEVOS REGISTROS DE LAS OBRAS
+    
+    INSERT INTO HIST_OBRAS_MOV
+    (
+        id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo,
+        id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida,
+        orden_recorrido, valor_monetario
+    )
+    VALUES
+    (
+        n_id_obra, v_id_coleccion_destino_final, v_id_sala_destino_final, v_id_empleado_destino_final,
+        v_id_est_org_destino, v_id_museo_destino_final, v_id_est_fis_destino,
+        SYSDATE, v_tipo_adq_destino_final, v_destacada_destino_final, NULL,
+        v_orden_recorrido_destino_final, v_valor_monetario_destino_final
+    );
+
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Error: Datos no encontrados durante el movimiento de la obra. ' || SQLERRM);
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en SP_MOVER_OBRA: ' || SQLERRM);
+END SP_MOVER_OBRA;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: MOVER OBRA
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_museo NUMBER;
+    v_id_obra NUMBER;
+    v_id_sala NUMBER;
+BEGIN
+    
+    SELECT id_museo INTO v_id_museo
+    FROM MUSEOS
+    WHERE nombre= 'Musée du Petit Palais';
+    
+    
+    SELECT id_obra INTO v_id_obra
+    FROM OBRAS
+    WHERE nombre = 'Ugolino' AND
+    tipo_obra = 'ESCULTURA';
+    
+    SELECT id_sala INTO v_id_sala
+    FROM SALAS_EXP
+    WHERE id_museo = v_id_museo AND
+    nombre = 'GALERIE TUCK';
+    
+    
+    
+
+    SP_MOVER_OBRA(
+        n_id_obra               => v_id_obra,           -- Reemplaza con el ID de tu obra
+        p_id_sala_destino       => v_id_sala,     -- ID de la nueva sala
+        p_id_empleado_destino   => NULL,                 -- Usará el empleado actual
+        p_tipo_adq_destino      => NULL,                 -- Usará el tipo de adquisición actual
+        p_destacada_destino     => NULL,                 -- Usará el estado destacada actual (SI o NO)
+        p_orden_recorrido_destino => NULL,               -- Se calculará automáticamente si es necesario
+        p_valor_monetario_destino => NULL                -- Usará el valor monetario actual
+    );
+
+    COMMIT;
+END;
+/
+*/
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MOVER_EMPLEADO_ACTVO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de un empleado activo
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_ACTIVO
+(
+    n_id_empleado IN EMPLEADOS.id_empleado%TYPE,
+    n_id_museo IN MUSEOS.id_museo%TYPE DEFAULT NULL,
+    n_id_est_org IN EST_ORGANIZACIONAL.id_est_org%TYPE DEFAULT NULL,
+    n_cargo IN HIST_EMPLEADOS.cargo%TYPE DEFAULT NULL
+)
+IS
+    v_current_museo HIST_EMPLEADOS.id_museo%TYPE;
+    v_current_org HIST_EMPLEADOS.id_est_org%TYPE;
+    v_current_cargo HIST_EMPLEADOS.cargo%TYPE;
+    v_current_fecha_inicio HIST_EMPLEADOS.fecha_inicio%TYPE;
+    v_destino_museo HIST_EMPLEADOS.id_museo%TYPE;
+    v_destino_org HIST_EMPLEADOS.id_est_org%TYPE;
+    v_destino_cargo HIST_EMPLEADOS.cargo%TYPE;
+BEGIN
+
+    BEGIN
+        SELECT fecha_inicio, id_museo, id_est_org, cargo
+        INTO v_current_fecha_inicio, v_current_museo, v_current_org, v_current_cargo
+        FROM HIST_EMPLEADOS
+        WHERE id_empleado_prof = n_id_empleado AND
+        fecha_fin IS NULL;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20401, 'Error: No se encontró un registro histórico ACTIVO para el empleado con ID ' || n_id_empleado || '. Este procedimiento es solo para empleados activos.');
+        WHEN TOO_MANY_ROWS THEN
+            RAISE_APPLICATION_ERROR(-20402, 'Error de consistencia de datos: El empleado con ID ' || n_id_empleado || ' tiene múltiples registros históricos activos (fecha_fin IS NULL).');
+    END;
+
+    v_destino_museo := NVL(n_id_museo, v_current_museo);
+    v_destino_org := NVL(n_id_est_org, v_current_org);
+    v_destino_cargo := NVL(n_cargo, v_current_cargo);
+    
+    IF v_destino_museo = v_current_museo AND
+       v_destino_org = v_current_org AND
+       v_destino_cargo = v_current_cargo THEN
+        RAISE_APPLICATION_ERROR(-20403, 'No hay cambios en la ubicación o cargo del empleado. Operación no realizada.');
+    END IF;
+    
+    
+    UPDATE HIST_EMPLEADOS SET fecha_fin = SYSDATE
+    WHERE id_empleado_prof = n_id_empleado AND
+    id_museo = v_current_museo AND
+    id_est_org = v_current_org AND
+    fecha_inicio = v_current_fecha_incio;
+    
+    INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, v_destino_org, v_destino_museo, n_id_empleado,
+        v_destino_cargo, NULL);
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20405, 'Error inesperado en SP_MOVER_EMPLEADO: ' || SQLERRM);
+END SP_MOVER_EMPLEADO_ACTIVO;
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_MOVER_EMPLEADO_INACTIVO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de un empleado inactivo, con historico cerrado en ese
+-- museo o un nuevo empleado en general
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_MOVER_EMPLEADO_INACTIVO
+(
+    n_id_empleado IN HIST_EMPLEADOS.id_empleado_prof%TYPE,
+    n_id_museo IN HIST_EMPLEADOS.id_museo%TYPE,
+    n_id_est_org IN HIST_EMPLEADOS.id_est_org%TYPE,
+    n_cargo IN HIST_EMPLEADOS.cargo%TYPE
+)
+IS
+BEGIN
+    
+    INSERT INTO HIST_EMPLEADOS(fecha_inicio, id_est_org, id_museo, id_empleado_prof,
+        cargo, fecha_fin) VALUES (SYSDATE, n_id_est_org, n_id_museo, n_id_empleado_prof,
+        n_cargo, NULL);
+
+END SP_MOVER_EMPLEADO_INACTIVO;
 
 
