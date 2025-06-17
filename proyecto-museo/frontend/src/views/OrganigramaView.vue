@@ -384,7 +384,11 @@ onMounted(fetchMuseos)
   align-items: end;
   gap: 2rem;
   width: 100%;
-  padding: 0.5rem 0;
+  padding: 1rem 1.5rem;
+  margin: -0.5rem -1rem 0.5rem -1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, rgba(248, 250, 252, 0.5) 100%);
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
 }
 
 .selector-group {
@@ -582,6 +586,7 @@ select:focus {
 @media (max-width: 1024px) {
   .selection-container {
     gap: 1.5rem;
+    padding: 1rem 1.25rem;
   }
   
   select {
@@ -615,6 +620,8 @@ select:focus {
     grid-template-columns: 1fr;
     gap: 1.5rem;
     text-align: center;
+    padding: 1rem;
+    margin: -0.5rem -0.5rem 1rem -0.5rem;
   }
   
   .selector-group {

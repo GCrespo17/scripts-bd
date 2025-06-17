@@ -16,37 +16,38 @@ import { RouterLink, RouterView } from 'vue-router'
           <span class="nav-icon">🏠</span>
           <span class="nav-text">Inicio</span>
         </RouterLink>
-        <RouterLink to="/artistas" class="nav-link">
-          <span class="nav-icon">🎨</span>
-          <span class="nav-text">Artistas</span>
-        </RouterLink>
+
         <RouterLink to="/organigrama" class="nav-link">
           <span class="nav-icon">📊</span>
-          <span class="nav-text">Organigrama</span>
-        </RouterLink>
-        <RouterLink to="/estructura" class="nav-link">
-          <span class="nav-icon">🏗️</span>
-          <span class="nav-text">Estructura Física</span>
+          <span class="nav-text">Reporte Organigrama</span>
         </RouterLink>
         <RouterLink to="/reporte-estructura" class="nav-link">
           <span class="nav-icon">📊</span>
-          <span class="nav-text">Reporte Estructura</span>
+          <span class="nav-text">Reporte Estructura Física</span>
         </RouterLink>
         <RouterLink to="/ficha-museo" class="nav-link">
           <span class="nav-icon">📄</span>
-          <span class="nav-text">Ficha de Museo</span>
+          <span class="nav-text">Reporte Ficha de Museo</span>
         </RouterLink>
                 <RouterLink to="/empleados" class="nav-link">
           <span class="nav-icon">👤</span>
-          <span class="nav-text">Empleados</span>
+          <span class="nav-text">Reporte Empleados</span>
+        </RouterLink>
+        <RouterLink to="/artistas" class="nav-link">
+          <span class="nav-icon">🎨</span>
+          <span class="nav-text">Formulario Artistas</span>
+        </RouterLink>
+        <RouterLink to="/estructura" class="nav-link">
+          <span class="nav-icon">🏗️</span>
+          <span class="nav-text">Formulario Estructura Física</span>
         </RouterLink>
         <RouterLink to="/exposiciones" class="nav-link">
           <span class="nav-icon">🎭</span>
-          <span class="nav-text">Exposiciones</span>
+          <span class="nav-text">Formulario Exposiciones</span>
         </RouterLink>
         <RouterLink to="/programa-mantenimiento" class="nav-link">
           <span class="nav-icon">🔧</span>
-          <span class="nav-text">Mantenimiento</span>
+          <span class="nav-text">Formulario Mantenimiento</span>
         </RouterLink>
       </nav>
       

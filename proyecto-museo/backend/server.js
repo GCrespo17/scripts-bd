@@ -2112,7 +2112,7 @@ app.get('/api/reportes/eficiencia-mantenimiento/:id_museo', async (req, res) => 
     }
 });
 
-// Endpoint para generar el reporte de estructura física
+// Endpoint para generar el reporte de estructura física (REFACTORIZADO - SIN CONSULTAS INNECESARIAS)
 app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
     let connection;
@@ -2134,50 +2134,18 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
                 ef.tipo, 
                 ef.descripcion, 
                 ef.direccion_edificio, 
-                ef.id_est_padre,
-                COUNT(se.id_sala) as total_salas
+                ef.id_est_padre
              FROM ${dbConfig.schema}.EST_FISICA ef
-             LEFT JOIN ${dbConfig.schema}.SALAS_EXP se ON ef.id_est = se.id_est AND ef.id_museo = se.id_museo
              WHERE ef.id_museo = :id
-             GROUP BY ef.id_est, ef.nombre, ef.tipo, ef.descripcion, ef.direccion_edificio, ef.id_est_padre
              ORDER BY ef.tipo DESC, ef.nombre ASC`,
             [id_museo]
         );
 
-        // 3. Salas de exposición con sus colecciones
-        const salasColeccionesPromise = connection.execute(
-            `SELECT 
-                se.id_sala,
-                se.nombre as nombre_sala,
-                se.descripcion as desc_sala,
-                se.id_est,
-                cp.nombre as nombre_coleccion,
-                cp.caracteristicas as caracteristicas_coleccion,
-                sc.orden as orden_coleccion,
-                COUNT(hom.id_obra) as total_obras
-             FROM ${dbConfig.schema}.SALAS_EXP se
-             LEFT JOIN ${dbConfig.schema}.SALAS_COLECCIONES sc ON se.id_sala = sc.id_sala 
-                 AND se.id_est = sc.id_est_fisica AND se.id_museo = sc.id_museo
-             LEFT JOIN ${dbConfig.schema}.COLECCIONES_PERMANENTES cp ON sc.id_coleccion = cp.id_coleccion 
-                 AND sc.id_est_org = cp.id_est_org AND sc.id_museo = cp.id_museo
-             LEFT JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON sc.id_coleccion = hom.id_coleccion 
-                 AND hom.fecha_salida IS NULL
-             WHERE se.id_museo = :id
-             GROUP BY se.id_sala, se.nombre, se.descripcion, se.id_est, cp.nombre, cp.caracteristicas, sc.orden
-             ORDER BY se.id_est, se.nombre, sc.orden`,
-            [id_museo]
-        );
-
-        // 4. Exposiciones y eventos actuales/futuros
+        // 3. Exposiciones actuales (solo campos usados en frontend)
         const exposicionesPromise = connection.execute(
             `SELECT 
                 ee.nombre as nombre_evento,
-                ee.fecha_inicio,
-                ee.fecha_fin,
-                se.nombre as nombre_sala,
-                se.id_est,
-                ee.costo_persona,
-                ee.cant_visitantes
+                se.nombre as nombre_sala
              FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS ee
              JOIN ${dbConfig.schema}.SALAS_EXP se ON ee.id_sala = se.id_sala 
                  AND ee.id_est = se.id_est AND ee.id_museo = se.id_museo
@@ -2187,10 +2155,9 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
             [id_museo]
         );
 
-        const [museoResult, estructuraResult, salasResult, exposicionesResult] = await Promise.all([
+        const [museoResult, estructuraResult, exposicionesResult] = await Promise.all([
             museoPromise,
             estructuraPromise,
-            salasColeccionesPromise,
             exposicionesPromise
         ]);
 
@@ -2198,15 +2165,14 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
             return res.status(404).json({ message: 'Museo no encontrado' });
         }
 
-        // Procesar estructura física en formato jerárquico
+        // Procesar estructura física en formato jerárquico (SIMPLIFICADO)
         const estructura = estructuraResult.rows.map(row => ({
             id: row[0],
             nombre: row[1],
             tipo: row[2],
             descripcion: row[3],
-            direccion: row[4],
+            direccion_edificio: row[4],
             padre_id: row[5],
-            total_salas: row[6],
             children: []
         }));
 
@@ -2224,59 +2190,7 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
             }
         }
 
-        // Procesar salas y colecciones
-        const salasPorEstructura = {};
-        salasResult.rows.forEach(row => {
-            const id_est = row[3];
-            if (!salasPorEstructura[id_est]) {
-                salasPorEstructura[id_est] = [];
-            }
-            
-            const salaExistente = salasPorEstructura[id_est].find(s => s.id_sala === row[0]);
-            if (salaExistente) {
-                // Agregar colección a sala existente
-                if (row[4]) { // nombre_coleccion
-                    salaExistente.colecciones.push({
-                        nombre: row[4],
-                        caracteristicas: row[5],
-                        orden: row[6],
-                        total_obras: row[7]
-                    });
-                }
-            } else {
-                // Nueva sala
-                const nuevaSala = {
-                    id_sala: row[0],
-                    nombre: row[1],
-                    descripcion: row[2],
-                    colecciones: []
-                };
-                
-                if (row[4]) { // nombre_coleccion
-                    nuevaSala.colecciones.push({
-                        nombre: row[4],
-                        caracteristicas: row[5],
-                        orden: row[6],
-                        total_obras: row[7]
-                    });
-                }
-                
-                salasPorEstructura[id_est].push(nuevaSala);
-            }
-        });
-
-        // Asignar salas a elementos de estructura
-        const asignarSalas = (nodos) => {
-            nodos.forEach(nodo => {
-                nodo.salas = salasPorEstructura[nodo.id] || [];
-                if (nodo.children.length > 0) {
-                    asignarSalas(nodo.children);
-                }
-            });
-        };
-        asignarSalas(roots);
-
-        // Datos del reporte final
+        // Datos del reporte final (SIMPLIFICADO - SOLO CAMPOS USADOS)
         const reporte = {
             museo: {
                 nombre: museoResult.rows[0][0],
@@ -2286,19 +2200,13 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
             estructura_fisica: roots,
             exposiciones_actuales: exposicionesResult.rows.map(r => ({
                 nombre: r[0],
-                fecha_inicio: r[1],
-                fecha_fin: r[2],
-                sala: r[3],
-                id_est: r[4],
-                costo_persona: r[5],
-                visitantes: r[6]
+                sala: r[1]
             })),
             resumen: {
                 total_elementos: estructura.length,
                 total_edificios: estructura.filter(e => e.tipo === 'EDIFICIO').length,
                 total_pisos: estructura.filter(e => e.tipo === 'PISO').length,
                 total_areas: estructura.filter(e => e.tipo === 'AREA').length,
-                total_salas: Object.values(salasPorEstructura).flat().length,
                 total_exposiciones_activas: exposicionesResult.rows.length
             }
         };
@@ -2319,147 +2227,7 @@ app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
     }
 });
 
-// Endpoint para generar el reporte de estructura física
-app.get('/api/reportes/estructura-fisica/:id_museo', async (req, res) => {
-    const { id_museo } = req.params;
-    let connection;
-
-    try {
-        connection = await oracledb.getConnection(dbConfig);
-
-        // 1. Información básica del museo
-        const museoResult = await connection.execute(
-            `SELECT nombre, fecha_fundacion, mision FROM ${dbConfig.schema}.MUSEOS WHERE id_museo = :id`,
-            [id_museo]
-        );
-
-        if (museoResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Museo no encontrado' });
-        }
-
-        const museo = {
-            nombre: museoResult.rows[0][0],
-            fecha_fundacion: museoResult.rows[0][1],
-            mision: museoResult.rows[0][2]
-        };
-
-        // 2. Estructura física jerárquica con información detallada
-        const estructuraResult = await connection.execute(
-            `SELECT 
-                ef.id_est, 
-                ef.nombre, 
-                ef.tipo, 
-                ef.descripcion, 
-                ef.direccion_edificio,
-                ef.id_est_padre,
-                CASE 
-                    WHEN ef.tipo = 'AREA' THEN 
-                        (SELECT COUNT(*) FROM ${dbConfig.schema}.COLECCIONES c WHERE c.id_est_fisica = ef.id_est)
-                    ELSE 0
-                END as total_colecciones,
-                CASE 
-                    WHEN ef.tipo = 'AREA' THEN 
-                        (SELECT COUNT(*) FROM ${dbConfig.schema}.EVENTOS e WHERE e.id_est_fisica = ef.id_est AND e.fecha_fin >= SYSDATE)
-                    ELSE 0
-                END as exposiciones_activas
-             FROM ${dbConfig.schema}.EST_FISICA ef 
-             WHERE ef.id_museo = :id 
-             ORDER BY ef.id_est_padre NULLS FIRST, ef.id_est`,
-            [id_museo]
-        );
-
-        // 3. Resumen ejecutivo
-        const resumenResult = await connection.execute(
-            `SELECT 
-                COUNT(CASE WHEN tipo = 'EDIFICIO' THEN 1 END) as total_edificios,
-                COUNT(CASE WHEN tipo = 'PISO' THEN 1 END) as total_pisos,
-                COUNT(CASE WHEN tipo = 'AREA' THEN 1 END) as total_areas,
-                COUNT(CASE WHEN tipo = 'AREA' AND UPPER(nombre) LIKE '%SALA%' THEN 1 END) as total_salas
-             FROM ${dbConfig.schema}.EST_FISICA 
-             WHERE id_museo = :id`,
-            [id_museo]
-        );
-
-        // 4. Exposiciones actuales
-        const exposicionesResult = await connection.execute(
-            `SELECT 
-                e.nombre,
-                ef.nombre as sala,
-                e.fecha_inicio,
-                e.fecha_fin,
-                e.costo_persona,
-                (SELECT COUNT(*) FROM ${dbConfig.schema}.VENTAS_EVENTO ve WHERE ve.id_evento = e.id_evento) as visitantes
-             FROM ${dbConfig.schema}.EVENTOS e
-             JOIN ${dbConfig.schema}.EST_FISICA ef ON e.id_est_fisica = ef.id_est
-             WHERE ef.id_museo = :id 
-             AND e.fecha_fin >= SYSDATE
-             ORDER BY e.fecha_inicio`,
-            [id_museo]
-        );
-
-        // Construir estructura jerárquica
-        const estructuraFlat = estructuraResult.rows.map(row => ({
-            id: row[0],
-            nombre: row[1],
-            tipo: row[2],
-            descripcion: row[3],
-            direccion_edificio: row[4],
-            id_est_padre: row[5],
-            total_colecciones: row[6],
-            exposiciones_activas: row[7],
-            children: []
-        }));
-
-        const buildTree = (items, parentId = null) => {
-            return items
-                .filter(item => item.id_est_padre === parentId)
-                .map(item => ({
-                    ...item,
-                    children: buildTree(items, item.id)
-                }));
-        };
-
-        const estructuraJerarquica = buildTree(estructuraFlat);
-
-        // Preparar datos del reporte
-        const reporteData = {
-            museo,
-            resumen: {
-                total_edificios: resumenResult.rows[0][0],
-                total_pisos: resumenResult.rows[0][1],
-                total_areas: resumenResult.rows[0][2],
-                total_salas: resumenResult.rows[0][3],
-                total_exposiciones_activas: exposicionesResult.rows.length
-            },
-            estructura_fisica: estructuraJerarquica,
-            exposiciones_actuales: exposicionesResult.rows.map(row => ({
-                nombre: row[0],
-                sala: row[1],
-                fecha_inicio: row[2],
-                fecha_fin: row[3],
-                costo_persona: row[4],
-                visitantes: row[5]
-            }))
-        };
-
-        res.json(reporteData);
-
-    } catch (error) {
-        console.error('Error al generar reporte de estructura física:', error);
-        res.status(500).json({ 
-            message: 'Error interno del servidor',
-            error: error.message 
-        });
-    } finally {
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (closeErr) {
-                console.error('Error al cerrar conexión:', closeErr);
-            }
-        }
-    }
-});
+// ENDPOINT DUPLICADO ELIMINADO - YA EXISTE UNA VERSIÓN REFACTORIZADA ARRIBA
 
 // Endpoint para obtener estadísticas generales del sistema
 app.get('/api/estadisticas', async (req, res) => {
