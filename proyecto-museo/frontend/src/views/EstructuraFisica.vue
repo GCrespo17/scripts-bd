@@ -8,7 +8,7 @@
     <!-- Selector de Museo -->
     <div class="control-section">
       <label for="museo-select">Seleccione un Museo:</label>
-      <select id="museo-select" v-model="selectedMuseo" @change="fetchEstructura">
+      <select id="museo-select" v-model="selectedMuseo" @change="onMuseoChange">
         <option disabled value="">Por favor seleccione un museo</option>
         <option v-for="museo in museos" :key="museo.id" :value="museo.id">
           {{ museo.nombre }}
@@ -16,27 +16,9 @@
       </select>
     </div>
 
-    <!-- Contenido Principal -->
-    <div class="content-grid" v-if="selectedMuseo">
-      <!-- Columna de la Estructura Actual -->
-      <div class="structure-column">
-        <h2>Estructura Actual</h2>
-        <div v-if="loadingEstructura" class="loading-spinner">Cargando...</div>
-        <div v-if="errorEstructura" class="error-message">{{ errorEstructura }}</div>
-        <div v-if="!loadingEstructura && estructura.length === 0" class="no-data">
-          No hay estructura física registrada para este museo.
-        </div>
-        <ul class="structure-tree" v-if="estructura.length > 0">
-          <EstructuraNode 
-            v-for="node in estructura" 
-            :key="node.id" 
-            :node="node" 
-          />
-        </ul>
-      </div>
-
-      <!-- Columna del Formulario -->
-      <div class="form-column">
+    <!-- Formulario Principal -->
+    <div class="form-container" v-if="selectedMuseo">
+      <div class="form-card">
         <h2>Añadir Nuevo Elemento</h2>
         <form @submit.prevent="handleSubmit" class="add-form">
           <div class="form-group">
@@ -76,21 +58,26 @@
             </small>
           </div>
           <div v-if="errorSubmit" class="error-message">{{ errorSubmit }}</div>
-          <button type="submit" :disabled="loadingSubmit">
-            {{ loadingSubmit ? 'Guardando...' : 'Guardar Elemento' }}
-          </button>
+          <div class="form-actions">
+            <button type="submit" :disabled="loadingSubmit" class="btn-primary">
+              {{ loadingSubmit ? 'Guardando...' : 'Guardar Elemento' }}
+            </button>
+            <button type="button" @click="resetForm" class="btn-secondary">
+              Limpiar Formulario
+            </button>
+          </div>
         </form>
       </div>
     </div>
-     <div v-else class="placeholder">
-      <p>Seleccione un museo para ver y gestionar su estructura física.</p>
+    
+    <div v-else class="placeholder">
+      <p>Seleccione un museo para agregar elementos a su estructura física.</p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import EstructuraNode from '../components/EstructuraNode.vue';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:3000/api';
@@ -230,7 +217,8 @@ const handleSubmit = async () => {
     await axios.post(`${API_URL}/est-fisica`, newElemento.value);
     // Éxito
     resetForm();
-    await fetchEstructura(); // Recargar la estructura
+    alert('Elemento de estructura física guardado exitosamente!');
+    await fetchEstructura(); // Recargar la estructura para futuras operaciones
   } catch (error) {
     console.error('Error submitting new element:', error);
     errorSubmit.value = `Error al guardar: ${error.response?.data?.message || error.message}`;
@@ -248,6 +236,14 @@ const resetForm = () => {
     id_est_padre: null,
     id_museo: null
   };
+  errorSubmit.value = null;
+};
+
+const onMuseoChange = () => {
+  // Llamar a fetchEstructura cuando se cambie el museo para cargar opciones de padre
+  fetchEstructura();
+  // También limpiar el formulario
+  resetForm();
 };
 
 onMounted(fetchMuseos);
@@ -257,12 +253,15 @@ onMounted(fetchMuseos);
 .page-container {
   padding: 2rem;
   background-color: var(--gray-50);
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-header {
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--gray-200);
   padding-bottom: 1rem;
+  text-align: center;
 }
 
 .page-header h1 {
@@ -282,11 +281,13 @@ onMounted(fetchMuseos);
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
+  text-align: center;
 }
 
 .control-section label {
   font-weight: 600;
   margin-right: 1rem;
+  display: inline-block;
 }
 
 .control-section select {
@@ -295,6 +296,7 @@ onMounted(fetchMuseos);
   border: 1px solid var(--gray-300);
   min-width: 300px;
 }
+
 .placeholder {
   text-align: center;
   margin-top: 4rem;
@@ -305,17 +307,19 @@ onMounted(fetchMuseos);
   box-shadow: var(--shadow-sm);
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+.form-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
-.structure-column, .form-column {
+.form-card {
   background-color: white;
-  padding: 1.5rem;
+  padding: 2rem;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 600px;
 }
 
 h2 {
@@ -325,27 +329,16 @@ h2 {
   margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--gray-200);
   padding-bottom: 0.75rem;
-}
-
-.loading-spinner, .error-message, .no-data {
-  padding: 1rem;
-  border-radius: 8px;
   text-align: center;
 }
 
 .error-message {
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
   background-color: #fee2e2;
   color: #b91c1c;
-}
-
-.no-data {
-  background-color: var(--gray-100);
-  color: var(--gray-600);
-}
-
-.structure-tree {
-  list-style-type: none;
-  padding-left: 0;
+  margin-bottom: 1rem;
 }
 
 .add-form .form-group {
@@ -367,6 +360,12 @@ h2 {
   border: 1px solid var(--gray-300);
   border-radius: 8px;
   transition: border-color 0.2s;
+  font-size: 1rem;
+}
+
+.add-form textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 .add-form input:focus,
@@ -377,25 +376,49 @@ h2 {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.add-form button {
-  width: 100%;
-  padding: 0.85rem;
-  background-color: var(--primary-color);
-  color: white;
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 0.85rem 1.5rem;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  font-size: 1rem;
 }
 
-.add-form button:hover {
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
-.add-form button:disabled {
+.btn-primary:disabled {
   background-color: var(--gray-400);
   cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background-color: var(--gray-200);
+  color: var(--gray-700);
+  border: 1px solid var(--gray-300);
+}
+
+.btn-secondary:hover {
+  background-color: var(--gray-300);
+  transform: translateY(-1px);
 }
 
 .required {
@@ -409,5 +432,24 @@ h2 {
   font-size: 0.875rem;
   color: var(--gray-500);
   font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+  
+  .form-card {
+    padding: 1.5rem;
+  }
+  
+  .control-section select {
+    min-width: 250px;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
 }
 </style> 
