@@ -1416,7 +1416,7 @@ CREATE OR REPLACE PROCEDURE SP_MOVER_OBRA
     p_id_museo_destino IN MUSEOS.id_museo%TYPE DEFAULT NULL,
     p_id_coleccion_destino IN COLECCIONES_PERMANENTES.id_coleccion%TYPE DEFAULT NULL,
     p_id_sala_destino IN SALAS_EXP.id_sala%TYPE DEFAULT NULL,
-    p_id_empleado_destino IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE DEFAULT NULL, -- Empleado encargado de la obra en el destino (opcional)
+    p_id_empleado_destino IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE DEFAULT NULL,
     p_tipo_adq_destino IN HIST_OBRAS_MOV.tipo_adquisicion%TYPE DEFAULT NULL,
     p_destacada_destino IN HIST_OBRAS_MOV.destacada%TYPE DEFAULT NULL,
     p_orden_recorrido_destino IN HIST_OBRAS_MOV.orden_recorrido%TYPE DEFAULT NULL,
