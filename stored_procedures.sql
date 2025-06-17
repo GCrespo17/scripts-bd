@@ -1444,8 +1444,10 @@ END SP_REGISTRAR_OBRA_NUEVA;
 -- STORED PROCEDURE: SP_MOVER_OBRA
 -- -----------------------------------------------------------------------------
 -- Fecha de Creación: 14-JUN-2025
+-- FECHA DE CAMBIO: 16-JUN-2025 3:24 PM
 -- Descripción:
 -- Automatiza el movimiento de una obra en un museo, o hacia otro museo
+-- Ultimo cambio, si se mueve dentro de un mismo museo, acarrea los programas de mant/
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE SP_MOVER_OBRA
 (
@@ -1453,7 +1455,7 @@ CREATE OR REPLACE PROCEDURE SP_MOVER_OBRA
     p_id_museo_destino IN MUSEOS.id_museo%TYPE DEFAULT NULL,
     p_id_coleccion_destino IN COLECCIONES_PERMANENTES.id_coleccion%TYPE DEFAULT NULL,
     p_id_sala_destino IN SALAS_EXP.id_sala%TYPE DEFAULT NULL,
-    p_id_empleado_destino IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE DEFAULT NULL, -- Empleado encargado de la obra en el destino (opcional)
+    p_id_empleado_destino IN EMPLEADOS_PROFESIONALES.id_empleado%TYPE DEFAULT NULL,
     p_tipo_adq_destino IN HIST_OBRAS_MOV.tipo_adquisicion%TYPE DEFAULT NULL,
     p_destacada_destino IN HIST_OBRAS_MOV.destacada%TYPE DEFAULT NULL,
     p_orden_recorrido_destino IN HIST_OBRAS_MOV.orden_recorrido%TYPE DEFAULT NULL,
@@ -1481,6 +1483,7 @@ IS
     v_orden_recorrido_destino_final  HIST_OBRAS_MOV.orden_recorrido%TYPE;
     v_valor_monetario_destino_final  HIST_OBRAS_MOV.valor_monetario%TYPE;
 
+    v_obra_tiene_historico_abierto BOOLEAN := FALSE;
 
     v_orden_ultima_destacada NUMBER;
     v_orden_primera_nodestacada NUMBER;
@@ -1489,6 +1492,16 @@ IS
 
     v_id_est_org_destino NUMBER;
     v_id_est_fis_destino NUMBER;
+    
+    v_id_nuevo_catalogo NUMBER;
+    
+    
+        -- Cursor para obtener todos los programas de mantenimiento del histórico anterior
+    CURSOR c_programas_mant_anteriores IS
+        SELECT actividad, frecuencia, tipo_responsable
+        FROM PROGRAMAS_MANT
+            WHERE id_catalogo = v_current_id_hist; -- Filtrar por el ID del histórico ANTERIOR
+
 
 BEGIN
     -- ENCONTRAR LOS VALORES ACTUALES DEL REGISTRO HISTORICO DE LA OBRA
@@ -1500,10 +1513,14 @@ BEGIN
         FROM HIST_OBRAS_MOV
         WHERE id_obra = n_id_obra
         AND fecha_salida IS NULL; 
+        
+        v_obra_tiene_historico_abierto := TRUE;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20001, 'No se encontró un registro activo para la obra con ID ' || n_id_obra || '. La obra no está en un lugar registrado o ya tiene fecha de salida.');
+            v_obra_tiene_historico_abierto:= FALSE;
     END;
+
+    
 
     -- SE ASIGNA LOS VALORES A DONDE SE QUIERE MOVER LA OBRA
     v_id_museo_destino_final        := NVL(p_id_museo_destino, v_current_museo_id);
@@ -1514,23 +1531,29 @@ BEGIN
     v_destacada_destino_final       := NVL(p_destacada_destino, v_current_destacada);
     v_valor_monetario_destino_final := NVL(p_valor_monetario_destino, v_current_valor_monetario);
 
-
+    
     -- VALIDAR SI LA OBRA YA SE ENCUENTRA DONDE SE QUIERE MOVER
-    IF v_id_museo_destino_final = v_current_museo_id AND
-       v_id_coleccion_destino_final = v_current_coleccion_id AND
-       v_id_sala_destino_final = v_current_sala_id AND
-       v_id_empleado_destino_final = v_current_id_empleado AND 
-       v_tipo_adq_destino_final = v_current_tipo_adq AND
-       v_destacada_destino_final = v_current_destacada AND
-       v_valor_monetario_destino_final = v_current_valor_monetario
-       THEN
-        RAISE_APPLICATION_ERROR(-20002, 'La obra ya se encuentra en la ubicación de destino especificada sin cambios relevantes.');
+    IF v_obra_tiene_historico_abierto THEN
+        IF v_id_museo_destino_final = v_current_museo_id AND
+           v_id_coleccion_destino_final = v_current_coleccion_id AND
+           v_id_sala_destino_final = v_current_sala_id AND
+           v_id_empleado_destino_final = v_current_id_empleado AND 
+           v_tipo_adq_destino_final = v_current_tipo_adq AND
+           v_destacada_destino_final = v_current_destacada AND
+           v_valor_monetario_destino_final = v_current_valor_monetario
+           THEN
+            RAISE_APPLICATION_ERROR(-20002, 'La obra ya se encuentra en la ubicación de destino especificada sin cambios relevantes.');
+        END IF;
     END IF;
 
+
     -- SE CIERRA EL ANTERIOR REGISTRO HISTORICO ACTIVO DE ESTA OBRA
-    UPDATE HIST_OBRAS_MOV
-    SET fecha_salida = SYSDATE
-    WHERE id_catalogo_museo = v_current_id_hist;
+    
+    IF v_obra_tiene_historico_abierto THEN
+        UPDATE HIST_OBRAS_MOV
+        SET fecha_salida = SYSDATE
+        WHERE id_catalogo_museo = v_current_id_hist;
+    END IF;
 
    
     -- SE AJUSTA EL ORDEN DE RECORRIDO DEPENDIENDO DE LO QUE SE COLOQUE
@@ -1621,11 +1644,24 @@ BEGIN
         v_id_est_org_destino, v_id_museo_destino_final, v_id_est_fis_destino,
         SYSDATE, v_tipo_adq_destino_final, v_destacada_destino_final, NULL,
         v_orden_recorrido_destino_final, v_valor_monetario_destino_final
-    );
+    ) RETURNING  id_catalogo_museo INTO v_id_nuevo_catalogo;
+    
+
+    -- SI SE ENCUENTRA EN EL MISMO MUSEO, REASIGNARLE LA ACTIVIDAD DE MANTENIMIENTO
+    IF v_id_museo_destino_final = v_current_museo_id THEN
+        FOR r_mant IN c_programas_mant_anteriores LOOP -- Iterar sobre cada programa de mantenimiento anterior
+            INSERT INTO PROGRAMAS_MANT(id_catalogo, id_obra, actividad, frecuencia, tipo_responsable)
+            VALUES (
+                    v_id_nuevo_catalogo,
+                    n_id_obra,
+                    r_mant.actividad,
+                    r_mant.frecuencia,
+                    r_mant.tipo_responsable);
+        END LOOP;
+    END IF;
+
 
 EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        RAISE_APPLICATION_ERROR(-20003, 'Error: Datos no encontrados durante el movimiento de la obra. ' || SQLERRM);
     WHEN OTHERS THEN
         RAISE_APPLICATION_ERROR(-20005, 'Error inesperado en SP_MOVER_OBRA: ' || SQLERRM);
 END SP_MOVER_OBRA;
@@ -1633,6 +1669,7 @@ END SP_MOVER_OBRA;
 
 -- -----------------------------------------------------------------------------
 -- BLOQUE DE EJEMPLO DE USO: MOVER OBRA
+-- MOVER OBRA YA REGISTRADA
 -- -----------------------------------------------------------------------------
 /*
 DECLARE
@@ -1674,6 +1711,109 @@ END;
 /
 */
 
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: MOVER OBRA NO REGISTRADA
+-- MOVER OBRA NO REGISTRADA
+-- -----------------------------------------------------------------------------
+-- Bloque de Uso Corregido para el Procedimiento SP_MOVER_OBRA
+/*
+DECLARE
+    v_id_museo      NUMBER;
+    v_id_obra       NUMBER;
+    v_id_sala       NUMBER;
+    v_id_empleado   NUMBER;
+    v_id_coleccion  NUMBER; -- Variable para almacenar el ID de la colección
+BEGIN
+    -- Habilitar la salida para ver los mensajes
+    DBMS_OUTPUT.PUT_LINE('Iniciando el bloque de uso...');
+
+    -- Insertar la obra y obtener su ID.
+    INSERT INTO OBRAS (nombre, fecha_periodo, tipo_obra, dimensiones, desc_materiales_tecnicas, desc_estilos_generos)
+    VALUES (
+        'El Regreso del Segador',
+        TO_DATE('1886-01-01', 'YYYY-MM-DD'),
+        'PINTURA',
+        '81 x 114 cm',
+        'Óleo sobre lienzo. Laeghaire utilizó una paleta de colores terrosos y vibrantes, aplicando la pintura con pinceladas sueltas para capturar la luz y la atmósfera rural irlandesa.',
+        'Pintura de género del Realismo. Muestra una escena de la vida rural irlandesa, centrándose en el trabajo agrícola y la conexión del pueblo con la tierra, con un toque de melancolía y la luz característica del oeste de Irlanda.'
+    )
+    RETURNING id_obra INTO v_id_obra; -- Obtener el ID de la obra recién insertada
+
+    DBMS_OUTPUT.PUT_LINE('Obra "El Regreso del Segador" insertada con ID: ' || v_id_obra);
+
+    -- Obtener IDs de referencia
+    BEGIN -- Manejo de excepción para SELECT de Museo
+        SELECT id_museo INTO v_id_museo
+        FROM MUSEOS
+        WHERE nombre= 'Musée du Petit Palais';
+        DBMS_OUTPUT.PUT_LINE('ID de Museo "Musée du Petit Palais": ' || v_id_museo);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20010, 'Error: Museo "Musée du Petit Palais" no encontrado. Verifica tus datos.');
+    END;
+    
+    BEGIN -- Manejo de excepción para SELECT de Empleado
+        SELECT id_empleado INTO v_id_empleado
+        FROM EMPLEADOS_PROFESIONALES
+        WHERE doc_identidad = 2013; -- Asegúrate de que este empleado exista
+        DBMS_OUTPUT.PUT_LINE('ID de Empleado con Doc_identidad 2013: ' || v_id_empleado);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20011, 'Error: Empleado con Doc_identidad 2013 no encontrado. Verifica tus datos.');
+    END;
+    
+    BEGIN -- Manejo de excepción para SELECT de Sala
+        SELECT id_sala INTO v_id_sala
+        FROM SALAS_EXP
+        WHERE id_museo = v_id_museo AND
+        nombre = 'GALERIE TUCK'; -- Asegúrate de que esta sala exista en el museo
+        DBMS_OUTPUT.PUT_LINE('ID de Sala "GALERIE TUCK": ' || v_id_sala);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20012, 'Error: Sala "GALERIE TUCK" no encontrada en el museo especificado. Verifica tus datos.');
+    END;
+
+    -- >>> INICIO DE CAMBIO: SELECCIONAR EL ID DE LA COLECCIÓN Y SU MANEJO DE EXCEPCIONES <<<
+    BEGIN -- Manejo de excepción para SELECT de Colección
+        -- Necesitas obtener un ID de colección que corresponda al museo de destino.
+        SELECT id_coleccion INTO v_id_coleccion
+        FROM COLECCIONES_PERMANENTES
+        WHERE id_museo = v_id_museo -- Asegúrate de que la colección pertenezca al museo
+        AND nombre = 'Siglo XVIII'; -- Reemplaza con un nombre de colección real
+        DBMS_OUTPUT.PUT_LINE('ID de Colección "Colección de Pintura Europea": ' || v_id_coleccion);
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20013, 'Error: Colección "Colección de Pintura Europea" no encontrada en el museo especificado. Verifica tus datos.');
+    END;
+    -- >>> FIN DE CAMBIO <<<
+    
+    -- Llamar al procedimiento SP_MOVER_OBRA
+    -- Ya que es la primera vez que se registra esta obra en el histórico,
+    -- es crucial pasarle todos los parámetros de ubicación, incluyendo la colección.
+    DBMS_OUTPUT.PUT_LINE('Llamando a SP_MOVER_OBRA para la obra ' || v_id_obra || '...');
+    SP_MOVER_OBRA(
+        n_id_obra                 => v_id_obra,
+        p_id_museo_destino        => v_id_museo,             -- Necesario si la obra no tiene histórico
+        p_id_coleccion_destino    => v_id_coleccion,         -- Parámetro de colección añadido
+        p_id_sala_destino         => v_id_sala,
+        p_id_empleado_destino     => v_id_empleado,
+        p_tipo_adq_destino        => 'DONADA',  -- Tipo de adquisición adecuado para un primer registro
+        p_destacada_destino       => 'NO',
+        p_orden_recorrido_destino => NULL,
+        p_valor_monetario_destino => 50000.00 -- Un valor inicial para la obra
+    );
+    DBMS_OUTPUT.PUT_LINE('SP_MOVER_OBRA ejecutado con éxito.');
+
+    COMMIT; -- Confirma los cambios
+    DBMS_OUTPUT.PUT_LINE('Transacción confirmada.');
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error en el bloque de uso: ' || SQLERRM);
+        ROLLBACK; -- Deshace todos los cambios si hay un error
+END;
+/
+*/
 
 -- -----------------------------------------------------------------------------
 -- STORED PROCEDURE: SP_MOVER_EMPLEADO_ACTVO
@@ -1766,3 +1906,233 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20406, 'Error inesperado en SP_MOVER_EMPLEADO_INACTIVO: ' || SQLERRM);
 END SP_MOVER_EMPLEADO_INACTIVO;
 /
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_REGISTRAR_MANTENIMIENTO
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 14-JUN-2025
+-- Descripción:
+-- Automatiza el movimiento de un empleado inactivo, con historico cerrado en ese
+-- museo o un nuevo empleado en general
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_REGISTRAR_MANTENIMIENTO_OBRA
+(
+    n_id_mant IN MANTENIMIENTOS_OBRAS_REALIZADOS.id_mant%TYPE,
+    n_id_empleado IN MANTENIMIENTOS_OBRAS_REALIZADOS.id_empleado%TYPE,
+    n_observaciones IN MANTENIMIENTOS_OBRAS_REALIZADOS.observaciones%TYPE,
+    n_fecha_fin IN MANTENIMIENTOS_OBRAS_REALIZADOS.fecha_fin%TYPE DEFAULT NULL
+)
+IS
+    v_id_mant NUMBER;
+    v_id_obra NUMBER;
+    v_id_catalogo NUMBER;
+    
+BEGIN
+    
+    BEGIN
+        SELECT id_obra INTO v_id_obra
+        FROM PROGRAMAS_MANT
+        WHERE id_mant = n_id_mant;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20551, 'Error: El programa de mantenimiento con ID: ' || n_id_mant || ' no existe.');
+        WHEN TOO_MANY_ROWS THEN
+            RAISE_APPLICATION_ERROR(-20552, 'Error de consistencia de datos: Múltiples obras asociadas al programa de mantenimiento ID: ' || n_id_mant || '.');
+    END;
+    
+    BEGIN
+        SELECT id_catalogo_museo INTO v_id_catalogo
+        FROM HIST_OBRAS_MOV
+        WHERE id_obra = v_id_obra AND
+        fecha_salida IS NULL;
+        
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20553, 'La obra con ID: ' || v_id_obra || ' no tiene un historico abierto.');
+    END;
+    
+    INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS(id_mant, id_catalogo, id_obra, 
+        id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES(
+        n_id_mant, v_id_catalogo, v_id_obra, n_id_empleado, SYSDATE, n_fecha_fin,
+        n_observaciones);
+
+END SP_REGISTRAR_MANTENIMIENTO_OBRA;
+/
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: SP_REGISTRAR_MANTENIMIENTO_OBRA
+-- MOVER OBRA NO REGISTRADA
+-- -----------------------------------------------------------------------------
+/*
+DECLARE
+    v_id_obra NUMBER;
+    v_id_empleado NUMBER;
+    v_id_catalogo NUMBER;
+    v_id_mant NUMBER;
+BEGIN
+
+    SELECT id_obra INTO v_id_obra
+    FROM OBRAS
+    WHERE nombre = 'Ugolino';
+    
+    SELECT id_catalogo_museo INTO v_id_catalogo
+    FROM HIST_OBRAS_MOV
+    WHERE id_obra = v_id_obra AND
+    fecha_salida IS NULL;
+    
+    SELECT id_mant INTO v_id_mant
+    FROM PROGRAMAS_MANT
+    WHERE id_obra = v_id_obra AND
+    id_catalogo = v_id_catalogo;
+
+    SELECT id_empleado INTO v_id_empleado
+    FROM EMPLEADOS_PROFESIONALES
+    WHERE doc_identidad = 2020;
+
+    SP_REGISTRAR_MANTENIMIENTO_OBRA(v_id_mant, v_id_empleado, 'Recibio golpes en el proceso');
+
+END;
+/
+*/
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_REGISTRAR_VIGILANTE_MANT
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Automatiza el registro de un vigilante o empleado de mant
+--
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_REGISTRAR_VIGILANTE_MANT
+(
+    n_nombre IN EMPLEADOS_VIGILANTE_MANT.nombre%TYPE,
+    n_apellido IN EMPLEADOS_VIGILANTE_MANT.apellido%TYPE,
+    n_doc_identidad IN EMPLEADOS_VIGILANTE_MANT.doc_identidad%TYPE,
+    n_tipo_responsable IN EMPLEADOS_VIGILANTE_MANT.tipo_responsable%TYPE,
+    n_id_est IN ASIGNACIONES_MES.id_est%TYPE,
+    n_turno IN ASIGNACIONES_MES.turno%TYPE
+)
+IS
+    v_id_empleado NUMBER;
+    v_id_museo NUMBER;
+BEGIN
+    INSERT INTO EMPLEADOS_VIGILANTE_MANT(nombre, apellido, doc_identidad, tipo_responsable)
+    VALUES(n_nombre, n_apellido, n_doc_identidad, n_tipo_responsable) RETURNING id_vig_mant INTO v_id_empleado;
+    
+    BEGIN
+        SELECT id_museo INTO v_id_museo
+        FROM EST_FISICA
+        WHERE id_est = n_id_est;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20601, 'Esa estructura no existe en ningun museo');
+    END;
+    
+    INSERT INTO ASIGNACIONES_MES(mes_anio, id_est, id_museo, id_vig_mant, turno)
+    VALUES(SYSDATE, n_id_est, v_id_museo, v_id_empleado, n_turno);
+END SP_REGISTRAR_VIGILANTE_MANT;
+/
+
+
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_ASIGNAR_VIGILANTE_MANT
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Automatiza la asignacion de un vigilante o empleado de mant
+--
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_REGISTRAR_VIGILANTE_MANT
+(
+    n_id_vig_mant IN EMPLEADOS_VIGILANTE_MANT.id_vig_mant%TYPE,
+    n_id_est IN ASIGNACIONES_MES.id_est%TYPE,
+    n_turno IN ASIGNACIONES_MES.turno%TYPE
+)
+IS
+    v_id_museo NUMBER;
+BEGIN
+    
+    BEGIN
+        SELECT id_museo INTO v_id_museo
+        FROM EST_FISICA
+        WHERE id_est = n_id_est;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20601, 'Esa estructura no existe en ningun museo');
+    END;
+    
+    INSERT INTO ASIGNACIONES_MES(mes_anio, id_est, id_museo, id_vig_mant, turno)
+    VALUES(SYSDATE, n_id_est, v_id_museo, n_id_vig_mant, n_turno);
+END SP_REGISTRAR_VIGILANTE_MANT;
+/
+
+-- -----------------------------------------------------------------------------
+-- STORED PROCEDURE: SP_REGISTRAR_CIERRE_TEMPORAL
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Automatiza el cierre temporal de una estructura
+--
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE SP_REGISTRAR_CIERRE_TEMPORAL
+(
+    n_fecha_inicio IN CIERRES_TEMPORALES.fecha_inicio%TYPE DEFAULT NULL,
+    n_id_sala IN CIERRES_TEMPORALES.id_sala%TYPE,
+    n_fecha_fin IN CIERRES_TEMPORALES.fecha_fin%TYPE DEFAULT NULL
+)
+IS
+    v_id_est SALAS_EXP.id_est%TYPE;
+    v_id_museo SALAS_EXP.id_museo%TYPE;
+    v_fecha_inicio_rec CIERRES_TEMPORALES.fecha_inicio%TYPE;
+BEGIN
+    
+    BEGIN
+        SELECT id_est, id_museo 
+        INTO v_id_est, v_id_museo
+        FROM SALAS_EXP
+        WHERE id_sala = n_id_sala;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RAISE_APPLICATION_ERROR(-20701, 'No existe esa sala en ningun museo.');
+    END;
+    
+    v_fecha_inicio_rec := NVL(n_fecha_inicio, SYSDATE);
+    
+    INSERT INTO CIERRES_TEMPORALES(fecha_inicio, id_sala, id_est, id_museo, fecha_fin)
+    VALUES(v_fecha_inicio_rec, n_id_sala, v_id_est, v_id_museo, n_fecha_fin);
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE_APPLICATION_ERROR(-20702, 'Error inesperado al registrar el cierre temporal: ' || SQLERRM);
+END SP_REGISTRAR_CIERRE_TEMPORAL;
+/
+
+-- -----------------------------------------------------------------------------
+-- BLOQUE DE EJEMPLO DE USO: SP_REGISTRAR_CIERRE_TEMPORAL
+-- CERRAR UNA SALA DE EXPOSICION
+-- -----------------------------------------------------------------------------
+
+DECLARE
+    v_id_sala_galerie_tuck SALAS_EXP.id_sala%TYPE;
+BEGIN
+    SELECT id_sala INTO v_id_sala_galerie_tuck
+    FROM SALAS_EXP
+    WHERE nombre = 'GALERIE TUCK' AND ROWNUM = 1;
+
+
+    SP_REGISTRAR_CIERRE_TEMPORAL(
+        n_id_sala => v_id_sala_galerie_tuck,
+        n_fecha_fin => TO_DATE('2025-07-07', 'YYYY-MM-DD')
+    );
+
+
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK; 
+END;
+/
+
+
