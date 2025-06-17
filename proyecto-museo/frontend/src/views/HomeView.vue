@@ -77,6 +77,13 @@
           <p>Seguimiento y planificación de actividades de mantenimiento preventivo y correctivo.</p>
           <div class="feature-arrow">→</div>
         </RouterLink>
+
+        <RouterLink to="/test-procedures" class="feature-card">
+          <div class="feature-icon">🧪</div>
+          <h3>Testing de Procedimientos</h3>
+          <p>Herramienta de testing para validar y probar procedimientos almacenados de la base de datos.</p>
+          <div class="feature-arrow">→</div>
+        </RouterLink>
       </div>
     </section>
 
@@ -103,6 +110,11 @@
           <div class="action-icon">🏗️</div>
           <h4>Estructura Física</h4>
           <p>Revisar infraestructura del museo</p>
+        </div>
+        <div class="action-card" @click="navigateToTestProcedures">
+          <div class="action-icon">🧪</div>
+          <h4>Testing de Procedimientos</h4>
+          <p>Probar procedimientos almacenados</p>
         </div>
       </div>
     </section>
@@ -220,6 +232,10 @@ export default {
       router.push('/reporte-estructura')
     }
 
+    const navigateToTestProcedures = () => {
+      router.push('/test-procedures')
+    }
+
     onMounted(() => {
       fetchStats()
     })
@@ -231,7 +247,8 @@ export default {
       navigateToArtistas,
       navigateToOrganigrama,
       navigateToEmpleados,
-      navigateToEstructura
+      navigateToEstructura,
+      navigateToTestProcedures
     }
   }
 }

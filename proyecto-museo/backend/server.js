@@ -2579,3 +2579,656 @@ app.listen(PORT, () => {
         console.log('[DEBUG] Router no disponible para debug');
     }
 }); 
+
+// Endpoint para probar procedimientos almacenados dinámicamente
+app.post('/api/test-procedure', async (req, res) => {
+    const { procedureName, parameters } = req.body;
+    let connection;
+    
+    try {
+        if (!procedureName) {
+            return res.status(400).json({ message: 'Nombre del procedimiento es requerido' });
+        }
+        
+        connection = await oracledb.getConnection(dbConfig);
+        
+        let result;
+        let outParams = {};
+        
+        // Configurar bind variables dinámicamente
+        const bindVars = {};
+        let sql = '';
+        
+        // Definición de procedimientos y sus parámetros
+        const procedures = {
+            // === PROCEDIMIENTOS DE VENTA Y GESTIÓN BÁSICA ===
+            'SP_VENDER_TICKET': {
+                params: [
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_tipo_ticket', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_id_ticket_generado', type: 'OUT', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_VENDER_TICKET(:p_id_museo, :p_tipo_ticket, :p_id_ticket_generado)'
+            },
+            
+            // === PROCEDIMIENTOS DE GESTIÓN DE EMPLEADOS ===
+            'SP_REGISTRAR_NUEVO_EMPLEADO': {
+                params: [
+                    { name: 'p_doc_identidad', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_primer_nombre', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_primer_apellido', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_fecha_nacimiento', type: 'IN', dbType: 'DATE' },
+                    { name: 'p_contacto', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_segundo_nombre', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_segundo_apellido', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_nombre_unidad_org', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_cargo', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_fecha_inicio_cargo', type: 'IN', dbType: 'DATE' },
+                    { name: 'p_id_empleado_generado', type: 'OUT', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_REGISTRAR_NUEVO_EMPLEADO(:p_doc_identidad, :p_primer_nombre, :p_primer_apellido, :p_fecha_nacimiento, :p_contacto, :p_segundo_nombre, :p_segundo_apellido, :p_id_museo, :p_nombre_unidad_org, :p_cargo, :p_fecha_inicio_cargo, :p_id_empleado_generado)'
+            },
+            'SP_MOVER_EMPLEADO_ACTIVO': {
+                params: [
+                    { name: 'n_id_empleado', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_est_org', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_cargo', type: 'IN', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_MOVER_EMPLEADO_ACTIVO(:n_id_empleado, :n_id_museo, :n_id_est_org, :n_cargo)'
+            },
+            'SP_MOVER_EMPLEADO_INACTIVO': {
+                params: [
+                    { name: 'n_id_empleado', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_est_org', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_cargo', type: 'IN', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_MOVER_EMPLEADO_INACTIVO(:n_id_empleado, :n_id_museo, :n_id_est_org, :n_cargo)'
+            },
+            
+            // === PROCEDIMIENTOS DE GESTIÓN DE OBRAS ===
+            'SP_REGISTRAR_OBRA_NUEVA': {
+                params: [
+                    { name: 'n_nombre', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_fecha_periodo', type: 'IN', dbType: 'DATE' },
+                    { name: 'n_tipo_obra', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_dimensiones', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_desc_mat_tec', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_desc_estilos', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_coleccion', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_sala', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_empleado', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_tipo_adq', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_destacada', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_orden_recorrido', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_valor_monetario', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_REGISTRAR_OBRA_NUEVA(:n_nombre, :n_fecha_periodo, :n_tipo_obra, :n_dimensiones, :n_desc_mat_tec, :n_desc_estilos, :n_id_museo, :n_id_coleccion, :n_id_sala, :n_id_empleado, :n_tipo_adq, :n_destacada, :n_orden_recorrido, :n_valor_monetario)'
+            },
+            'SP_MOVER_OBRA': {
+                params: [
+                    { name: 'n_id_obra', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_museo_destino', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_coleccion_destino', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_sala_destino', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_empleado_destino', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_tipo_adq_destino', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_destacada_destino', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_orden_recorrido_destino', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_valor_monetario_destino', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_MOVER_OBRA(:n_id_obra, :p_id_museo_destino, :p_id_coleccion_destino, :p_id_sala_destino, :p_id_empleado_destino, :p_tipo_adq_destino, :p_destacada_destino, :p_orden_recorrido_destino, :p_valor_monetario_destino)'
+            },
+            
+            // === PROCEDIMIENTOS DE GESTIÓN DE EXPOSICIONES ===
+            'SP_FINALIZAR_EXPOSICION': {
+                params: [
+                    { name: 'p_id_expo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_FINALIZAR_EXPOSICION(:p_id_expo, :p_id_museo)'
+            },
+            'SP_ASIGNAR_OBRA_A_EXPOSICION': {
+                params: [
+                    { name: 'p_id_obra', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_expo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_orden_en_exposicion', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_ASIGNAR_OBRA_A_EXPOSICION(:p_id_obra, :p_id_expo, :p_id_museo, :p_orden_en_exposicion)'
+            },
+            
+            // === PROCEDIMIENTOS DE GESTIÓN DE COLECCIONES ===
+            'SP_INSERTAR_COLECCION': {
+                params: [
+                    { name: 'n_nombre_museo', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_nombre_depto', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_nombre_coleccion', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_caracteristicas', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_palabra_clave', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_orden_recorrido', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_INSERTAR_COLECCION(:n_nombre_museo, :n_nombre_depto, :n_nombre_coleccion, :n_caracteristicas, :n_palabra_clave, :n_orden_recorrido)'
+            },
+            'SP_MODIFICAR_ORDEN_COLECCION': {
+                params: [
+                    { name: 'n_id_coleccion', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_orden_recorrido', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_MODIFICAR_ORDEN_COLECCION(:n_id_coleccion, :n_orden_recorrido)'
+            },
+            'SP_ELIMINAR_COLECCION': {
+                params: [
+                    { name: 'p_id_coleccion', type: 'IN', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_ELIMINAR_COLECCION(:p_id_coleccion)'
+            },
+            
+            // === PROCEDIMIENTOS DE MANTENIMIENTO ===
+            'SP_REGISTRAR_MANTENIMIENTO_OBRA': {
+                params: [
+                    { name: 'n_id_mant', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_empleado', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_observaciones', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_fecha_fin', type: 'IN', dbType: 'DATE' }
+                ],
+                sql: 'CALL SP_REGISTRAR_MANTENIMIENTO_OBRA(:n_id_mant, :n_id_empleado, :n_observaciones, :n_fecha_fin)'
+            },
+            'SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO': {
+                params: [
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_dias_anticipacion', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_registros_procesados', type: 'OUT', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO(:p_id_museo, :p_dias_anticipacion, :p_registros_procesados)'
+            },
+            'SP_REGISTRAR_CIERRE_TEMPORAL': {
+                params: [
+                    { name: 'n_fecha_inicio', type: 'IN', dbType: 'DATE' },
+                    { name: 'n_id_sala', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_fecha_fin', type: 'IN', dbType: 'DATE' }
+                ],
+                sql: 'CALL SP_REGISTRAR_CIERRE_TEMPORAL(:n_fecha_inicio, :n_id_sala, :n_fecha_fin)'
+            },
+            
+            // === PROCEDIMIENTOS DE GESTIÓN DE VIGILANCIA ===
+            'SP_REGISTRAR_VIGILANTE_MANT': {
+                params: [
+                    { name: 'n_nombre', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_apellido', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_doc_identidad', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_tipo_responsable', type: 'IN', dbType: 'STRING' },
+                    { name: 'n_id_est', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_turno', type: 'IN', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_REGISTRAR_VIGILANTE_MANT(:n_nombre, :n_apellido, :n_doc_identidad, :n_tipo_responsable, :n_id_est, :n_turno)'
+            },
+            'SP_ASIGNAR_VIGILANTE_MANT': {
+                params: [
+                    { name: 'n_id_vig_mant', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_id_est', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'n_turno', type: 'IN', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_REGISTRAR_VIGILANTE_MANT(:n_id_vig_mant, :n_id_est, :n_turno)'
+            },
+            
+            // === PROCEDIMIENTOS DE ANÁLISIS Y RANKING ===
+            'SP_CALCULAR_RANKING_MUSEO': {
+                params: [
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_antiguedad_promedio_anios', type: 'OUT', dbType: 'NUMBER' },
+                    { name: 'p_tasa_rotacion_alta_pct', type: 'OUT', dbType: 'NUMBER' },
+                    { name: 'p_visitas_ultimo_anio', type: 'OUT', dbType: 'NUMBER' },
+                    { name: 'p_categoria_ranking', type: 'OUT', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_CALCULAR_RANKING_MUSEO(:p_id_museo, :p_antiguedad_promedio_anios, :p_tasa_rotacion_alta_pct, :p_visitas_ultimo_anio, :p_categoria_ranking)'
+            },
+            
+            // === PROCEDIMIENTOS DE AUTOMATIZACIÓN Y GESTIÓN DIARIA ===
+            'SP_GESTIONAR_ESTADO_EXPOSICIONES': {
+                params: [
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_accion_automatica', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_registros_procesados', type: 'OUT', dbType: 'NUMBER' }
+                ],
+                sql: 'CALL SP_GESTIONAR_ESTADO_EXPOSICIONES(:p_id_museo, :p_accion_automatica, :p_registros_procesados)'
+            },
+            'SP_CONSOLIDAR_OPERACIONES_DIARIAS': {
+                params: [
+                    { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
+                    { name: 'p_ejecutar_acciones', type: 'IN', dbType: 'STRING' },
+                    { name: 'p_resumen_operaciones', type: 'OUT', dbType: 'STRING' }
+                ],
+                sql: 'CALL SP_CONSOLIDAR_OPERACIONES_DIARIAS(:p_id_museo, :p_ejecutar_acciones, :p_resumen_operaciones)'
+            }
+        };
+        
+        const procedureConfig = procedures[procedureName];
+        if (!procedureConfig) {
+            return res.status(400).json({ 
+                message: 'Procedimiento no configurado',
+                availableProcedures: Object.keys(procedures)
+            });
+        }
+        
+        // Configurar parámetros de entrada y salida
+        procedureConfig.params.forEach(param => {
+            if (param.type === 'IN') {
+                let value = parameters[param.name];
+                
+                // Convertir tipos según sea necesario
+                if (param.dbType === 'DATE' && value) {
+                    // Convertir string a Date si es necesario
+                    if (typeof value === 'string') {
+                        value = new Date(value);
+                    }
+                }
+                
+                bindVars[param.name] = value;
+            } else if (param.type === 'OUT') {
+                bindVars[param.name] = { dir: oracledb.BIND_OUT, type: param.dbType === 'NUMBER' ? oracledb.NUMBER : oracledb.STRING };
+            }
+        });
+        
+        console.log(`[TEST-PROCEDURE] Ejecutando: ${procedureName}`);
+        console.log(`[TEST-PROCEDURE] Parámetros:`, bindVars);
+        
+        result = await connection.execute(procedureConfig.sql, bindVars);
+        
+        // Extraer parámetros de salida
+        procedureConfig.params
+            .filter(param => param.type === 'OUT')
+            .forEach(param => {
+                outParams[param.name] = bindVars[param.name];
+            });
+        
+        await connection.commit();
+        
+        res.json({
+            success: true,
+            message: `Procedimiento ${procedureName} ejecutado exitosamente`,
+            outParameters: outParams,
+            affectedRows: result.rowsAffected
+        });
+        
+    } catch (err) {
+        console.error(`[TEST-PROCEDURE] Error:`, err);
+        
+        if (connection) {
+            try {
+                await connection.rollback();
+            } catch (rollbackErr) {
+                console.error('[TEST-PROCEDURE] Error en rollback:', rollbackErr);
+            }
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: 'Error ejecutando procedimiento',
+            error: err.message,
+            code: err.code || 'UNKNOWN'
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[TEST-PROCEDURE] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint para obtener la lista de procedimientos disponibles
+app.get('/api/procedures', (req, res) => {
+    const procedures = {
+        // === VENTA Y GESTIÓN BÁSICA ===
+        'SP_VENDER_TICKET': {
+            name: 'SP_VENDER_TICKET',
+            description: 'Vender un ticket de entrada al museo',
+            category: 'Ventas y Admisiones',
+            inputParams: [
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'p_tipo_ticket', label: 'Tipo de Ticket', type: 'select', required: true, options: ['ADULTO', 'ESTUDIANTE', 'SENIOR', 'NIÑO'] }
+            ],
+            outputParams: [
+                { name: 'p_id_ticket_generado', label: 'ID del Ticket Generado', type: 'number' }
+            ]
+        },
+        
+        // === GESTIÓN DE EMPLEADOS ===
+        'SP_REGISTRAR_NUEVO_EMPLEADO': {
+            name: 'SP_REGISTRAR_NUEVO_EMPLEADO',
+            description: 'Registrar un nuevo empleado profesional en el museo',
+            category: 'Recursos Humanos',
+            inputParams: [
+                { name: 'p_doc_identidad', label: 'Documento de Identidad', type: 'number', required: true },
+                { name: 'p_primer_nombre', label: 'Primer Nombre', type: 'text', required: true },
+                { name: 'p_primer_apellido', label: 'Primer Apellido', type: 'text', required: true },
+                { name: 'p_fecha_nacimiento', label: 'Fecha de Nacimiento', type: 'date', required: true },
+                { name: 'p_contacto', label: 'Contacto', type: 'number', required: true },
+                { name: 'p_segundo_nombre', label: 'Segundo Nombre', type: 'text', required: false },
+                { name: 'p_segundo_apellido', label: 'Segundo Apellido', type: 'text', required: false },
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'p_nombre_unidad_org', label: 'Nombre Unidad Organizacional', type: 'text', required: true },
+                { name: 'p_cargo', label: 'Cargo', type: 'select', required: true, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] },
+                { name: 'p_fecha_inicio_cargo', label: 'Fecha Inicio Cargo', type: 'date', required: true }
+            ],
+            outputParams: [
+                { name: 'p_id_empleado_generado', label: 'ID del Empleado Generado', type: 'number' }
+            ]
+        },
+        'SP_MOVER_EMPLEADO_ACTIVO': {
+            name: 'SP_MOVER_EMPLEADO_ACTIVO',
+            description: 'Transferir un empleado activo a otro museo o cargo',
+            category: 'Recursos Humanos',
+            inputParams: [
+                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
+                { name: 'n_id_museo', label: 'ID Museo Destino', type: 'number', required: false },
+                { name: 'n_id_est_org', label: 'ID Estructura Organizacional', type: 'number', required: false },
+                { name: 'n_cargo', label: 'Nuevo Cargo', type: 'select', required: false, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] }
+            ],
+            outputParams: []
+        },
+        'SP_MOVER_EMPLEADO_INACTIVO': {
+            name: 'SP_MOVER_EMPLEADO_INACTIVO',
+            description: 'Reactivar y transferir un empleado inactivo',
+            category: 'Recursos Humanos',
+            inputParams: [
+                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
+                { name: 'n_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'n_id_est_org', label: 'ID Estructura Organizacional', type: 'number', required: true },
+                { name: 'n_cargo', label: 'Cargo', type: 'select', required: true, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] }
+            ],
+            outputParams: []
+        },
+        
+        // === GESTIÓN DE OBRAS ===
+        'SP_REGISTRAR_OBRA_NUEVA': {
+            name: 'SP_REGISTRAR_OBRA_NUEVA',
+            description: 'Registrar una nueva obra de arte en el sistema',
+            category: 'Gestión de Obras',
+            inputParams: [
+                { name: 'n_nombre', label: 'Título de la Obra', type: 'text', required: true },
+                { name: 'n_fecha_periodo', label: 'Fecha/Período', type: 'date', required: true },
+                { name: 'n_tipo_obra', label: 'Tipo de Obra', type: 'select', required: true, options: ['PINTURA', 'ESCULTURA', 'FOTOGRAFIA', 'GRABADO', 'DIBUJO', 'INSTALACION'] },
+                { name: 'n_dimensiones', label: 'Dimensiones', type: 'text', required: true },
+                { name: 'n_desc_mat_tec', label: 'Materiales y Técnicas', type: 'text', required: true },
+                { name: 'n_desc_estilos', label: 'Estilos y Géneros', type: 'text', required: true },
+                { name: 'n_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'n_id_coleccion', label: 'ID de la Colección', type: 'number', required: true },
+                { name: 'n_id_sala', label: 'ID de la Sala', type: 'number', required: true },
+                { name: 'n_id_empleado', label: 'ID Empleado Responsable', type: 'number', required: true },
+                { name: 'n_tipo_adq', label: 'Tipo de Adquisición', type: 'select', required: true, options: ['COMPRA', 'DONACION', 'LEGADO', 'PRESTAMO'] },
+                { name: 'n_destacada', label: '¿Es Obra Destacada?', type: 'select', required: true, options: ['SI', 'NO'] },
+                { name: 'n_orden_recorrido', label: 'Orden de Recorrido', type: 'number', required: false },
+                { name: 'n_valor_monetario', label: 'Valor Monetario', type: 'number', required: false }
+            ],
+            outputParams: []
+        },
+        'SP_MOVER_OBRA': {
+            name: 'SP_MOVER_OBRA',
+            description: 'Mover una obra de arte entre museos, colecciones o salas',
+            category: 'Gestión de Obras',
+            inputParams: [
+                { name: 'n_id_obra', label: 'ID de la Obra', type: 'number', required: true },
+                { name: 'p_id_museo_destino', label: 'ID Museo Destino', type: 'number', required: false },
+                { name: 'p_id_coleccion_destino', label: 'ID Colección Destino', type: 'number', required: false },
+                { name: 'p_id_sala_destino', label: 'ID Sala Destino', type: 'number', required: false },
+                { name: 'p_id_empleado_destino', label: 'ID Empleado Responsable', type: 'number', required: false },
+                { name: 'p_tipo_adq_destino', label: 'Tipo de Adquisición', type: 'select', required: false, options: ['COMPRA', 'DONACION', 'LEGADO', 'PRESTAMO'] },
+                { name: 'p_destacada_destino', label: '¿Es Destacada?', type: 'select', required: false, options: ['SI', 'NO'] },
+                { name: 'p_orden_recorrido_destino', label: 'Orden de Recorrido', type: 'number', required: false },
+                { name: 'p_valor_monetario_destino', label: 'Valor Monetario', type: 'number', required: false }
+            ],
+            outputParams: []
+        },
+        
+        // === GESTIÓN DE EXPOSICIONES ===
+        'SP_FINALIZAR_EXPOSICION': {
+            name: 'SP_FINALIZAR_EXPOSICION',
+            description: 'Finalizar una exposición temporal',
+            category: 'Gestión de Exposiciones',
+            inputParams: [
+                { name: 'p_id_expo', label: 'ID de la Exposición', type: 'number', required: true },
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true }
+            ],
+            outputParams: []
+        },
+        'SP_ASIGNAR_OBRA_A_EXPOSICION': {
+            name: 'SP_ASIGNAR_OBRA_A_EXPOSICION',
+            description: 'Asignar una obra a una exposición temporal',
+            category: 'Gestión de Exposiciones',
+            inputParams: [
+                { name: 'p_id_obra', label: 'ID de la Obra', type: 'number', required: true },
+                { name: 'p_id_expo', label: 'ID de la Exposición', type: 'number', required: true },
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'p_orden_en_exposicion', label: 'Orden en la Exposición', type: 'number', required: false }
+            ],
+            outputParams: []
+        },
+        
+        // === GESTIÓN DE COLECCIONES ===
+        'SP_INSERTAR_COLECCION': {
+            name: 'SP_INSERTAR_COLECCION',
+            description: 'Crear una nueva colección permanente',
+            category: 'Gestión de Colecciones',
+            inputParams: [
+                { name: 'n_nombre_museo', label: 'Nombre del Museo', type: 'text', required: true },
+                { name: 'n_nombre_depto', label: 'Nombre del Departamento', type: 'text', required: true },
+                { name: 'n_nombre_coleccion', label: 'Nombre de la Colección', type: 'text', required: true },
+                { name: 'n_caracteristicas', label: 'Características', type: 'text', required: true },
+                { name: 'n_palabra_clave', label: 'Palabra Clave', type: 'text', required: true },
+                { name: 'n_orden_recorrido', label: 'Orden de Recorrido', type: 'number', required: true }
+            ],
+            outputParams: []
+        },
+        'SP_MODIFICAR_ORDEN_COLECCION': {
+            name: 'SP_MODIFICAR_ORDEN_COLECCION',
+            description: 'Modificar el orden de recorrido de una colección',
+            category: 'Gestión de Colecciones',
+            inputParams: [
+                { name: 'n_id_coleccion', label: 'ID de la Colección', type: 'text', required: true },
+                { name: 'n_orden_recorrido', label: 'Nuevo Orden de Recorrido', type: 'number', required: true }
+            ],
+            outputParams: []
+        },
+        'SP_ELIMINAR_COLECCION': {
+            name: 'SP_ELIMINAR_COLECCION',
+            description: 'Eliminar una colección permanente',
+            category: 'Gestión de Colecciones',
+            inputParams: [
+                { name: 'p_id_coleccion', label: 'ID de la Colección', type: 'number', required: true }
+            ],
+            outputParams: []
+        },
+        
+        // === MANTENIMIENTO ===
+        'SP_REGISTRAR_MANTENIMIENTO_OBRA': {
+            name: 'SP_REGISTRAR_MANTENIMIENTO_OBRA',
+            description: 'Registrar un mantenimiento realizado a una obra',
+            category: 'Mantenimiento',
+            inputParams: [
+                { name: 'n_id_mant', label: 'ID del Mantenimiento', type: 'number', required: true },
+                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
+                { name: 'n_observaciones', label: 'Observaciones', type: 'text', required: true },
+                { name: 'n_fecha_fin', label: 'Fecha de Finalización', type: 'date', required: false }
+            ],
+            outputParams: []
+        },
+        'SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO': {
+            name: 'SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO',
+            description: 'Programar mantenimientos automáticos para un museo',
+            category: 'Mantenimiento',
+            inputParams: [
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_dias_anticipacion', label: 'Días de Anticipación', type: 'number', required: false }
+            ],
+            outputParams: [
+                { name: 'p_registros_procesados', label: 'Registros Procesados', type: 'number' }
+            ]
+        },
+        'SP_REGISTRAR_CIERRE_TEMPORAL': {
+            name: 'SP_REGISTRAR_CIERRE_TEMPORAL',
+            description: 'Registrar el cierre temporal de una sala',
+            category: 'Mantenimiento',
+            inputParams: [
+                { name: 'n_fecha_inicio', label: 'Fecha de Inicio', type: 'date', required: false },
+                { name: 'n_id_sala', label: 'ID de la Sala', type: 'number', required: true },
+                { name: 'n_fecha_fin', label: 'Fecha de Fin', type: 'date', required: false }
+            ],
+            outputParams: []
+        },
+        
+        // === GESTIÓN DE VIGILANCIA ===
+        'SP_REGISTRAR_VIGILANTE_MANT': {
+            name: 'SP_REGISTRAR_VIGILANTE_MANT',
+            description: 'Registrar un nuevo vigilante de mantenimiento',
+            category: 'Vigilancia y Seguridad',
+            inputParams: [
+                { name: 'n_nombre', label: 'Nombre', type: 'text', required: true },
+                { name: 'n_apellido', label: 'Apellido', type: 'text', required: true },
+                { name: 'n_doc_identidad', label: 'Documento de Identidad', type: 'number', required: true },
+                { name: 'n_tipo_responsable', label: 'Tipo de Responsable', type: 'select', required: true, options: ['VIGILANTE', 'MANTENIMIENTO', 'SUPERVISOR'] },
+                { name: 'n_id_est', label: 'ID Estructura Física', type: 'number', required: true },
+                { name: 'n_turno', label: 'Turno', type: 'select', required: true, options: ['MAÑANA', 'TARDE', 'NOCHE'] }
+            ],
+            outputParams: []
+        },
+        'SP_ASIGNAR_VIGILANTE_MANT': {
+            name: 'SP_ASIGNAR_VIGILANTE_MANT',
+            description: 'Asignar un vigilante existente a una nueva área',
+            category: 'Vigilancia y Seguridad',
+            inputParams: [
+                { name: 'n_id_vig_mant', label: 'ID del Vigilante', type: 'number', required: true },
+                { name: 'n_id_est', label: 'ID Estructura Física', type: 'number', required: true },
+                { name: 'n_turno', label: 'Turno', type: 'select', required: true, options: ['MAÑANA', 'TARDE', 'NOCHE'] }
+            ],
+            outputParams: []
+        },
+        
+        // === ANÁLISIS Y RANKING ===
+        'SP_CALCULAR_RANKING_MUSEO': {
+            name: 'SP_CALCULAR_RANKING_MUSEO',
+            description: 'Calcular métricas y ranking de un museo',
+            category: 'Análisis y Reporting',
+            inputParams: [
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true }
+            ],
+            outputParams: [
+                { name: 'p_antiguedad_promedio_anios', label: 'Antigüedad Promedio (años)', type: 'number' },
+                { name: 'p_tasa_rotacion_alta_pct', label: 'Tasa de Rotación Alta (%)', type: 'number' },
+                { name: 'p_visitas_ultimo_anio', label: 'Visitas Último Año', type: 'number' },
+                { name: 'p_categoria_ranking', label: 'Categoría del Ranking', type: 'text' }
+            ]
+        },
+        
+        // === AUTOMATIZACIÓN Y GESTIÓN DIARIA ===
+        'SP_GESTIONAR_ESTADO_EXPOSICIONES': {
+            name: 'SP_GESTIONAR_ESTADO_EXPOSICIONES',
+            description: 'Gestionar automáticamente el estado de las exposiciones',
+            category: 'Automatización',
+            inputParams: [
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_accion_automatica', label: 'Acción Automática', type: 'select', required: false, options: ['REPORTE', 'FINALIZAR', 'ALERTAR'] }
+            ],
+            outputParams: [
+                { name: 'p_registros_procesados', label: 'Registros Procesados', type: 'number' }
+            ]
+        },
+        'SP_CONSOLIDAR_OPERACIONES_DIARIAS': {
+            name: 'SP_CONSOLIDAR_OPERACIONES_DIARIAS',
+            description: 'Consolidar todas las operaciones diarias del museo',
+            category: 'Automatización',
+            inputParams: [
+                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_ejecutar_acciones', label: 'Ejecutar Acciones', type: 'select', required: false, options: ['SI', 'NO'] }
+            ],
+            outputParams: [
+                { name: 'p_resumen_operaciones', label: 'Resumen de Operaciones', type: 'text' }
+            ]
+        }
+    };
+    
+    res.json(procedures);
+});
+
+// Endpoint para obtener datos de apoyo (museos, empleados, etc.)
+app.get('/api/support-data', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Obtener museos
+        const museosResult = await connection.execute(
+            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`
+        );
+        
+        // Obtener empleados
+        const empleadosResult = await connection.execute(
+            `SELECT ep.id_empleado, ep.primer_nombre || ' ' || ep.primer_apellido as nombre_completo, he.id_museo
+             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+             JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
+             WHERE he.fecha_fin IS NULL
+             ORDER BY ep.primer_apellido`
+        );
+        
+        // Obtener obras
+        const obrasResult = await connection.execute(
+            `SELECT o.id_obra, o.titulo, h.id_museo
+             FROM ${dbConfig.schema}.OBRAS o
+             LEFT JOIN ${dbConfig.schema}.HIST_OBRAS_MOV h ON o.id_obra = h.id_obra AND h.fecha_salida IS NULL
+             ORDER BY o.titulo`
+        );
+        
+        // Obtener colecciones
+        const coleccionesResult = await connection.execute(
+            `SELECT id_coleccion, nombre, id_museo FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES ORDER BY nombre`
+        );
+        
+        // Obtener salas
+        const salasResult = await connection.execute(
+            `SELECT id_sala, nombre, id_museo FROM ${dbConfig.schema}.SALAS_EXP ORDER BY nombre`
+        );
+        
+        // Obtener exposiciones
+        const exposicionesResult = await connection.execute(
+            `SELECT id_exposicion, titulo, fecha_inicio, fecha_fin_programada, id_museo 
+             FROM ${dbConfig.schema}.EXPOSICIONES_TEMP 
+             WHERE fecha_fin_real IS NULL
+             ORDER BY fecha_inicio DESC`
+        );
+        
+        const supportData = {
+            museos: museosResult.rows.map(row => ({ id: row[0], nombre: row[1] })),
+            empleados: empleadosResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
+            obras: obrasResult.rows.map(row => ({ id: row[0], titulo: row[1], id_museo: row[2] })),
+            colecciones: coleccionesResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
+            salas: salasResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
+            exposiciones: exposicionesResult.rows.map(row => ({ 
+                id: row[0], 
+                titulo: row[1], 
+                fecha_inicio: row[2], 
+                fecha_fin_programada: row[3],
+                id_museo: row[4] 
+            }))
+        };
+        
+        res.json(supportData);
+        
+    } catch (err) {
+        console.error('[SUPPORT-DATA] Error:', err);
+        res.status(500).json({ message: 'Error obteniendo datos de apoyo', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[SUPPORT-DATA] Error cerrando conexión:', err);
+            }
+        }
+    }
+}); 

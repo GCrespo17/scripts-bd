@@ -153,6 +153,103 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
 
 ## Registro de Progreso
 
+### Sesión del 06-JUN-2025 (Actualización EXPANDIDA)
+- ✅ **Sistema de Testing de Procedimientos Almacenados - COMPLETADO Y EXPANDIDO**:
+  - **Descripción**: Implementación completa y **EXPANSIÓN SIGNIFICATIVA** de herramienta de testing automatizado para validar **TODOS** los procedimientos almacenados del sistema
+  
+  - **Backend expandido**:
+    - Endpoint `/api/test-procedure` para ejecutar procedimientos dinámicamente con binding seguro
+    - Endpoint `/api/procedures` **EXPANDIDO** para obtener configuración de **19 procedimientos organizados por categorías**
+    - Endpoint `/api/support-data` para obtener datos de apoyo completos
+    - Configuración completa de **TODOS** los procedimientos identificados en el sistema
+  
+  - **Frontend mejorado**:
+    - Vista `TestProceduresView.vue` con formularios dinámicos adaptativos
+    - **NUEVO**: Acceso permanente desde **sidebar de navegación** con icono 🧪
+    - Integración completa en menú principal y sistema de rutas
+    - Validación avanzada de campos con tipos específicos de Oracle
+    - Historial completo de ejecuciones con métricas de performance
+    - Manejo inteligente de selecciones y parámetros opcionales
+  
+  - **Procedimientos configurados para testing (19 TOTALES)**:
+    
+    **📊 Ventas y Admisiones:**
+    - `SP_VENDER_TICKET`: Venta de tickets con ID auto-generado
+    
+    **👥 Recursos Humanos:**
+    - `SP_REGISTRAR_NUEVO_EMPLEADO`: Registro de empleados profesionales
+    - `SP_MOVER_EMPLEADO_ACTIVO`: Transferencia de empleados activos
+    - `SP_MOVER_EMPLEADO_INACTIVO`: Reactivación y transferencia de empleados
+    
+    **🎨 Gestión de Obras:**
+    - `SP_REGISTRAR_OBRA_NUEVA`: Registro completo de nuevas obras
+    - `SP_MOVER_OBRA`: Movimiento de obras entre ubicaciones
+    
+    **🏛️ Gestión de Exposiciones:**
+    - `SP_FINALIZAR_EXPOSICION`: Cierre de exposiciones temporales
+    - `SP_ASIGNAR_OBRA_A_EXPOSICION`: Asignación de obras a exposiciones
+    
+    **📚 Gestión de Colecciones:**
+    - `SP_INSERTAR_COLECCION`: Creación de nuevas colecciones
+    - `SP_MODIFICAR_ORDEN_COLECCION`: Modificación de orden de recorrido
+    - `SP_ELIMINAR_COLECCION`: Eliminación de colecciones
+    
+    **🔧 Mantenimiento:**
+    - `SP_REGISTRAR_MANTENIMIENTO_OBRA`: Registro de mantenimientos
+    - `SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO`: Programación automática
+    - `SP_REGISTRAR_CIERRE_TEMPORAL`: Gestión de cierres de salas
+    
+    **🛡️ Vigilancia y Seguridad:**
+    - `SP_REGISTRAR_VIGILANTE_MANT`: Registro de vigilantes
+    - `SP_ASIGNAR_VIGILANTE_MANT`: Asignación de vigilantes a áreas
+    
+    **📈 Análisis y Reporting:**
+    - `SP_CALCULAR_RANKING_MUSEO`: Cálculo completo de métricas y ranking
+    
+    **🤖 Automatización:**
+    - `SP_GESTIONAR_ESTADO_EXPOSICIONES`: Gestión automática de exposiciones
+    - `SP_CONSOLIDAR_OPERACIONES_DIARIAS`: Consolidación de operaciones diarias
+  
+  - **Funcionalidades avanzadas expandidas**:
+    - **Categorización inteligente**: Procedimientos organizados por área funcional
+    - **Configuración completa**: Todos los parámetros IN/OUT con tipos Oracle específicos
+    - **UI adaptativa**: Formularios que cambian dinámicamente según procedimiento
+    - **Validación robusta**: Tipos de datos, campos requeridos y opcionales
+    - **Datos relacionales**: Carga automática de todas las entidades del sistema
+    - **Medición de performance**: Tiempo de ejecución para análisis de rendimiento
+    - **Manejo de errores**: Códigos Oracle específicos con mensajes descriptivos
+    - **Historial persistente**: Tracking completo de todas las ejecuciones
+    - **Acceso rápido**: Enlace permanente en sidebar para uso cotidiano
+  
+  - **Arquitectura de testing implementada**:
+    ```
+    Sistema de Testing Completo
+    ├── Backend (Node.js)
+    │   ├── Configuración de 19 procedimientos
+    │   ├── Binding seguro de parámetros Oracle
+    │   ├── Manejo de errores específicos
+    │   └── Datos de soporte relacionales
+    ├── Frontend (Vue.js)
+    │   ├── Formularios dinámicos adaptativos
+    │   ├── Validación en tiempo real
+    │   ├── Visualización de resultados
+    │   └── Historial de ejecución
+    └── Integración
+        ├── Navegación sidebar permanente
+        ├── Categorización por procesos de negocio
+        └── Cobertura completa del sistema
+    ```
+  
+  - **Impacto expandido**: 
+    - ✅ **Cobertura Total**: Testing de TODOS los procesos automatizados del sistema
+    - ✅ **Validación Completa**: Verificación integral de lógica de negocio
+    - ✅ **Herramienta de Desarrollo**: Facilita debugging y desarrollo continuo
+    - ✅ **Documentación Viva**: Ejemplos funcionales de uso de cada procedimiento
+    - ✅ **Capacitación**: Sistema educativo para entender procesos de negocio
+    - ✅ **Testing de Integración**: Validación end-to-end de workflows completos
+  
+  - **Proceso de negocio**: Herramienta integral de soporte para validación, testing y documentación de TODAS las automatizaciones del sistema
+
 ### Sesión del 17-NOV-2024
 - ✅ **Estado Actualizado del Proyecto según Navegación Principal**:
   - **Formularios Completados**: Artistas ✅, Estructura Física ✅
@@ -160,6 +257,7 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
   - **Formularios Pendientes**: Exposición/Evento 🔄, Programa de Mantenimiento 🔄
   - **Nuevas Tareas Identificadas**: Formulario de Venta de Tickets (proceso de negocio crítico)
   - **Progreso de Rúbrica**: 6/8 elementos completados (75% cumplimiento)
+  - **Nuevo**: Sistema de Testing de Procedimientos Almacenados ✅ COMPLETADO
 
 ### Sesión del 15-NOV-2024
 - ✅ **Implementación Completa del Formulario de Estructura Física**:
