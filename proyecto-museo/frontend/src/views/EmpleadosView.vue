@@ -3,7 +3,7 @@
     <div class="empleados-container">
       <header class="view-header">
         <h1>Expedientes de Empleados</h1>
-        <p>Busque y visualice los expedientes de empleados profesionales.</p>
+        <p>Busque y visualice los expedientes de curadores y restauradores.</p>
       </header>
 
       <!-- Nuevo sistema de búsqueda directa -->
@@ -43,12 +43,12 @@
             </div>
             
             <div v-else-if="searchResults.length === 0 && searchQuery.trim()" class="dropdown-empty">
-              No se encontraron empleados que coincidan con "{{ searchQuery }}"
+              No se encontraron curadores o restauradores que coincidan con "{{ searchQuery }}"
             </div>
             
             <div v-else class="dropdown-results">
               <div v-if="!searchQuery.trim() && searchResults.length > 0" class="dropdown-header">
-                <span class="result-count">{{ searchResults.length }} empleados encontrados</span>
+                <span class="result-count">{{ searchResults.length }} curadores y restauradores encontrados</span>
                 <small>Escriba para filtrar resultados</small>
               </div>
               
@@ -61,7 +61,7 @@
               >
                 <div class="empleado-info">
                   <div class="empleado-name">{{ empleado.nombre_completo }}</div>
-                  <div class="empleado-doc">ID: {{ empleado.doc_identidad }}</div>
+                  <div class="empleado-doc">Documento de identidad: {{ empleado.doc_identidad }}</div>
                   <div class="empleado-position" v-if="empleado.posicion_actual.activo">
                     <strong>{{ empleado.posicion_actual.cargo }}</strong>
                     <span class="museum-name">{{ empleado.posicion_actual.museo }}</span>
@@ -111,7 +111,7 @@
       <div v-if="!detallesEmpleado && !showDropdown" class="welcome-message card">
         <div class="welcome-content">
           <h3>👋 Sistema de Expedientes</h3>
-          <p>Comience escribiendo el nombre, apellido o documento de identidad del empleado que desea consultar.</p>
+          <p>Comience escribiendo el nombre, apellido o documento de identidad del curador o restaurador que desea consultar.</p>
         </div>
       </div>
 
@@ -122,8 +122,8 @@
           <ul>
             <li>Puede buscar por nombre completo o parcial</li>
             <li>Use el documento de identidad para búsquedas exactas</li>
-            <li>Los resultados muestran la posición actual del empleado</li>
-            <li>Haga clic en el campo de búsqueda para ver todos los empleados</li>
+            <li>Los resultados muestran solo curadores y restauradores activos</li>
+            <li>Haga clic en el campo de búsqueda para ver todos los curadores y restauradores</li>
           </ul>
         </div>
       </div>

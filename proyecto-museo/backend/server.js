@@ -1402,7 +1402,7 @@ app.get('/api/empleados', async (req, res) => {
     }
 });
 
-// Endpoint para búsqueda de empleados para expediente (NUEVO - MEJORADO)
+// Endpoint para búsqueda de empleados para expediente (SOLO CURADORES Y RESTAURADORES)
 app.get('/api/empleados/buscar', async (req, res) => {
     const { q } = req.query; // q = query de búsqueda
     let connection;
@@ -1410,7 +1410,7 @@ app.get('/api/empleados/buscar', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        // Construir la consulta de búsqueda
+        // Construir la consulta de búsqueda - SOLO curadores y restauradores activos
         let sql = `
             SELECT DISTINCT
                 ep.id_empleado,
@@ -1426,9 +1426,10 @@ app.get('/api/empleados/buscar', async (req, res) => {
                 he_actual.fecha_inicio as fecha_inicio_actual
             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
             -- JOIN para obtener la posición actual (empleados activos)
-            LEFT JOIN ${dbConfig.schema}.HIST_EMPLEADOS he_actual 
+            INNER JOIN ${dbConfig.schema}.HIST_EMPLEADOS he_actual 
                 ON ep.id_empleado = he_actual.id_empleado_prof 
                 AND he_actual.fecha_fin IS NULL
+                AND he_actual.cargo IN ('CURADOR', 'RESTAURADOR')
             LEFT JOIN ${dbConfig.schema}.MUSEOS m_actual 
                 ON he_actual.id_museo = m_actual.id_museo
             LEFT JOIN ${dbConfig.schema}.EST_ORGANIZACIONAL eo_actual 
@@ -1452,7 +1453,7 @@ app.get('/api/empleados/buscar', async (req, res) => {
             params.search = `%${q.trim()}%`;
         }
         
-        sql += ` ORDER BY ep.primer_apellido, ep.primer_nombre`;
+        sql += ` ORDER BY he_actual.cargo, ep.primer_apellido, ep.primer_nombre`;
         
         const result = await connection.execute(sql, params);
         
@@ -1485,7 +1486,7 @@ app.get('/api/empleados/buscar', async (req, res) => {
     } catch (err) {
         console.error('Error en búsqueda de empleados:', err);
         res.status(500).json({ 
-            message: 'Error al buscar empleados',
+            message: 'Error al buscar empleados (curadores y restauradores)',
             error: err.message 
         });
     } finally {
