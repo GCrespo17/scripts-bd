@@ -1526,16 +1526,28 @@ app.get('/api/empleados/:id_empleado', async (req, res) => {
             [id_empleado]
         );
 
-        // 4. Historial laboral
-        const historialPromise = connection.execute(
-            `SELECT h.fecha_inicio, h.fecha_fin, h.cargo, e.nombre as unidad_organizativa, m.nombre as museo
-             FROM ${dbConfig.schema}.HIST_EMPLEADOS h
-             JOIN ${dbConfig.schema}.EST_ORGANIZACIONAL e ON h.id_est_org = e.id_est_org
-             JOIN ${dbConfig.schema}.MUSEOS m ON h.id_museo = m.id_museo
-             WHERE h.id_empleado_prof = :id
-             ORDER BY h.fecha_inicio DESC`,
-            [id_empleado]
-        );
+        // 4. Historial laboral (con filtro opcional por museo)
+        const { id_museo_actual } = req.query; // Parámetro opcional
+        
+        let historialQuery = `
+            SELECT h.fecha_inicio, h.fecha_fin, h.cargo, e.nombre as unidad_organizativa, m.nombre as museo
+            FROM ${dbConfig.schema}.HIST_EMPLEADOS h
+            JOIN ${dbConfig.schema}.EST_ORGANIZACIONAL e ON h.id_est_org = e.id_est_org
+            JOIN ${dbConfig.schema}.MUSEOS m ON h.id_museo = m.id_museo
+            WHERE h.id_empleado_prof = :id_empleado
+        `;
+        
+        const historialParams = [id_empleado];
+        
+        // Si se especifica un museo, filtrar solo por ese museo
+        if (id_museo_actual) {
+            historialQuery += ` AND h.id_museo = :id_museo_actual`;
+            historialParams.push(id_museo_actual);
+        }
+        
+        historialQuery += ` ORDER BY h.fecha_inicio DESC`;
+        
+        const historialPromise = connection.execute(historialQuery, historialParams);
 
         const [empleadoResult, formacionResult, idiomasResult, historialResult] = await Promise.all([
             empleadoPromise,

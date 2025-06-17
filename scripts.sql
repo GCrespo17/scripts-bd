@@ -10412,7 +10412,7 @@ SELECT h.fecha_inicio, h.fecha_fin, h.cargo, e.nombre as unidad_organizativa, m.
 FROM HIST_EMPLEADOS h
 JOIN EST_ORGANIZACIONAL e ON h.id_est_org = e.id_est_org
 JOIN MUSEOS m ON h.id_museo = m.id_museo
-WHERE h.id_empleado_prof = :id
+WHERE h.id_empleado_prof = :id AND h.id_museo = :id_museo_actual
 ORDER BY h.fecha_inicio DESC;
 
 
