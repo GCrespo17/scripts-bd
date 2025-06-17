@@ -2701,9 +2701,9 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 'Dirección General', 'DIRECCION', 1, 'Liderazgo curatorial, desarrollo de exposiciones y estrategia artística del museo.', NULL);
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 'Curaduría de Arte Universal', 'DEPARTAMENTO', 2, 'Investigación y curaduría de las colecciones de arte europeo, latinoamericano y egipcio.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MBA' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 'Curaduría de Arte Universal', 'DEPARTAMENTO', 2, 'Investigación y curaduría de las colecciones de arte europeo, latinoamericano y egipcio.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')));
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 'Departamento de Educación y Programas Públicos', 'DEPARTAMENTO', 2, 'Desarrollo e implementación de programas educativos y de divulgación para diversos públicos.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MBA' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes'), 'Departamento de Educación y Programas Públicos', 'DEPARTAMENTO', 2, 'Desarrollo e implementación de programas educativos y de divulgación para diversos públicos.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museo de Bellas Artes')));
 PROMPT Data inserted into EST_ORGANIZACIONAL table.
 PROMPT -----------------------------------------------------------------------------
 
