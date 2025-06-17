@@ -91,21 +91,20 @@
             </ol>
           </div>
         </div>
-  
-        <!-- Botón de Impresión -->
-        <div class="print-section">
-          <button @click="imprimirFicha" class="print-button">
-            <span class="print-icon">📄</span>
-            <span>Exportar a PDF</span>
-          </button>
-        </div>
+
+        <!-- Pie del Reporte -->
+        <footer class="report-footer">
+          <div class="generation-info">
+            <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
+            <p><strong>Sistema de Gestión de Museos - Grupo 3</strong></p>
+          </div>
+        </footer>
       </div>
     </div>
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue'
-  import jsPDF from 'jspdf'
+  import { ref, onMounted, computed } from 'vue'
   import axios from 'axios'
   
   const museos = ref([])
@@ -113,6 +112,17 @@
   const fichaMuseo = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  
+  // Computada para la fecha de generación
+  const fechaGeneracion = computed(() => {
+    return new Date().toLocaleString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  })
   
   async function cargarMuseos() {
     try {
@@ -163,252 +173,7 @@
     return 'categoria-desarrollo'
   }
   
-  function imprimirFicha() {
-    if (!fichaMuseo.value) {
-      alert('No hay datos de museo para exportar')
-      return
-    }
 
-    const doc = new jsPDF()
-    let yPosition = 20
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const leftMargin = 20
-    const rightMargin = pageWidth - 20
-    
-    // Función auxiliar para agregar texto con salto de línea automático
-    const addWrappedText = (text, x, y, maxWidth, lineHeight = 7) => {
-      const lines = doc.splitTextToSize(text, maxWidth)
-      lines.forEach((line, index) => {
-        doc.text(line, x, y + (index * lineHeight))
-      })
-      return y + (lines.length * lineHeight)
-    }
-    
-    // Función auxiliar para agregar línea divisoria
-    const addDivider = (y) => {
-      doc.setLineWidth(0.5)
-      doc.line(leftMargin, y, rightMargin, y)
-      return y + 10
-    }
-    
-    // ENCABEZADO
-    doc.setFontSize(20)
-    doc.setFont(undefined, 'bold')
-    doc.text('FICHA DETALLADA DE MUSEO', pageWidth / 2, yPosition, { align: 'center' })
-    
-    yPosition += 15
-    doc.setFontSize(12)
-    doc.setFont(undefined, 'normal')
-    doc.text(`Generado el: ${new Date().toLocaleDateString('es-ES')}`, pageWidth / 2, yPosition, { align: 'center' })
-    
-    yPosition = addDivider(yPosition + 10)
-    
-    // INFORMACIÓN BÁSICA
-    doc.setFontSize(16)
-    doc.setFont(undefined, 'bold')
-    doc.text('INFORMACIÓN BÁSICA', leftMargin, yPosition)
-    yPosition += 10
-    
-    doc.setFontSize(11)
-    doc.setFont(undefined, 'normal')
-    
-    // Nombre del museo
-    doc.setFont(undefined, 'bold')
-    doc.text('Nombre:', leftMargin, yPosition)
-    doc.setFont(undefined, 'normal')
-    yPosition = addWrappedText(fichaMuseo.value.nombre, leftMargin + 25, yPosition, rightMargin - leftMargin - 25)
-    yPosition += 5
-    
-    // Ubicación
-    if (fichaMuseo.value.ranking?.ubicacion) {
-      doc.setFont(undefined, 'bold')
-      doc.text('Ubicación:', leftMargin, yPosition)
-      doc.setFont(undefined, 'normal')
-      doc.text(`${fichaMuseo.value.ranking.ubicacion.ciudad}, ${fichaMuseo.value.ranking.ubicacion.pais}`, leftMargin + 25, yPosition)
-      yPosition += 7
-    }
-    
-    // Fecha de fundación
-    doc.setFont(undefined, 'bold')
-    doc.text('Fundación:', leftMargin, yPosition)
-    doc.setFont(undefined, 'normal')
-    doc.text(formatearFecha(fichaMuseo.value.fecha_fundacion), leftMargin + 25, yPosition)
-    yPosition += 7
-    
-    // Misión
-    doc.setFont(undefined, 'bold')
-    doc.text('Misión:', leftMargin, yPosition)
-    doc.setFont(undefined, 'normal')
-    yPosition = addWrappedText(fichaMuseo.value.mision, leftMargin + 25, yPosition, rightMargin - leftMargin - 25)
-    
-    yPosition = addDivider(yPosition + 5)
-    
-    // RANKING Y EVALUACIÓN
-    if (fichaMuseo.value.ranking) {
-      doc.setFontSize(16)
-      doc.setFont(undefined, 'bold')
-      doc.text('RANKING Y EVALUACIÓN', leftMargin, yPosition)
-      yPosition += 10
-      
-      doc.setFontSize(11)
-      
-      // Score y categoría
-      doc.setFont(undefined, 'bold')
-      doc.text('Puntaje Final:', leftMargin, yPosition)
-      doc.setFont(undefined, 'normal')
-      doc.text(`${(fichaMuseo.value.ranking.puntuaciones?.score_final || 0).toFixed(1)}/10`, leftMargin + 30, yPosition)
-      yPosition += 7
-      
-      doc.setFont(undefined, 'bold')
-      doc.text('Categoría:', leftMargin, yPosition)
-      doc.setFont(undefined, 'normal')
-              doc.text(`${fichaMuseo.value.ranking?.categoria || 'Sin clasificar'}`, leftMargin + 25, yPosition)
-      yPosition += 7
-      
-      // Posiciones en rankings
-      if (fichaMuseo.value.ranking.posiciones) {
-        doc.setFont(undefined, 'bold')
-        doc.text('Posiciones en Rankings:', leftMargin, yPosition)
-        yPosition += 7
-        
-        doc.setFont(undefined, 'normal')
-        if (fichaMuseo.value.ranking.posiciones.nacional?.posicion) {
-          const posNacional = fichaMuseo.value.ranking.posiciones.nacional
-          const pctNacional = Math.round((posNacional.posicion / posNacional.total) * 100)
-          doc.text(`• Ranking Nacional: Posición ${posNacional.posicion} de ${posNacional.total} (Top ${pctNacional}%)`, leftMargin + 5, yPosition)
-          yPosition += 6
-        }
-        
-        if (fichaMuseo.value.ranking.posiciones.mundial?.posicion) {
-          const posMundial = fichaMuseo.value.ranking.posiciones.mundial
-          const pctMundial = Math.round((posMundial.posicion / posMundial.total) * 100)
-          doc.text(`• Ranking Mundial: Posición ${posMundial.posicion} de ${posMundial.total} (Top ${pctMundial}%)`, leftMargin + 5, yPosition)
-          yPosition += 6
-        }
-        yPosition += 5
-      }
-      
-      // Puntuaciones por categoría
-      doc.setFont(undefined, 'bold')
-      doc.text('Puntuaciones:', leftMargin, yPosition)
-      yPosition += 7
-      
-      doc.setFont(undefined, 'normal')
-      doc.text(`• Estabilidad del personal: ${(fichaMuseo.value.ranking.puntuaciones?.estabilidad_score || 0).toFixed(1)}/10`, leftMargin + 5, yPosition)
-      yPosition += 6
-      doc.text(`• Popularidad por visitas: ${(fichaMuseo.value.ranking.puntuaciones?.popularidad_score || 0).toFixed(1)}/10`, leftMargin + 5, yPosition)
-      yPosition += 8
-      
-      yPosition = addDivider(yPosition + 5)
-    }
-    
-    // MÉTRICAS DETALLADAS
-    if (fichaMuseo.value.ranking?.metricas) {
-      doc.setFontSize(16)
-      doc.setFont(undefined, 'bold')
-      doc.text('MÉTRICAS DETALLADAS', leftMargin, yPosition)
-      yPosition += 10
-      
-      doc.setFontSize(11)
-      
-      // Estabilidad del personal
-      doc.setFont(undefined, 'bold')
-      doc.text('Estabilidad del Personal:', leftMargin, yPosition)
-      yPosition += 7
-      
-      doc.setFont(undefined, 'normal')
-      doc.text(`• Antigüedad promedio: ${(fichaMuseo.value.ranking.metricas.antiguedad_promedio_anios || 0).toFixed(1)} años`, leftMargin + 5, yPosition)
-      yPosition += 6
-      doc.text(`• Tasa de rotación alta (<5 años): ${(fichaMuseo.value.ranking.metricas.tasa_rotacion_alta_pct || 0).toFixed(1)}%`, leftMargin + 5, yPosition)
-      yPosition += 8
-      
-      // Popularidad
-      doc.setFont(undefined, 'bold')
-      doc.text('Popularidad:', leftMargin, yPosition)
-      yPosition += 7
-      
-      doc.setFont(undefined, 'normal')
-      doc.text(`• Visitas último año: ${(fichaMuseo.value.ranking.metricas.visitas_ultimo_anio || 0).toLocaleString()} visitantes`, leftMargin + 5, yPosition)
-      yPosition += 7
-      
-      yPosition = addDivider(yPosition + 5)
-    }
-    
-    // Verificar si necesitamos nueva página
-    if (yPosition > 250) {
-      doc.addPage()
-      yPosition = 20
-    }
-    
-    // HISTORIAL DEL MUSEO
-    if (fichaMuseo.value.historia && fichaMuseo.value.historia.length > 0) {
-      doc.setFontSize(16)
-      doc.setFont(undefined, 'bold')
-      doc.text('HISTORIAL DEL MUSEO', leftMargin, yPosition)
-      yPosition += 10
-      
-      doc.setFontSize(10)
-      doc.setFont(undefined, 'normal')
-      
-      fichaMuseo.value.historia.forEach((hecho, index) => {
-        // Verificar espacio en página
-        if (yPosition > 270) {
-          doc.addPage()
-          yPosition = 20
-        }
-        
-        doc.setFont(undefined, 'bold')
-        doc.text(`${hecho.anio}:`, leftMargin, yPosition)
-        doc.setFont(undefined, 'normal')
-        yPosition = addWrappedText(hecho.hecho, leftMargin + 15, yPosition, rightMargin - leftMargin - 15, 5)
-        yPosition += 3
-      })
-      
-      yPosition = addDivider(yPosition + 5)
-    }
-    
-    // COLECCIONES PERMANENTES
-    if (fichaMuseo.value.colecciones && fichaMuseo.value.colecciones.length > 0) {
-      // Verificar si necesitamos nueva página
-      if (yPosition > 200) {
-        doc.addPage()
-        yPosition = 20
-      }
-      
-      doc.setFontSize(16)
-      doc.setFont(undefined, 'bold')
-      doc.text('COLECCIONES PERMANENTES', leftMargin, yPosition)
-      yPosition += 10
-      
-      doc.setFontSize(11)
-      doc.setFont(undefined, 'normal')
-      
-      fichaMuseo.value.colecciones.forEach((coleccion, index) => {
-        // Verificar espacio en página
-        if (yPosition > 270) {
-          doc.addPage()
-          yPosition = 20
-        }
-        
-        doc.text(`${index + 1}. ${coleccion}`, leftMargin, yPosition)
-        yPosition += 7
-      })
-    }
-    
-    // PIE DE PÁGINA
-    const totalPages = doc.internal.getNumberOfPages()
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i)
-      doc.setFontSize(8)
-      doc.setFont(undefined, 'normal')
-      doc.text(`Página ${i} de ${totalPages}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' })
-      doc.text('Sistema de Gestión de Museos - Reporte Oficial', pageWidth / 2, doc.internal.pageSize.getHeight() - 5, { align: 'center' })
-    }
-    
-    // Guardar el PDF
-    const nombreArchivo = `ficha_museo_${fichaMuseo.value.nombre.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-    doc.save(nombreArchivo)
-  }
   
   onMounted(async () => {
     await cargarMuseos()
@@ -1091,46 +856,7 @@
     box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
   }
   
-  .print-section {
-    text-align: center;
-    padding: 30px 0;
-    border-top: 2px solid #e9ecef;
-    margin-top: 40px;
-  }
-  
-  .print-button {
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .print-button:hover {
-    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
-  }
-  
-  .print-button:active {
-    transform: translateY(0);
-    box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
-  }
-  
-  .print-icon {
-    font-size: 20px;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
-  }
+
   
   .no-ranking {
     background: linear-gradient(135deg, #f8f9fa, #e9ecef);
@@ -1154,9 +880,31 @@
     color: #495057;
   }
   
+  .report-footer {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+  }
+  
+  .generation-info {
+    text-align: center;
+  }
+  
+  .generation-info p {
+    margin: 0;
+    font-size: 1rem;
+    color: #6c757d;
+  }
+  
+  .generation-info p strong {
+    font-weight: 600;
+    color: #495057;
+  }
+  
   @media print {
-    .museo-selector,
-    .print-section {
+    .museo-selector {
       display: none;
     }
     

@@ -27,16 +27,6 @@
             <option value="AREA">Solo Áreas</option>
           </select>
         </div>
-        
-        <button 
-          v-if="reporte" 
-          @click="exportToPDF" 
-          :disabled="exportingPDF"
-          class="export-pdf-btn"
-        >
-          <span v-if="exportingPDF">📄 Generando PDF...</span>
-          <span v-else>📄 Exportar PDF</span>
-        </button>
       </div>
 
       <!-- Contenido del Reporte -->
@@ -103,7 +93,7 @@
         <footer class="report-footer">
           <div class="generation-info">
             <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
-            <p><strong>Sistema de Gestión de Museos</strong> - v2024.2</p>
+            <p><strong>Sistema de Gestión de Museos - Grupo 3</strong></p>
           </div>
         </footer>
       </main>
@@ -127,7 +117,6 @@ const reporte = ref(null)
 const loadingMuseos = ref(false)
 const loadingReporte = ref(false)
 const errorReporte = ref(null)
-const exportingPDF = ref(false)
 
 // Computadas
 const fechaGeneracion = computed(() => {
@@ -247,305 +236,6 @@ const formatearMoneda = (cantidad) => {
   }).format(cantidad)
 }
 
-const exportToPDF = async () => {
-  exportingPDF.value = true
-  
-  try {
-    // Importación dinámica de jsPDF
-    const jsPDF = (await import('jspdf')).default
-    
-    // Crear el PDF en orientación vertical A4
-    const pdf = new jsPDF('portrait', 'mm', 'a4')
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    let yPosition = 20
-    
-    // Función helper para verificar si necesitamos nueva página
-    const checkNewPage = (requiredHeight) => {
-      if (yPosition + requiredHeight > pageHeight - 20) {
-        pdf.addPage()
-        yPosition = 20
-        return true
-      }
-      return false
-    }
-    
-    // Función para agregar texto con ajuste automático
-    const addWrappedText = (text, x, maxWidth, fontSize = 10) => {
-      pdf.setFontSize(fontSize)
-      const lines = pdf.splitTextToSize(text, maxWidth)
-      const lineHeight = fontSize * 0.4
-      
-      checkNewPage(lines.length * lineHeight)
-      
-      lines.forEach(line => {
-        pdf.text(line, x, yPosition)
-        yPosition += lineHeight
-      })
-      return yPosition
-    }
-    
-    // HEADER DEL DOCUMENTO
-    pdf.setFontSize(18)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('REPORTE DE ESTRUCTURA FÍSICA', pageWidth / 2, yPosition, { align: 'center' })
-    yPosition += 15
-    
-    // Línea separadora
-    pdf.setLineWidth(0.5)
-    pdf.line(20, yPosition, pageWidth - 20, yPosition)
-    yPosition += 10
-    
-    // INFORMACIÓN DEL MUSEO
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('MUSEO:', 20, yPosition)
-    pdf.setFont('helvetica', 'normal')
-    pdf.text(reporte.value.museo.nombre, 45, yPosition)
-    yPosition += 8
-    
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('FECHA REPORTE:', 20, yPosition)
-    pdf.setFont('helvetica', 'normal')
-    pdf.text(new Date().toLocaleDateString('es-ES'), 70, yPosition)
-    yPosition += 8
-    
-    // Información del filtro si está activo
-    if (filtroTipo.value) {
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('FILTRO APLICADO:', 20, yPosition)
-      pdf.setFont('helvetica', 'normal')
-      pdf.text(getFilterLabel(filtroTipo.value), 75, yPosition)
-      yPosition += 8
-    }
-    
-    yPosition += 2
-    
-    // Línea separadora
-    pdf.setLineWidth(0.3)
-    pdf.line(20, yPosition, pageWidth - 20, yPosition)
-    yPosition += 10
-    
-    // ESTRUCTURA FÍSICA
-    pdf.setFontSize(14)
-    pdf.setFont('helvetica', 'bold')
-    pdf.text('ESTRUCTURA FÍSICA DETALLADA:', 20, yPosition)
-    yPosition += 10
-    
-    // Función recursiva para dibujar la estructura física (usar estructura filtrada)
-    const drawEstructuraNode = (node, level = 0, parentNumber = '', siblingIndex = 0) => {
-      const indent = 20 + (level * 15)
-      
-      let nodeNumber
-      if (level === 0) {
-        nodeNumber = (siblingIndex + 1).toString()
-      } else {
-        nodeNumber = parentNumber + '.' + (siblingIndex + 1)
-      }
-      
-      const contentMaxWidth = pageWidth - indent - 25
-      
-      // --- Inicio del cálculo de altura preciso ---
-      let calculatedHeight = 0
-      const lineHeightSmall = 4
-      const lineHeightMedium = 5
-      const lineHeightLarge = 6
-      const collectionLineHeight = 3
-
-      const titleText = `${nodeNumber}. ${node.nombre} (${node.tipo})`
-      const titleLines = pdf.splitTextToSize(titleText, contentMaxWidth)
-      calculatedHeight += titleLines.length * lineHeightMedium + 4
-
-      if (node.descripcion) {
-        const descLines = pdf.splitTextToSize(node.descripcion, contentMaxWidth)
-        calculatedHeight += descLines.slice(0, 2).length * lineHeightSmall + 2
-      }
-      
-      if (node.direccion && node.tipo === 'EDIFICIO') {
-        calculatedHeight += lineHeightLarge
-      }
-      
-      if (node.total_salas > 0) {
-        calculatedHeight += lineHeightLarge
-      }
-      
-      if (node.salas && node.salas.length > 0) {
-        calculatedHeight += 4 // 'SALAS:'
-        node.salas.forEach((sala) => {
-          calculatedHeight += lineHeightSmall // • Sala Nombre
-          
-          if (sala.colecciones && sala.colecciones.length > 0) {
-            sala.colecciones.forEach((coleccion) => {
-              const coleccionText = `  - ${coleccion.nombre} (${coleccion.total_obras} obras)`
-              const coleccionLines = pdf.splitTextToSize(coleccionText, contentMaxWidth - 10)
-              calculatedHeight += coleccionLines.length * collectionLineHeight
-            })
-          }
-        })
-        calculatedHeight += 2
-      }
-      
-      const nodeHeight = calculatedHeight + 5 // + padding final
-      // --- Fin del cálculo de altura ---
-      
-      checkNewPage(nodeHeight)
-      
-      const startY = yPosition
-
-      const bgColors = {
-        'EDIFICIO': [230, 245, 255],
-        'PISO': [230, 255, 230],     
-        'AREA': [255, 240, 230],
-      }
-      const bgColor = bgColors[node.tipo] || [245, 245, 245]
-      
-      pdf.setFillColor(bgColor[0], bgColor[1], bgColor[2])
-      pdf.rect(indent, yPosition - 4, pageWidth - indent - 20, nodeHeight, 'F')
-      
-      pdf.setDrawColor(100, 100, 100)
-      pdf.setLineWidth(0.2)
-      pdf.rect(indent, yPosition - 4, pageWidth - indent - 20, nodeHeight)
-      
-      pdf.setFontSize(12)
-      pdf.setFont('helvetica', 'bold')
-      pdf.setTextColor(0, 0, 0)
-      
-      titleLines.forEach((line, index) => {
-        pdf.text(line, indent + 3, yPosition + 2 + (index * 5))
-      })
-      yPosition += titleLines.length * 5 + 3
-      
-      if (node.descripcion) {
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'italic')
-        pdf.setTextColor(80, 80, 80)
-        const descLines = pdf.splitTextToSize(node.descripcion, contentMaxWidth)
-        descLines.slice(0, 2).forEach(line => {
-          pdf.text(line, indent + 3, yPosition)
-          yPosition += 4
-        })
-      }
-      
-      if (node.direccion && node.tipo === 'EDIFICIO') {
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(60, 60, 60)
-        pdf.text(`📍 ${node.direccion}`, indent + 3, yPosition)
-        yPosition += 6
-      }
-      
-      if (node.total_salas > 0) {
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`🏛️ ${node.total_salas} sala${node.total_salas > 1 ? 's' : ''} de exposición`, indent + 3, yPosition)
-        yPosition += 6
-      }
-      
-      if (node.salas && node.salas.length > 0) {
-        pdf.setFontSize(8)
-        pdf.setFont('helvetica', 'bold')
-        pdf.setTextColor(0, 0, 0)
-        pdf.text('SALAS:', indent + 5, yPosition)
-        yPosition += 4
-        
-        node.salas.forEach((sala) => {
-          pdf.setFont('helvetica', 'normal')
-          pdf.text(`• ${sala.nombre}`, indent + 10, yPosition)
-          yPosition += 4
-          
-          if (sala.colecciones && sala.colecciones.length > 0) {
-            sala.colecciones.forEach((coleccion) => {
-              pdf.setFontSize(7)
-              pdf.setTextColor(100, 100, 100)
-              const coleccionText = `  - ${coleccion.nombre} (${coleccion.total_obras} obras)`
-              const coleccionLines = pdf.splitTextToSize(coleccionText, contentMaxWidth - 10)
-              coleccionLines.forEach(line => {
-                pdf.text(line, indent + 15, yPosition)
-                yPosition += collectionLineHeight
-              })
-            })
-            pdf.setFontSize(8)
-            pdf.setTextColor(0, 0, 0)
-          }
-        })
-        yPosition += 2
-      }
-      
-      // Forzar la posición Y para evitar errores de acumulación
-      yPosition = startY + nodeHeight + 2 
-      
-      // Procesar hijos
-      if (node.children && node.children.length > 0) {
-        node.children.forEach((child, childIndex) => {
-          drawEstructuraNode(child, level + 1, nodeNumber, childIndex)
-        })
-      }
-    }
-    
-    // Dibujar todos los nodos raíz (usar estructura filtrada)
-    estructuraFiltrada.value.forEach((rootNode, index) => {
-      drawEstructuraNode(rootNode, 0, '', index)
-    })
-    
-    yPosition += 5; // Espacio extra antes de la siguiente sección
-
-    // EXPOSICIONES ACTUALES
-    if (reporte.value.exposiciones_actuales && reporte.value.exposiciones_actuales.length > 0) {
-      checkNewPage(20)
-      
-      pdf.setFontSize(14)
-      pdf.setFont('helvetica', 'bold')
-      pdf.text('EXPOSICIONES Y EVENTOS ACTUALES:', 20, yPosition)
-      yPosition += 10
-      
-      reporte.value.exposiciones_actuales.forEach((expo, index) => {
-        checkNewPage(15)
-        
-        pdf.setFontSize(11)
-        pdf.setFont('helvetica', 'bold')
-        pdf.text(`${index + 1}. ${expo.nombre}`, 25, yPosition)
-        yPosition += 6
-        
-        pdf.setFontSize(9)
-        pdf.setFont('helvetica', 'normal')
-        pdf.text(`Sala: ${expo.sala}`, 30, yPosition)
-        yPosition += 6
-      })
-    }
-    
-    // FOOTER
-    const totalPages = pdf.internal.getNumberOfPages()
-    for (let i = 1; i <= totalPages; i++) {
-      pdf.setPage(i)
-      pdf.setFontSize(8)
-      pdf.setFont('helvetica', 'normal')
-      pdf.setTextColor(100, 100, 100)
-      
-      // Fecha de generación
-      const fechaGeneracion = new Date().toLocaleString('es-ES')
-      pdf.text(`Generado el: ${fechaGeneracion}`, 20, pageHeight - 10)
-      
-      // Número de página
-      pdf.text(`Página ${i} de ${totalPages}`, pageWidth - 40, pageHeight - 10)
-    }
-    
-    // Generar nombre del archivo
-    const fecha = new Date().toLocaleDateString('es-ES').replace(/\//g, '-')
-    const filtroSufijo = filtroTipo.value ? `_${filtroTipo.value}` : ''
-    const nombreArchivo = `Estructura_Fisica_${reporte.value.museo.nombre.replace(/\s+/g, '_')}${filtroSufijo}_${fecha}.pdf`
-    
-    // Descargar el PDF
-    pdf.save(nombreArchivo)
-
-  } catch (error) {
-    console.error('Error al exportar PDF:', error)
-    alert('Error al generar el PDF. Por favor, inténtelo de nuevo.')
-  } finally {
-    exportingPDF.value = false
-  }
-}
-
 // Lifecycle
 onMounted(() => {
   fetchMuseos()
@@ -632,26 +322,7 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.export-pdf-btn {
-  padding: 0.75rem 1.5rem;
-  background: #DC2626;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-  white-space: nowrap;
-}
 
-.export-pdf-btn:hover:not(:disabled) {
-  background: #B91C1C;
-}
-
-.export-pdf-btn:disabled {
-  background: #9CA3AF;
-  cursor: not-allowed;
-}
 
 /* Estados de carga y error */
 .loading-state,

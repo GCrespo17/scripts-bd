@@ -3,7 +3,6 @@
     <div class="panel-header">
       <button @click="$emit('back-to-list')" class="back-button" title="Volver a la lista">&#8592; Volver a la Lista</button>
       <h3 class="panel-title">Expediente del Empleado</h3>
-      <button @click="exportToPDF" class="export-button" title="Exportar a PDF">📄 Exportar PDF</button>
     </div>
     <div class="panel-body" v-if="empleado">
       <!-- INFORMACIÓN PERSONAL -->
@@ -105,15 +104,22 @@
       </div>
 
     </div>
+
     <div v-else class="panel-body">
         <p>Cargando expediente del empleado...</p>
     </div>
+
+    <!-- Pie del Reporte -->
+    <footer class="report-footer">
+      <div class="generation-info">
+        <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
+        <p><strong>Sistema de Gestión de Museos - Grupo 3</strong></p>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script>
-import jsPDF from 'jspdf';
-
 export default {
   name: 'EmpleadoDet',
   props: {
@@ -124,6 +130,17 @@ export default {
     empleadoSeleccionado: {
       type: Object,
       default: null
+    }
+  },
+  computed: {
+    fechaGeneracion() {
+      return new Date().toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
   },
   methods: {
@@ -237,170 +254,7 @@ export default {
 
 
     
-    async exportToPDF() {
-      if (!this.empleado) return;
-      
-      try {
-        const doc = new jsPDF();
-        const empleado = this.empleado;
-        
-        // Configuración del documento
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(20);
-        
-        // Título
-        doc.text('EXPEDIENTE DE EMPLEADO PROFESIONAL', 20, 20);
-        
-        // Línea separadora
-        doc.setLineWidth(0.5);
-        doc.line(20, 25, 190, 25);
-        
-        // Información personal
-        doc.setFontSize(16);
-        doc.text('INFORMACIÓN PERSONAL', 20, 40);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(12);
-        
-        let y = 50;
-        doc.text(`Nombre Completo: ${this.getNombreCompleto(empleado)}`, 20, y);
-        y += 8;
-        doc.text(`Documento de Identidad: ${empleado.doc_identidad}`, 20, y);
-        y += 8;
-        
-        if (empleado.fecha_nacimiento) {
-          doc.text(`Fecha de Nacimiento: ${this.formatFecha(empleado.fecha_nacimiento)} (${this.calcularEdad(empleado.fecha_nacimiento)} años)`, 20, y);
-          y += 8;
-        }
-        
-        if (empleado.contacto) {
-          doc.text(`Teléfono: ${this.formatTelefono(empleado.contacto)}`, 20, y);
-          y += 8;
-        }
-        
-        y += 10;
 
-        // Posición Actual
-        if (this.empleadoSeleccionado && this.empleadoSeleccionado.posicion_actual) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.text('POSICIÓN ACTUAL', 20, y);
-          y += 10;
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-          
-          if (this.empleadoSeleccionado.posicion_actual.activo) {
-            doc.text(`Cargo: ${this.empleadoSeleccionado.posicion_actual.cargo}`, 25, y);
-            y += 6;
-            doc.text(`Museo: ${this.empleadoSeleccionado.posicion_actual.museo}`, 25, y);
-            y += 6;
-            if (this.empleadoSeleccionado.posicion_actual.departamento) {
-              doc.text(`Departamento: ${this.empleadoSeleccionado.posicion_actual.departamento}`, 25, y);
-              y += 6;
-            }
-            if (this.empleadoSeleccionado.posicion_actual.fecha_inicio) {
-              doc.text(`Desde: ${this.formatFecha(this.empleadoSeleccionado.posicion_actual.fecha_inicio)}`, 25, y);
-              y += 6;
-            }
-          } else {
-            doc.text('Estado: INACTIVO - Sin asignación actual', 25, y);
-            y += 6;
-          }
-          
-          y += 10;
-        }
-        
-        // Formación Académica
-        if (empleado.formaciones && empleado.formaciones.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.text('FORMACIÓN ACADÉMICA', 20, y);
-          y += 10;
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-          
-          empleado.formaciones.forEach(formacion => {
-            doc.text(`• ${formacion.titulo} (${formacion.anio})`, 25, y);
-            y += 6;
-            if (formacion.descripcion) {
-              doc.setFontSize(10);
-              doc.text(`  ${formacion.descripcion}`, 25, y);
-              doc.setFontSize(12);
-              y += 6;
-            }
-            y += 2;
-          });
-          
-          y += 5;
-        }
-        
-        // Idiomas
-        if (empleado.idiomas && empleado.idiomas.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.text('IDIOMAS', 20, y);
-          y += 10;
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-          doc.text(`${empleado.idiomas.join(', ')}`, 25, y);
-          y += 15;
-        }
-        
-        // Historial de Movimientos
-        if (empleado.historial && empleado.historial.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.text('HISTORIAL DE MOVIMIENTOS EN MUSEO', 20, y);
-          y += 10;
-          
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-          
-          empleado.historial.forEach(movimiento => {
-            // Verificar si necesitamos una nueva página
-            if (y > 250) {
-              doc.addPage();
-              y = 20;
-            }
-            
-            doc.setFont('helvetica', 'bold');
-            doc.text(`${movimiento.cargo}`, 25, y);
-            y += 6;
-            
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Museo: ${movimiento.museo}`, 25, y);
-            y += 6;
-            if (movimiento.unidad) {
-              doc.text(`Departamento: ${movimiento.unidad}`, 25, y);
-              y += 6;
-            }
-            doc.text(`Período: ${this.formatAnio(movimiento.fecha_inicio)} - ${movimiento.fecha_fin ? this.formatAnio(movimiento.fecha_fin) : 'Actual'}`, 25, y);
-            y += 6;
-            doc.text(`Duración: ${this.calcularDuracionMovimiento(movimiento.fecha_inicio, movimiento.fecha_fin)}`, 25, y);
-            y += 10;
-          });
-
-
-        }
-        
-        // Pie de página
-        const fechaGeneracion = new Date().toLocaleDateString('es-ES');
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Expediente generado el ${fechaGeneracion}`, 20, 280);
-        
-        // Guardar el PDF
-        const nombreArchivo = `Expediente_${empleado.primer_nombre}_${empleado.primer_apellido}_${empleado.doc_identidad}.pdf`;
-        doc.save(nombreArchivo);
-        
-      } catch (error) {
-        console.error('Error al generar PDF:', error);
-        alert('Error al generar el PDF. Por favor, inténtelo de nuevo.');
-      }
-    }
   }
 }
 </script>
@@ -426,7 +280,7 @@ export default {
   justify-content: space-between;
 }
 
-.back-button, .export-button {
+.back-button {
   background: rgba(255,255,255,0.2);
   color: white;
   border: none;
@@ -438,14 +292,10 @@ export default {
   font-weight: 500;
 }
 
-.back-button:hover, .export-button:hover {
+.back-button:hover {
   background: rgba(255,255,255,0.3);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.export-button {
-  background: rgba(255,255,255,0.15);
 }
 
 .panel-title {
@@ -786,5 +636,22 @@ export default {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* Pie del reporte */
+.report-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.generation-info {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.generation-info p {
+  margin: 0.25rem 0;
 }
 </style>

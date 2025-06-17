@@ -28,17 +28,6 @@
             <option value="SECCION">Solo Secciones</option>
           </select>
         </div>
-        
-        <!-- Botón de exportar PDF -->
-        <button 
-          v-if="organigrama && museoInfo" 
-          @click="exportToPDF" 
-          :disabled="exportingPDF"
-          class="export-button"
-        >
-          <span v-if="exportingPDF">📄 Generando PDF...</span>
-          <span v-else>📄 Exportar PDF</span>
-        </button>
       </div>
 
       <div v-if="loading" class="loading-state">
@@ -69,6 +58,14 @@
             <p class="no-results-hint">Intente con otro tipo de filtro o seleccione "Todos los niveles" para ver la estructura completa.</p>
           </div>
         </div>
+
+        <!-- Pie del Reporte -->
+        <footer class="report-footer">
+          <div class="generation-info">
+            <p><strong>Reporte generado el:</strong> {{ fechaGeneracion }}</p>
+            <p><strong>Sistema de Gestión de Museos - Grupo 3</strong></p>
+          </div>
+        </footer>
       </div>
     </div>
   </div>
@@ -86,7 +83,17 @@ const organigrama = ref(null)
 const museoInfo = ref(null)
 const loading = ref(false)
 const error = ref(null)
-const exportingPDF = ref(false)
+
+// Computada para la fecha de generación
+const fechaGeneracion = computed(() => {
+  return new Date().toLocaleString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+})
 
 // Computada para filtrar el organigrama por nivel
 const organigramaFiltrado = computed(() => {
@@ -192,140 +199,7 @@ const getFiltroLabel = (nivel) => {
   return niveles[nivel] || 'Todos los niveles'
 }
 
-const exportToPDF = async () => {
-  exportingPDF.value = true
-  
-  try {
-    const jsPDF = (await import('jspdf')).default
-    
-    const pdf = new jsPDF('portrait', 'mm', 'a4')
-    const pageWidth = pdf.internal.pageSize.getWidth()
-    const pageHeight = pdf.internal.pageSize.getHeight()
-    let yPosition = 20
-    
-    const checkNewPage = (requiredHeight) => {
-      if (yPosition + requiredHeight > pageHeight - 20) {
-        pdf.addPage()
-        yPosition = 20
-      }
-    }
-    
-    // Funciones helper para texto seguro
-    const safeText = (text) => {
-      if (text === null || text === undefined) return ''
-      return String(text).trim()
-    }
 
-    const safeDrawText = (text, x, y, options = {}) => {
-      const cleanText = safeText(text)
-      if (!cleanText) return
-      
-      try {
-        pdf.text(cleanText, x, y, options)
-      } catch (error) {
-        console.warn('Error al dibujar texto:', cleanText, error)
-      }
-    }
-
-    // Cabecera PDF
-    pdf.setFontSize(18)
-    pdf.setFont('helvetica', 'bold')
-    safeDrawText('ESTRUCTURA ORGANIZACIONAL', pageWidth / 2, yPosition, { align: 'center' })
-    yPosition += 15
-    
-    pdf.setLineWidth(0.5)
-    pdf.line(20, yPosition, pageWidth - 20, yPosition)
-    yPosition += 10
-    
-    pdf.setFontSize(12)
-    pdf.setFont('helvetica', 'bold')
-    safeDrawText('MUSEO:', 20, yPosition)
-    pdf.setFont('helvetica', 'normal')
-    safeDrawText(museoInfo.value.nombre || 'Sin nombre', 45, yPosition)
-    yPosition += 8
-    
-    if (filtroNivel.value) {
-      pdf.setFont('helvetica', 'bold')
-      safeDrawText('FILTRO:', 20, yPosition)
-      pdf.setFont('helvetica', 'normal')
-      safeDrawText(getFiltroLabel(filtroNivel.value), 45, yPosition)
-      yPosition += 8
-    }
-    
-    yPosition += 10
-
-    // Función recursiva para dibujar nodos
-    const drawNode = (node, level = 0) => {
-      checkNewPage(15)
-      
-      const indent = 20 + (level * 10)
-      const nodeText = `${node.nombre} (${node.tipo})`
-      
-      pdf.setFont('helvetica', level === 0 ? 'bold' : 'normal')
-      pdf.setFontSize(level === 0 ? 11 : 10)
-      safeDrawText(nodeText, indent, yPosition)
-      yPosition += 6
-      
-      // Mostrar empleados
-      if (node.jefes && node.jefes.length > 0) {
-        node.jefes.forEach(jefe => {
-          checkNewPage(10)
-          pdf.setFont('helvetica', 'bold')
-          pdf.setFontSize(9)
-          safeDrawText(`👤 JEFE: ${jefe.nombre_completo} - ${jefe.cargo}`, indent + 5, yPosition)
-          yPosition += 5
-        })
-      }
-      
-      if (node.personal && node.personal.length > 0) {
-        node.personal.forEach(emp => {
-          checkNewPage(10)
-          pdf.setFont('helvetica', 'normal')
-          pdf.setFontSize(9)
-          safeDrawText(`👤 ${emp.nombre_completo} - ${emp.cargo}`, indent + 5, yPosition)
-          yPosition += 5
-        })
-      }
-      
-      // Dibujar hijos (solo si no hay filtro activo)
-      if (!filtroNivel.value && node.children) {
-        node.children.forEach(child => {
-          drawNode(child, level + 1)
-        })
-      }
-      
-      yPosition += 3
-    }
-    
-    // Dibujar todos los nodos
-    organigramaFiltrado.value.forEach(node => {
-      drawNode(node)
-    })
-    
-    // Pie de página
-    checkNewPage(20)
-    yPosition += 10
-    pdf.setLineWidth(0.5)
-    pdf.line(20, yPosition, pageWidth - 20, yPosition)
-    yPosition += 8
-    
-    pdf.setFontSize(10)
-    pdf.setFont('helvetica', 'normal')
-    const fechaGeneracion = new Date().toLocaleString('es-ES')
-    safeDrawText(`Generado el: ${fechaGeneracion}`, 20, yPosition)
-    safeDrawText('Sistema de Gestión de Museos', pageWidth - 20, yPosition, { align: 'right' })
-    
-    // Guardar PDF
-    const nombreArchivo = `organigrama_${museoInfo.value.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-    pdf.save(nombreArchivo)
-    
-  } catch (error) {
-    console.error('Error al exportar PDF:', error)
-    alert('Error al generar el PDF. Por favor intente nuevamente.')
-  } finally {
-    exportingPDF.value = false
-  }
-}
 
 // Inicializar
 onMounted(fetchMuseos)
@@ -380,7 +254,7 @@ onMounted(fetchMuseos)
 
 .selection-container {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
   align-items: end;
   gap: 2rem;
   width: 100%;
@@ -423,40 +297,6 @@ select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Estilo mejorado para el botón de exportar PDF */
-.export-button {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  color: white;
-  border: none;
-  padding: 0.875rem 1.75rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-  white-space: nowrap;
-  align-self: end;
-  height: fit-content;
-  min-width: 160px;
-}
-
-.export-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 12px rgba(5, 150, 105, 0.4);
-}
-
-.export-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.export-button:active {
-  transform: translateY(0);
 }
 
 .loading-state, .error-state {
@@ -582,6 +422,23 @@ select:focus {
   border-left: 4px solid #3b82f6;
 }
 
+/* Pie del reporte */
+.report-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e5e7eb;
+  text-align: center;
+}
+
+.generation-info {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.generation-info p {
+  margin: 0.25rem 0;
+}
+
 /* Responsive mejoras */
 @media (max-width: 1024px) {
   .selection-container {
@@ -591,10 +448,6 @@ select:focus {
   
   select {
     min-width: 180px;
-  }
-  
-  .export-button {
-    min-width: 140px;
   }
 }
 
@@ -643,13 +496,6 @@ select:focus {
     margin: -1.5rem -1.5rem 1.5rem -1.5rem;
   }
 
-  .export-button {
-    width: 100%;
-    justify-self: center;
-    min-width: unset;
-    margin-top: 0;
-  }
-  
   .organigrama-content {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
