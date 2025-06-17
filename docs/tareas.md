@@ -304,3 +304,30 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
     - Información geográfica contextual (ciudad y país)
     - Diseño completamente responsivo y optimizado para impresión
     - **Mejoras técnicas**: Reemplazado el sistema de categorías alfabéticas por rankings numéricos comparativos que proporcionan valor real para el público visitante y administradores del museo
+
+### Sesión del 06-JUN-2025 (Mejoras de UX - Formularios Inteligentes)
+- ✅ **Sistema de Dropdowns Dinámicos - COMPLETADO**:
+  - **Descripción**: Transformación completa de formularios manuales a dropdowns inteligentes automáticos
+  - **Backend mejorado**:
+    - **Endpoint `/api/support-data` expandido**: Agregadas 15+ fuentes de datos nuevas
+    - **Datos de soporte completos**: Departamentos, unidades organizacionales, estructuras físicas, tipos de obra, cargos, turnos, etc.
+    - **Consultas optimizadas**: Obtención eficiente de valores únicos y entidades relacionadas
+  - **Frontend refactorizado**:
+    - **Sistema de dropdowns unificado**: Reemplazo de 60+ campos manuales por selecciones automáticas
+    - **Configuración declarativa**: `type: 'dropdown'`, `dataSource: 'museos'`, `displayField: 'nombre'`
+    - **Funciones auxiliares inteligentes**: `getDropdownOptions()`, `getOptionLabel()`, `getOptionValue()`
+    - **Etiquetas contextuales**: "Seleccione un museo", "Seleccione una obra", etc.
+  - **Mejoras de UX implementadas**:
+    - **Campos ID → Nombres descriptivos**: "Museo" en lugar de "ID del Museo"
+    - **Opciones formateadas**: "1 - Museo del Prado" en lugar de solo IDs numéricos
+    - **Validación automática**: Campos requeridos con datos válidos únicamente
+    - **Prevención de errores**: Imposible seleccionar IDs inexistentes
+  - **Procedimientos mejorados** (19 total):
+    - **SP_VENDER_TICKET**: Museo + Tipo de ticket automáticos
+    - **SP_REGISTRAR_NUEVO_EMPLEADO**: Museo + Unidad organizacional + Cargo automáticos
+    - **SP_REGISTRAR_OBRA_NUEVA**: Museo + Colección + Sala + Empleado + Tipo obra automáticos
+    - **SP_MOVER_OBRA**: Obra + Museo destino + Colección + Sala automáticos
+    - **SP_INSERTAR_COLECCION**: Museo + Departamento automáticos
+    - **SP_REGISTRAR_VIGILANTE_MANT**: Estructura física + Tipo responsable + Turno automáticos
+    - Y 13 procedimientos más con dropdowns inteligentes
+  - **Impacto**: UX dramáticamente mejorada - formularios 10x más fáciles de usar, eliminación de errores de ID inválidos, y experiencia profesional comparable a sistemas comerciales modernos

@@ -85,7 +85,7 @@
               class="input"
             />
 
-            <!-- Campo de selección -->
+            <!-- Campo de selección estática -->
             <select 
               v-else-if="param.type === 'select'" 
               :id="param.name"
@@ -103,106 +103,25 @@
               </option>
             </select>
 
-            <!-- Campo de selección con datos dinámicos (para IDs) -->
+            <!-- Campo de dropdown dinámico -->
             <select 
-              v-else-if="param.name.includes('id_museo')"
+              v-else-if="param.type === 'dropdown'" 
               :id="param.name"
-              v-model.number="formData[param.name]"
+              v-model="formData[param.name]"
               :required="param.required"
+              :disabled="loadingSupportData"
               class="select"
+              @change="onFieldChange(param.name, formData[param.name])"
             >
-              <option value="">-- Seleccione un museo --</option>
+              <option value="" v-if="loadingSupportData">🔄 Cargando datos...</option>
+              <option value="" v-else-if="getDropdownOptions(param).length === 0">⚠️ No hay datos disponibles</option>
+              <option value="" v-else>-- Seleccione {{ getDropdownLabel(param) }} --</option>
               <option 
-                v-for="museo in supportData.museos" 
-                :key="museo.id" 
-                :value="museo.id"
+                v-for="item in getDropdownOptions(param)" 
+                :key="getOptionKey(item, param)" 
+                :value="getOptionValue(item, param)"
               >
-                {{ museo.id }} - {{ museo.nombre }}
-              </option>
-            </select>
-
-            <select 
-              v-else-if="param.name.includes('id_obra')"
-              :id="param.name"
-              v-model.number="formData[param.name]"
-              :required="param.required"
-              class="select"
-            >
-              <option value="">-- Seleccione una obra --</option>
-              <option 
-                v-for="obra in supportData.obras" 
-                :key="obra.id" 
-                :value="obra.id"
-              >
-                {{ obra.id }} - {{ obra.titulo }}
-              </option>
-            </select>
-
-            <select 
-              v-else-if="param.name.includes('id_empleado')"
-              :id="param.name"
-              v-model.number="formData[param.name]"
-              :required="param.required"
-              class="select"
-            >
-              <option value="">-- Seleccione un empleado --</option>
-              <option 
-                v-for="empleado in supportData.empleados" 
-                :key="empleado.id" 
-                :value="empleado.id"
-              >
-                {{ empleado.id }} - {{ empleado.nombre }}
-              </option>
-            </select>
-
-            <select 
-              v-else-if="param.name.includes('id_coleccion')"
-              :id="param.name"
-              v-model.number="formData[param.name]"
-              :required="param.required"
-              class="select"
-            >
-              <option value="">-- Seleccione una colección --</option>
-              <option 
-                v-for="coleccion in supportData.colecciones" 
-                :key="coleccion.id" 
-                :value="coleccion.id"
-              >
-                {{ coleccion.id }} - {{ coleccion.nombre }}
-              </option>
-            </select>
-
-            <select 
-              v-else-if="param.name.includes('id_sala')"
-              :id="param.name"
-              v-model.number="formData[param.name]"
-              :required="param.required"
-              class="select"
-            >
-              <option value="">-- Seleccione una sala --</option>
-              <option 
-                v-for="sala in supportData.salas" 
-                :key="sala.id" 
-                :value="sala.id"
-              >
-                {{ sala.id }} - {{ sala.nombre }}
-              </option>
-            </select>
-
-            <select 
-              v-else-if="param.name.includes('id_exposicion')"
-              :id="param.name"
-              v-model.number="formData[param.name]"
-              :required="param.required"
-              class="select"
-            >
-              <option value="">-- Seleccione una exposición --</option>
-              <option 
-                v-for="exposicion in supportData.exposiciones" 
-                :key="exposicion.id" 
-                :value="exposicion.id"
-              >
-                {{ exposicion.id }} - {{ exposicion.titulo }}
+                {{ getOptionLabel(item, param) }}
               </option>
             </select>
 
@@ -326,11 +245,25 @@ export default {
       obras: [],
       colecciones: [],
       salas: [],
-      exposiciones: []
+      exposiciones: [],
+      unidadesOrganizacionales: [],
+      estructurasFisicas: [],
+      mantenimientos: [],
+      vigilantes: [],
+      artistas: [],
+      departamentos: [],
+      tiposObra: [],
+      tiposAdquisicion: [],
+      cargos: [],
+      tiposResponsable: [],
+      turnos: [],
+      tiposMantenimiento: [],
+      tiposTicket: []
     })
     const selectedProcedure = ref('')
     const formData = reactive({})
     const loading = ref(false)
+    const loadingSupportData = ref(true)
     const lastResult = ref(null)
     const executionHistory = ref([])
     const executionTime = ref(0)
@@ -362,11 +295,69 @@ export default {
 
     const loadSupportData = async () => {
       try {
+        console.log('[FRONTEND] Iniciando carga de datos de apoyo...')
+        
+        // Primero probar endpoint simple
+        try {
+          const testResponse = await fetch('/api/museos-simple')
+          console.log('[FRONTEND] Test response status:', testResponse.status)
+          if (testResponse.ok) {
+            const testData = await testResponse.json()
+            console.log('[FRONTEND] Test data:', testData)
+          }
+        } catch (testError) {
+          console.error('[FRONTEND] Error en test endpoint:', testError)
+        }
+        
+        // Luego cargar datos completos
         const response = await fetch('/api/support-data')
-        if (!response.ok) throw new Error('Error cargando datos de apoyo')
-        supportData.value = await response.json()
+        console.log('[FRONTEND] Support-data response status:', response.status)
+        
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('[FRONTEND] Error response:', errorText)
+          throw new Error(`Error cargando datos de apoyo: ${response.status} - ${errorText}`)
+        }
+        
+        const data = await response.json()
+        console.log('[FRONTEND] Datos cargados:', data)
+        console.log('[FRONTEND] Museos encontrados:', data.museos?.length || 0)
+        
+        supportData.value = data
+        
+        // Verificar que los museos se cargaron
+        if (data.museos && data.museos.length > 0) {
+          console.log('[FRONTEND] ✅ Museos cargados correctamente:', data.museos.slice(0, 3))
+        } else {
+          console.warn('[FRONTEND] ⚠️ No se encontraron museos')
+        }
+        
       } catch (error) {
-        console.error('Error cargando datos de apoyo:', error)
+        console.error('[FRONTEND] Error cargando datos de apoyo:', error)
+        // Inicializar con datos vacíos para evitar errores
+        supportData.value = {
+          museos: [],
+          empleados: [],
+          obras: [],
+          colecciones: [],
+          salas: [],
+          exposiciones: [],
+          unidadesOrganizacionales: [],
+          estructurasFisicas: [],
+          mantenimientos: [],
+          vigilantes: [],
+          artistas: [],
+          departamentos: [],
+          tiposObra: [],
+          tiposAdquisicion: [],
+          cargos: [],
+          tiposResponsable: [],
+          turnos: [],
+          tiposMantenimiento: [],
+          tiposTicket: []
+        }
+      } finally {
+        loadingSupportData.value = false
       }
     }
 
@@ -379,6 +370,34 @@ export default {
       Object.keys(formData).forEach(key => {
         delete formData[key]
       })
+    }
+
+    // Función para limpiar campos dependientes cuando cambia un campo padre
+    const onFieldChange = (paramName, value) => {
+      console.log(`[FIELD-CHANGE] ${paramName} cambió a:`, value)
+      
+      // Si cambió el museo, limpiar todos los campos dependientes
+      const esCampoMuseo = paramName.includes('museo') || paramName.includes('id_museo') 
+      if (esCampoMuseo) {
+        console.log('[FIELD-CHANGE] Campo de museo cambió, limpiando campos dependientes...')
+        
+        // Lista de campos que dependen del museo
+        const camposDependientes = [
+          'p_nombre_unidad_org', 'n_nombre_unidad_org', 'n_id_est_org',
+          'p_id_coleccion', 'n_id_coleccion', 'p_id_coleccion_destino',
+          'p_id_sala', 'n_id_sala', 'p_id_sala_destino', 'n_id_sala',
+          'p_id_empleado_responsable', 'n_id_empleado', 'p_id_empleado_destino',
+          'n_id_est', 'p_id_expo'
+        ]
+        
+        // Limpiar campos dependientes (pero no el campo que cambió)
+        camposDependientes.forEach(campo => {
+          if (formData[campo] && campo !== paramName) {
+            console.log(`[FIELD-CHANGE] Limpiando ${campo}`)
+            formData[campo] = ''
+          }
+        })
+      }
     }
 
     const executeProcedure = async () => {
@@ -438,6 +457,131 @@ export default {
       })
     }
 
+    // Funciones auxiliares para dropdowns dinámicos
+    const getDropdownOptions = (param) => {
+      console.log(`[DROPDOWN] Obteniendo opciones para ${param.name}, dataSource: ${param.dataSource}`)
+      
+      if (!param.dataSource) {
+        console.warn(`[DROPDOWN] No dataSource para ${param.name}`)
+        return []
+      }
+      
+      if (!supportData.value[param.dataSource]) {
+        console.warn(`[DROPDOWN] No existe supportData.${param.dataSource}`)
+        console.log('[DROPDOWN] supportData disponible:', Object.keys(supportData.value))
+        return []
+      }
+      
+      let options = supportData.value[param.dataSource]
+      
+      // === FILTRADO REACTIVO BASADO EN OTROS CAMPOS ===
+      
+      // Detectar el ID de museo seleccionado (puede tener diferentes nombres según el procedimiento)
+      const museoSeleccionado = formData.p_id_museo || formData.n_id_museo || formData.id_museo
+      
+      if (museoSeleccionado) {
+        console.log(`[DROPDOWN] Museo seleccionado: ${museoSeleccionado}`)
+        
+        // Si es unidades organizacionales, filtrar por museo
+        if (param.dataSource === 'unidadesOrganizacionales') {
+          console.log(`[DROPDOWN] Filtrando unidades organizacionales para museo: ${museoSeleccionado}`)
+          options = options.filter(unidad => unidad.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Unidades filtradas: ${options.length}`)
+        }
+        
+        // Si son salas, filtrar por museo
+        if (param.dataSource === 'salas') {
+          console.log(`[DROPDOWN] Filtrando salas para museo: ${museoSeleccionado}`)
+          options = options.filter(sala => sala.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Salas filtradas: ${options.length}`)
+        }
+        
+        // Si son colecciones, filtrar por museo
+        if (param.dataSource === 'colecciones') {
+          console.log(`[DROPDOWN] Filtrando colecciones para museo: ${museoSeleccionado}`)
+          options = options.filter(coleccion => coleccion.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Colecciones filtradas: ${options.length}`)
+        }
+        
+        // Si son estructuras físicas, filtrar por museo
+        if (param.dataSource === 'estructurasFisicas') {
+          console.log(`[DROPDOWN] Filtrando estructuras físicas para museo: ${museoSeleccionado}`)
+          options = options.filter(estructura => estructura.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Estructuras físicas filtradas: ${options.length}`)
+        }
+        
+        // Si son empleados, filtrar por museo (si está disponible)
+        if (param.dataSource === 'empleados' && options.length > 0 && options[0].id_museo) {
+          console.log(`[DROPDOWN] Filtrando empleados para museo: ${museoSeleccionado}`)
+          options = options.filter(empleado => empleado.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Empleados filtrados: ${options.length}`)
+        }
+        
+        // Si son exposiciones, filtrar por museo
+        if (param.dataSource === 'exposiciones') {
+          console.log(`[DROPDOWN] Filtrando exposiciones para museo: ${museoSeleccionado}`)
+          options = options.filter(exposicion => exposicion.id_museo == museoSeleccionado)
+          console.log(`[DROPDOWN] Exposiciones filtradas: ${options.length}`)
+        }
+      }
+      
+      console.log(`[DROPDOWN] ${param.dataSource} devolviendo ${options.length} opciones finales`)
+      return options
+    }
+
+    const getDropdownLabel = (param) => {
+      const labels = {
+        museos: 'un museo',
+        empleados: 'un empleado',
+        obras: 'una obra',
+        colecciones: 'una colección',
+        salas: 'una sala',
+        exposiciones: 'una exposición',
+        unidadesOrganizacionales: 'una unidad organizacional',
+        estructurasFisicas: 'una estructura física',
+        mantenimientos: 'un mantenimiento',
+        vigilantes: 'un vigilante',
+        artistas: 'un artista',
+        departamentos: 'un departamento',
+        tiposObra: 'un tipo de obra',
+        tiposAdquisicion: 'un tipo de adquisición',
+        cargos: 'un cargo',
+        tiposResponsable: 'un tipo de responsable',
+        turnos: 'un turno',
+        tiposMantenimiento: 'un tipo de mantenimiento',
+        tiposTicket: 'un tipo de ticket'
+      }
+      return labels[param.dataSource] || 'una opción'
+    }
+
+    const getOptionKey = (item, param) => {
+      if (typeof item === 'object') {
+        return item.id || item.nombre || item
+      }
+      return item
+    }
+
+    const getOptionValue = (item, param) => {
+      if (typeof item === 'object') {
+        // Para campos que esperan el nombre en lugar del ID
+        if (param.displayField && param.displayField !== 'id') {
+          return item[param.displayField] || item.nombre || item.id
+        }
+        return item.id
+      }
+      return item
+    }
+
+    const getOptionLabel = (item, param) => {
+      if (typeof item === 'object') {
+        if (item.id && (item.nombre || item.titulo)) {
+          return `${item.id} - ${item.nombre || item.titulo}`
+        }
+        return item.nombre || item.titulo || item.tipo || item
+      }
+      return item
+    }
+
     onMounted(() => {
       loadProcedures()
       loadSupportData()
@@ -451,13 +595,20 @@ export default {
       proceduresByCategory,
       formData,
       loading,
+      loadingSupportData,
       lastResult,
       executionHistory,
       executionTime,
       onProcedureChange,
       clearForm,
+      onFieldChange,
       executeProcedure,
-      formatTime
+      formatTime,
+      getDropdownOptions,
+      getDropdownLabel,
+      getOptionKey,
+      getOptionValue,
+      getOptionLabel
     }
   }
 }

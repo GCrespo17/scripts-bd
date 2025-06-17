@@ -2891,8 +2891,8 @@ app.get('/api/procedures', (req, res) => {
             description: 'Vender un ticket de entrada al museo',
             category: 'Ventas y Admisiones',
             inputParams: [
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
-                { name: 'p_tipo_ticket', label: 'Tipo de Ticket', type: 'select', required: true, options: ['ADULTO', 'ESTUDIANTE', 'SENIOR', 'NIÑO'] }
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
+                { name: 'p_tipo_ticket', label: 'Tipo de Ticket', type: 'dropdown', dataSource: 'tiposTicket', required: true }
             ],
             outputParams: [
                 { name: 'p_id_ticket_generado', label: 'ID del Ticket Generado', type: 'number' }
@@ -2912,9 +2912,9 @@ app.get('/api/procedures', (req, res) => {
                 { name: 'p_contacto', label: 'Contacto', type: 'number', required: true },
                 { name: 'p_segundo_nombre', label: 'Segundo Nombre', type: 'text', required: false },
                 { name: 'p_segundo_apellido', label: 'Segundo Apellido', type: 'text', required: false },
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
-                { name: 'p_nombre_unidad_org', label: 'Nombre Unidad Organizacional', type: 'text', required: true },
-                { name: 'p_cargo', label: 'Cargo', type: 'select', required: true, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
+                { name: 'p_nombre_unidad_org', label: 'Unidad Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', displayField: 'nombre', required: true },
+                { name: 'p_cargo', label: 'Cargo', type: 'dropdown', dataSource: 'cargos', required: true },
                 { name: 'p_fecha_inicio_cargo', label: 'Fecha Inicio Cargo', type: 'date', required: true }
             ],
             outputParams: [
@@ -2926,10 +2926,10 @@ app.get('/api/procedures', (req, res) => {
             description: 'Transferir un empleado activo a otro museo o cargo',
             category: 'Recursos Humanos',
             inputParams: [
-                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
-                { name: 'n_id_museo', label: 'ID Museo Destino', type: 'number', required: false },
-                { name: 'n_id_est_org', label: 'ID Estructura Organizacional', type: 'number', required: false },
-                { name: 'n_cargo', label: 'Nuevo Cargo', type: 'select', required: false, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] }
+                { name: 'n_id_empleado', label: 'Empleado', type: 'dropdown', dataSource: 'empleados', required: true },
+                { name: 'n_id_museo', label: 'Museo Destino', type: 'dropdown', dataSource: 'museos', required: false },
+                { name: 'n_id_est_org', label: 'Estructura Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: false },
+                { name: 'n_cargo', label: 'Nuevo Cargo', type: 'dropdown', dataSource: 'cargos', required: false }
             ],
             outputParams: []
         },
@@ -2938,10 +2938,10 @@ app.get('/api/procedures', (req, res) => {
             description: 'Reactivar y transferir un empleado inactivo',
             category: 'Recursos Humanos',
             inputParams: [
-                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
-                { name: 'n_id_museo', label: 'ID del Museo', type: 'number', required: true },
-                { name: 'n_id_est_org', label: 'ID Estructura Organizacional', type: 'number', required: true },
-                { name: 'n_cargo', label: 'Cargo', type: 'select', required: true, options: ['ADMINISTRADOR', 'CURADOR', 'GUIA', 'RESTAURADOR', 'VIGILANTE'] }
+                { name: 'n_id_empleado', label: 'Empleado', type: 'dropdown', dataSource: 'empleados', required: true },
+                { name: 'n_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
+                { name: 'n_id_est_org', label: 'Estructura Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: true },
+                { name: 'n_cargo', label: 'Cargo', type: 'dropdown', dataSource: 'cargos', required: true }
             ],
             outputParams: []
         },
@@ -2954,15 +2954,15 @@ app.get('/api/procedures', (req, res) => {
             inputParams: [
                 { name: 'n_nombre', label: 'Título de la Obra', type: 'text', required: true },
                 { name: 'n_fecha_periodo', label: 'Fecha/Período', type: 'date', required: true },
-                { name: 'n_tipo_obra', label: 'Tipo de Obra', type: 'select', required: true, options: ['PINTURA', 'ESCULTURA', 'FOTOGRAFIA', 'GRABADO', 'DIBUJO', 'INSTALACION'] },
+                { name: 'n_tipo_obra', label: 'Tipo de Obra', type: 'dropdown', dataSource: 'tiposObra', required: true },
                 { name: 'n_dimensiones', label: 'Dimensiones', type: 'text', required: true },
                 { name: 'n_desc_mat_tec', label: 'Materiales y Técnicas', type: 'text', required: true },
                 { name: 'n_desc_estilos', label: 'Estilos y Géneros', type: 'text', required: true },
-                { name: 'n_id_museo', label: 'ID del Museo', type: 'number', required: true },
-                { name: 'n_id_coleccion', label: 'ID de la Colección', type: 'number', required: true },
-                { name: 'n_id_sala', label: 'ID de la Sala', type: 'number', required: true },
-                { name: 'n_id_empleado', label: 'ID Empleado Responsable', type: 'number', required: true },
-                { name: 'n_tipo_adq', label: 'Tipo de Adquisición', type: 'select', required: true, options: ['COMPRA', 'DONACION', 'LEGADO', 'PRESTAMO'] },
+                { name: 'n_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
+                { name: 'n_id_coleccion', label: 'Colección', type: 'dropdown', dataSource: 'colecciones', required: true },
+                { name: 'n_id_sala', label: 'Sala', type: 'dropdown', dataSource: 'salas', required: true },
+                { name: 'n_id_empleado', label: 'Empleado Responsable', type: 'dropdown', dataSource: 'empleados', required: true },
+                { name: 'n_tipo_adq', label: 'Tipo de Adquisición', type: 'dropdown', dataSource: 'tiposAdquisicion', required: true },
                 { name: 'n_destacada', label: '¿Es Obra Destacada?', type: 'select', required: true, options: ['SI', 'NO'] },
                 { name: 'n_orden_recorrido', label: 'Orden de Recorrido', type: 'number', required: false },
                 { name: 'n_valor_monetario', label: 'Valor Monetario', type: 'number', required: false }
@@ -2974,12 +2974,12 @@ app.get('/api/procedures', (req, res) => {
             description: 'Mover una obra de arte entre museos, colecciones o salas',
             category: 'Gestión de Obras',
             inputParams: [
-                { name: 'n_id_obra', label: 'ID de la Obra', type: 'number', required: true },
-                { name: 'p_id_museo_destino', label: 'ID Museo Destino', type: 'number', required: false },
-                { name: 'p_id_coleccion_destino', label: 'ID Colección Destino', type: 'number', required: false },
-                { name: 'p_id_sala_destino', label: 'ID Sala Destino', type: 'number', required: false },
-                { name: 'p_id_empleado_destino', label: 'ID Empleado Responsable', type: 'number', required: false },
-                { name: 'p_tipo_adq_destino', label: 'Tipo de Adquisición', type: 'select', required: false, options: ['COMPRA', 'DONACION', 'LEGADO', 'PRESTAMO'] },
+                { name: 'n_id_obra', label: 'Obra', type: 'dropdown', dataSource: 'obras', required: true },
+                { name: 'p_id_museo_destino', label: 'Museo Destino', type: 'dropdown', dataSource: 'museos', required: false },
+                { name: 'p_id_coleccion_destino', label: 'Colección Destino', type: 'dropdown', dataSource: 'colecciones', required: false },
+                { name: 'p_id_sala_destino', label: 'Sala Destino', type: 'dropdown', dataSource: 'salas', required: false },
+                { name: 'p_id_empleado_destino', label: 'Empleado Responsable', type: 'dropdown', dataSource: 'empleados', required: false },
+                { name: 'p_tipo_adq_destino', label: 'Tipo de Adquisición', type: 'dropdown', dataSource: 'tiposAdquisicion', required: false },
                 { name: 'p_destacada_destino', label: '¿Es Destacada?', type: 'select', required: false, options: ['SI', 'NO'] },
                 { name: 'p_orden_recorrido_destino', label: 'Orden de Recorrido', type: 'number', required: false },
                 { name: 'p_valor_monetario_destino', label: 'Valor Monetario', type: 'number', required: false }
@@ -2993,8 +2993,8 @@ app.get('/api/procedures', (req, res) => {
             description: 'Finalizar una exposición temporal',
             category: 'Gestión de Exposiciones',
             inputParams: [
-                { name: 'p_id_expo', label: 'ID de la Exposición', type: 'number', required: true },
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true }
+                { name: 'p_id_expo', label: 'Exposición', type: 'dropdown', dataSource: 'exposiciones', required: true },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true }
             ],
             outputParams: []
         },
@@ -3003,9 +3003,9 @@ app.get('/api/procedures', (req, res) => {
             description: 'Asignar una obra a una exposición temporal',
             category: 'Gestión de Exposiciones',
             inputParams: [
-                { name: 'p_id_obra', label: 'ID de la Obra', type: 'number', required: true },
-                { name: 'p_id_expo', label: 'ID de la Exposición', type: 'number', required: true },
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true },
+                { name: 'p_id_obra', label: 'Obra', type: 'dropdown', dataSource: 'obras', required: true },
+                { name: 'p_id_expo', label: 'Exposición', type: 'dropdown', dataSource: 'exposiciones', required: true },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
                 { name: 'p_orden_en_exposicion', label: 'Orden en la Exposición', type: 'number', required: false }
             ],
             outputParams: []
@@ -3017,8 +3017,8 @@ app.get('/api/procedures', (req, res) => {
             description: 'Crear una nueva colección permanente',
             category: 'Gestión de Colecciones',
             inputParams: [
-                { name: 'n_nombre_museo', label: 'Nombre del Museo', type: 'text', required: true },
-                { name: 'n_nombre_depto', label: 'Nombre del Departamento', type: 'text', required: true },
+                { name: 'n_nombre_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', displayField: 'nombre', required: true },
+                { name: 'n_nombre_depto', label: 'Departamento', type: 'dropdown', dataSource: 'departamentos', required: true },
                 { name: 'n_nombre_coleccion', label: 'Nombre de la Colección', type: 'text', required: true },
                 { name: 'n_caracteristicas', label: 'Características', type: 'text', required: true },
                 { name: 'n_palabra_clave', label: 'Palabra Clave', type: 'text', required: true },
@@ -3031,7 +3031,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Modificar el orden de recorrido de una colección',
             category: 'Gestión de Colecciones',
             inputParams: [
-                { name: 'n_id_coleccion', label: 'ID de la Colección', type: 'text', required: true },
+                { name: 'n_id_coleccion', label: 'Colección', type: 'dropdown', dataSource: 'colecciones', required: true },
                 { name: 'n_orden_recorrido', label: 'Nuevo Orden de Recorrido', type: 'number', required: true }
             ],
             outputParams: []
@@ -3041,7 +3041,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Eliminar una colección permanente',
             category: 'Gestión de Colecciones',
             inputParams: [
-                { name: 'p_id_coleccion', label: 'ID de la Colección', type: 'number', required: true }
+                { name: 'p_id_coleccion', label: 'Colección', type: 'dropdown', dataSource: 'colecciones', required: true }
             ],
             outputParams: []
         },
@@ -3052,8 +3052,8 @@ app.get('/api/procedures', (req, res) => {
             description: 'Registrar un mantenimiento realizado a una obra',
             category: 'Mantenimiento',
             inputParams: [
-                { name: 'n_id_mant', label: 'ID del Mantenimiento', type: 'number', required: true },
-                { name: 'n_id_empleado', label: 'ID del Empleado', type: 'number', required: true },
+                { name: 'n_id_mant', label: 'Mantenimiento Programado', type: 'dropdown', dataSource: 'mantenimientos', displayField: 'tipo', required: true },
+                { name: 'n_id_empleado', label: 'Empleado Responsable', type: 'dropdown', dataSource: 'empleados', required: true },
                 { name: 'n_observaciones', label: 'Observaciones', type: 'text', required: true },
                 { name: 'n_fecha_fin', label: 'Fecha de Finalización', type: 'date', required: false }
             ],
@@ -3064,7 +3064,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Programar mantenimientos automáticos para un museo',
             category: 'Mantenimiento',
             inputParams: [
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: false },
                 { name: 'p_dias_anticipacion', label: 'Días de Anticipación', type: 'number', required: false }
             ],
             outputParams: [
@@ -3077,7 +3077,7 @@ app.get('/api/procedures', (req, res) => {
             category: 'Mantenimiento',
             inputParams: [
                 { name: 'n_fecha_inicio', label: 'Fecha de Inicio', type: 'date', required: false },
-                { name: 'n_id_sala', label: 'ID de la Sala', type: 'number', required: true },
+                { name: 'n_id_sala', label: 'Sala', type: 'dropdown', dataSource: 'salas', required: true },
                 { name: 'n_fecha_fin', label: 'Fecha de Fin', type: 'date', required: false }
             ],
             outputParams: []
@@ -3092,9 +3092,9 @@ app.get('/api/procedures', (req, res) => {
                 { name: 'n_nombre', label: 'Nombre', type: 'text', required: true },
                 { name: 'n_apellido', label: 'Apellido', type: 'text', required: true },
                 { name: 'n_doc_identidad', label: 'Documento de Identidad', type: 'number', required: true },
-                { name: 'n_tipo_responsable', label: 'Tipo de Responsable', type: 'select', required: true, options: ['VIGILANTE', 'MANTENIMIENTO', 'SUPERVISOR'] },
-                { name: 'n_id_est', label: 'ID Estructura Física', type: 'number', required: true },
-                { name: 'n_turno', label: 'Turno', type: 'select', required: true, options: ['MAÑANA', 'TARDE', 'NOCHE'] }
+                { name: 'n_tipo_responsable', label: 'Tipo de Responsable', type: 'dropdown', dataSource: 'tiposResponsable', required: true },
+                { name: 'n_id_est', label: 'Estructura Física', type: 'dropdown', dataSource: 'estructurasFisicas', required: true },
+                { name: 'n_turno', label: 'Turno', type: 'dropdown', dataSource: 'turnos', required: true }
             ],
             outputParams: []
         },
@@ -3103,9 +3103,9 @@ app.get('/api/procedures', (req, res) => {
             description: 'Asignar un vigilante existente a una nueva área',
             category: 'Vigilancia y Seguridad',
             inputParams: [
-                { name: 'n_id_vig_mant', label: 'ID del Vigilante', type: 'number', required: true },
-                { name: 'n_id_est', label: 'ID Estructura Física', type: 'number', required: true },
-                { name: 'n_turno', label: 'Turno', type: 'select', required: true, options: ['MAÑANA', 'TARDE', 'NOCHE'] }
+                { name: 'n_id_vig_mant', label: 'Vigilante', type: 'dropdown', dataSource: 'vigilantes', required: true },
+                { name: 'n_id_est', label: 'Estructura Física', type: 'dropdown', dataSource: 'estructurasFisicas', required: true },
+                { name: 'n_turno', label: 'Turno', type: 'dropdown', dataSource: 'turnos', required: true }
             ],
             outputParams: []
         },
@@ -3116,7 +3116,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Calcular métricas y ranking de un museo',
             category: 'Análisis y Reporting',
             inputParams: [
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: true }
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true }
             ],
             outputParams: [
                 { name: 'p_antiguedad_promedio_anios', label: 'Antigüedad Promedio (años)', type: 'number' },
@@ -3132,7 +3132,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Gestionar automáticamente el estado de las exposiciones',
             category: 'Automatización',
             inputParams: [
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: false },
                 { name: 'p_accion_automatica', label: 'Acción Automática', type: 'select', required: false, options: ['REPORTE', 'FINALIZAR', 'ALERTAR'] }
             ],
             outputParams: [
@@ -3144,7 +3144,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Consolidar todas las operaciones diarias del museo',
             category: 'Automatización',
             inputParams: [
-                { name: 'p_id_museo', label: 'ID del Museo', type: 'number', required: false },
+                { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: false },
                 { name: 'p_ejecutar_acciones', label: 'Ejecutar Acciones', type: 'select', required: false, options: ['SI', 'NO'] }
             ],
             outputParams: [
@@ -3156,66 +3156,300 @@ app.get('/api/procedures', (req, res) => {
     res.json(procedures);
 });
 
-// Endpoint para obtener datos de apoyo (museos, empleados, etc.)
+// Endpoint para obtener datos de apoyo (museos, empleados, etc.) - VERSIÓN ULTRA ROBUSTA
 app.get('/api/support-data', async (req, res) => {
     let connection;
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        // Obtener museos
-        const museosResult = await connection.execute(
-            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`
+        console.log('[SUPPORT-DATA] Iniciando carga de datos de apoyo...');
+        console.log(`[SUPPORT-DATA] Esquema: ${dbConfig.schema}`);
+        
+        // === FUNCIÓN AUXILIAR PARA EJECUTAR CONSULTAS SEGURAS ===
+        const safeExecute = async (query, label) => {
+            try {
+                console.log(`[SUPPORT-DATA] Ejecutando ${label}...`);
+                const result = await connection.execute(query);
+                console.log(`[SUPPORT-DATA] ${label}: ✅ ${result.rows.length} registros`);
+                return result;
+            } catch (err) {
+                console.error(`[SUPPORT-DATA] ${label}: ❌ ${err.message}`);
+                return { rows: [] }; // Retornar resultado vacío en caso de error
+            }
+        };
+        
+        // === VERIFICAR TABLAS EXISTENTES PRIMERO ===
+        const checkTables = async () => {
+            try {
+                const tablesResult = await connection.execute(
+                    `SELECT table_name FROM all_tables WHERE owner = '${dbConfig.schema}' ORDER BY table_name`
+                );
+                const existingTables = tablesResult.rows.map(row => row[0]);
+                console.log(`[SUPPORT-DATA] Tablas disponibles (${existingTables.length}):`, existingTables.slice(0, 10));
+                return existingTables;
+            } catch (err) {
+                console.error(`[SUPPORT-DATA] Error verificando tablas:`, err.message);
+                return [];
+            }
+        };
+        
+        const existingTables = await checkTables();
+        
+        // === ENTIDADES PRINCIPALES CON IDs (SOLO TABLAS BÁSICAS) ===
+        
+        // Obtener museos (tabla principal - debe existir)
+        const museosResult = await safeExecute(
+            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`,
+            'MUSEOS'
         );
         
-        // Obtener empleados
-        const empleadosResult = await connection.execute(
-            `SELECT ep.id_empleado, ep.primer_nombre || ' ' || ep.primer_apellido as nombre_completo, he.id_museo
-             FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
-             JOIN ${dbConfig.schema}.HIST_EMPLEADOS he ON he.id_empleado_prof = ep.id_empleado
-             WHERE he.fecha_fin IS NULL
-             ORDER BY ep.primer_apellido`
-        );
+        // Obtener empleados (solo tabla base, sin joins complejos)
+        const empleadosResult = existingTables.includes('EMPLEADOS_PROFESIONALES') ? 
+            await safeExecute(
+                `SELECT id_empleado, 
+                        primer_nombre || ' ' || primer_apellido as nombre_completo
+                 FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES 
+                 ORDER BY primer_apellido, primer_nombre`,
+                'EMPLEADOS_PROFESIONALES'
+            ) : { rows: [] };
         
-        // Obtener obras
-        const obrasResult = await connection.execute(
-            `SELECT o.id_obra, o.titulo, h.id_museo
-             FROM ${dbConfig.schema}.OBRAS o
-             LEFT JOIN ${dbConfig.schema}.HIST_OBRAS_MOV h ON o.id_obra = h.id_obra AND h.fecha_salida IS NULL
-             ORDER BY o.titulo`
-        );
+        // Obtener obras (solo tabla base)
+        const obrasResult = existingTables.includes('OBRAS') ? 
+            await safeExecute(
+                `SELECT id_obra, nombre as titulo, tipo_obra
+                 FROM ${dbConfig.schema}.OBRAS 
+                 ORDER BY nombre`,
+                'OBRAS'
+            ) : { rows: [] };
         
-        // Obtener colecciones
-        const coleccionesResult = await connection.execute(
-            `SELECT id_coleccion, nombre, id_museo FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES ORDER BY nombre`
-        );
+        // Obtener colecciones permanentes
+        const coleccionesResult = existingTables.includes('COLECCIONES_PERMANENTES') ?
+            await safeExecute(
+                `SELECT id_coleccion, nombre, id_museo, nombre_depto 
+                 FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
+                 ORDER BY nombre`,
+                'COLECCIONES_PERMANENTES'
+            ) : { rows: [] };
         
-        // Obtener salas
-        const salasResult = await connection.execute(
-            `SELECT id_sala, nombre, id_museo FROM ${dbConfig.schema}.SALAS_EXP ORDER BY nombre`
-        );
+        // Obtener salas de exposición (sin join complejo)
+        const salasResult = existingTables.includes('SALAS_EXP') ?
+            await safeExecute(
+                `SELECT id_sala, nombre, id_museo
+                 FROM ${dbConfig.schema}.SALAS_EXP 
+                 ORDER BY nombre`,
+                'SALAS_EXP'
+            ) : { rows: [] };
         
         // Obtener exposiciones
-        const exposicionesResult = await connection.execute(
-            `SELECT id_exposicion, titulo, fecha_inicio, fecha_fin_programada, id_museo 
-             FROM ${dbConfig.schema}.EXPOSICIONES_TEMP 
-             WHERE fecha_fin_real IS NULL
-             ORDER BY fecha_inicio DESC`
-        );
+        const exposicionesResult = existingTables.includes('EXPOSICIONES_EVENTOS') ?
+            await safeExecute(
+                `SELECT id_expo, nombre as titulo, id_museo, fecha_inicio, fecha_fin
+                 FROM ${dbConfig.schema}.EXPOSICIONES_EVENTOS 
+                 ORDER BY fecha_inicio DESC`,
+                'EXPOSICIONES_EVENTOS'
+            ) : { rows: [] };
+
+        // Obtener unidades organizacionales
+        const unidadesOrgResult = existingTables.includes('EST_ORGANIZACIONAL') ?
+            await safeExecute(
+                `SELECT id_est_org, nombre, id_museo, tipo, nivel 
+                 FROM ${dbConfig.schema}.EST_ORGANIZACIONAL 
+                 ORDER BY nivel, nombre`,
+                'EST_ORGANIZACIONAL'
+            ) : { rows: [] };
+
+        // Obtener estructuras físicas
+        const estructurasFisicasResult = existingTables.includes('EST_FISICA') ?
+            await safeExecute(
+                `SELECT id_est, nombre, id_museo, tipo, descripcion 
+                 FROM ${dbConfig.schema}.EST_FISICA 
+                 ORDER BY tipo, nombre`,
+                'EST_FISICA'
+            ) : { rows: [] };
+
+        // Obtener artistas
+        const artistasResult = existingTables.includes('ARTISTAS') ?
+            await safeExecute(
+                `SELECT id_artista, 
+                        primer_nombre || ' ' || primer_apellido as nombre_completo
+                 FROM ${dbConfig.schema}.ARTISTAS 
+                 ORDER BY primer_apellido, primer_nombre`,
+                'ARTISTAS'
+            ) : { rows: [] };
         
+        // === CONSULTAS COMPLEJAS SIMPLIFICADAS ===
+        
+        // Mantenimientos (solo si existe PROGRAMAS_MANT)
+        const mantenimientosResult = existingTables.includes('PROGRAMAS_MANT') ?
+            await safeExecute(
+                `SELECT id_mant, actividad as descripcion, tipo_responsable
+                 FROM ${dbConfig.schema}.PROGRAMAS_MANT 
+                 ORDER BY actividad`,
+                'PROGRAMAS_MANT'
+            ) : { rows: [] };
+
+        // Vigilantes (solo si existe)
+        const vigilantesResult = existingTables.includes('EMPLEADOS_VIGILANTE_MANT') ?
+            await safeExecute(
+                `SELECT id_vig_mant, 
+                        nombre || ' ' || apellido as nombre_completo,
+                        tipo_responsable
+                 FROM ${dbConfig.schema}.EMPLEADOS_VIGILANTE_MANT 
+                 ORDER BY nombre, apellido`,
+                'EMPLEADOS_VIGILANTE_MANT'
+            ) : { rows: [] };
+
+        // === LISTAS DE VALORES ÚNICOS PARA DROPDOWNS (SIMPLIFICADAS) ===
+        
+        // Departamentos (solo si existe COLECCIONES_PERMANENTES)
+        const departamentosResult = existingTables.includes('COLECCIONES_PERMANENTES') ?
+            await safeExecute(
+                `SELECT DISTINCT nombre_depto 
+                 FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
+                 WHERE nombre_depto IS NOT NULL 
+                 ORDER BY nombre_depto`,
+                'DEPARTAMENTOS'
+            ) : { rows: [] };
+
+        // Tipos de obras (solo si existe OBRAS)
+        const tiposObraResult = existingTables.includes('OBRAS') ?
+            await safeExecute(
+                `SELECT DISTINCT tipo_obra 
+                 FROM ${dbConfig.schema}.OBRAS 
+                 WHERE tipo_obra IS NOT NULL 
+                 ORDER BY tipo_obra`,
+                'TIPOS_OBRA'
+            ) : { rows: [] };
+
+        // Cargos - usando lista predefinida si no existe tabla
+        const cargosResult = existingTables.includes('HIST_EMPLEADOS') ?
+            await safeExecute(
+                `SELECT DISTINCT cargo 
+                 FROM ${dbConfig.schema}.HIST_EMPLEADOS 
+                 WHERE cargo IS NOT NULL 
+                 ORDER BY cargo`,
+                'CARGOS'
+            ) : { rows: [['DIRECTOR'], ['SUBDIRECTOR'], ['CURADOR'], ['RESTAURADOR'], ['CONSERVADOR'], ['GUÍA']] };
+
+        // Tipos de tickets - usando lista predefinida si no existe tabla
+        const tiposTicketResult = existingTables.includes('TIPO_TICKETS') ?
+            await safeExecute(
+                `SELECT DISTINCT tipo 
+                 FROM ${dbConfig.schema}.TIPO_TICKETS 
+                 WHERE tipo IS NOT NULL 
+                 ORDER BY tipo`,
+                'TIPOS_TICKET'
+            ) : { rows: [['ADULTO'], ['ESTUDIANTE'], ['NIÑO'], ['TERCERA_EDAD'], ['GRUPO']] };
+        
+        // === LISTAS PREDEFINIDAS PARA DROPDOWNS BÁSICOS ===
+        const tiposAdquisicionResult = { rows: [['COMPRA'], ['DONACIÓN'], ['PRÉSTAMO'], ['INTERCAMBIO']] };
+        const tiposResponsableResult = { rows: [['VIGILANTE'], ['MANTENIMIENTO'], ['SEGURIDAD']] };
+        const turnosResult = { rows: [['MAÑANA'], ['TARDE'], ['NOCHE'], ['ROTATIVO']] };
+        const tiposMantenimientoResult = { rows: [['PREVENTIVO'], ['CORRECTIVO'], ['RESTAURACIÓN'], ['CONSERVACIÓN']] };
+        
+        // === CONSTRUCCIÓN DEL OBJETO DE RESPUESTA ===
         const supportData = {
-            museos: museosResult.rows.map(row => ({ id: row[0], nombre: row[1] })),
-            empleados: empleadosResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
-            obras: obrasResult.rows.map(row => ({ id: row[0], titulo: row[1], id_museo: row[2] })),
-            colecciones: coleccionesResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
-            salas: salasResult.rows.map(row => ({ id: row[0], nombre: row[1], id_museo: row[2] })),
+            // === ENTIDADES PRINCIPALES CON IDs (para dropdowns con objetos) ===
+            museos: museosResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1] 
+            })),
+            
+            empleados: empleadosResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1]
+            })),
+            
+            obras: obrasResult.rows.map(row => ({ 
+                id: row[0], 
+                titulo: row[1], 
+                tipo_obra: row[2]
+            })),
+            
+            colecciones: coleccionesResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1], 
+                id_museo: row[2],
+                departamento: row[3]
+            })),
+            
+            salas: salasResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1], 
+                id_museo: row[2]
+            })),
+            
             exposiciones: exposicionesResult.rows.map(row => ({ 
                 id: row[0], 
                 titulo: row[1], 
-                fecha_inicio: row[2], 
-                fecha_fin_programada: row[3],
-                id_museo: row[4] 
-            }))
+                id_museo: row[2],
+                fecha_inicio: row[3],
+                fecha_fin: row[4]
+            })),
+            
+            unidadesOrganizacionales: unidadesOrgResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1], 
+                id_museo: row[2],
+                tipo: row[3],
+                nivel: row[4]
+            })),
+            
+            estructurasFisicas: estructurasFisicasResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1], 
+                id_museo: row[2],
+                tipo: row[3],
+                descripcion: row[4]
+            })),
+            
+            mantenimientos: mantenimientosResult.rows.map(row => ({ 
+                id: row[0], 
+                descripcion: row[1],
+                obra: row[2],
+                tipo_responsable: row[3]
+            })),
+            
+            vigilantes: vigilantesResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1],
+                tipo_responsable: row[2]
+            })),
+            
+            artistas: artistasResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1]
+            })),
+            
+            // === LISTAS DE VALORES ÚNICOS (para dropdowns simples) ===
+            departamentos: departamentosResult.rows.map(row => row[0]),
+            tiposObra: tiposObraResult.rows.map(row => row[0]),
+            tiposAdquisicion: tiposAdquisicionResult.rows.map(row => row[0]),
+            cargos: cargosResult.rows.map(row => row[0]),
+            tiposResponsable: tiposResponsableResult.rows.map(row => row[0]),
+            turnos: turnosResult.rows.map(row => row[0]),
+            tiposMantenimiento: tiposMantenimientoResult.rows.map(row => row[0]),
+            tiposTicket: tiposTicketResult.rows.map(row => row[0])
         };
+        
+        // === RESUMEN DE CARGA ===
+        const summary = {
+            museos: supportData.museos.length,
+            empleados: supportData.empleados.length,
+            obras: supportData.obras.length,
+            colecciones: supportData.colecciones.length,
+            salas: supportData.salas.length,
+            exposiciones: supportData.exposiciones.length,
+            unidadesOrganizacionales: supportData.unidadesOrganizacionales.length,
+            estructurasFisicas: supportData.estructurasFisicas.length,
+            mantenimientos: supportData.mantenimientos.length,
+            vigilantes: supportData.vigilantes.length,
+            artistas: supportData.artistas.length
+        };
+        
+        console.log('[SUPPORT-DATA] ✅ Datos cargados exitosamente');
+        console.log('[SUPPORT-DATA] 📊 Resumen:', summary);
+        console.log(`[SUPPORT-DATA] 📁 Total de fuentes de datos: ${Object.keys(supportData).length}`);
         
         res.json(supportData);
         
@@ -3232,3 +3466,112 @@ app.get('/api/support-data', async (req, res) => {
         }
     }
 }); 
+
+// === ENDPOINT DE DEBUG SIMPLE PARA DROPDOWNS ===
+app.get('/api/debug/simple-data', async (req, res) => {
+    let connection;
+    try {
+        console.log('[DEBUG-SIMPLE] Iniciando verificación simple...');
+        connection = await oracledb.getConnection(dbConfig);
+        console.log('[DEBUG-SIMPLE] Conexión exitosa');
+        
+        // Test simple: obtener museos (tabla principal)
+        let museosResult;
+        try {
+            museosResult = await connection.execute(
+                `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`
+            );
+            console.log(`[DEBUG-SIMPLE] Museos encontrados: ${museosResult.rows.length}`);
+        } catch (err) {
+            console.log(`[DEBUG-SIMPLE] Error en MUSEOS: ${err.message}`);
+            museosResult = { rows: [] };
+        }
+        
+        // Test de tabla básica
+        let tablesResult;
+        try {
+            tablesResult = await connection.execute(
+                `SELECT table_name FROM all_tables WHERE owner = '${dbConfig.schema}' ORDER BY table_name`
+            );
+            console.log(`[DEBUG-SIMPLE] Tablas en esquema: ${tablesResult.rows.length}`);
+        } catch (err) {
+            console.log(`[DEBUG-SIMPLE] Error listando tablas: ${err.message}`);
+            tablesResult = { rows: [] };
+        }
+        
+        // Respuesta simplificada
+        const debugData = {
+            schema: dbConfig.schema,
+            connection_status: 'OK',
+            museos_count: museosResult.rows.length,
+            museos_sample: museosResult.rows.slice(0, 3).map(row => ({ id: row[0], nombre: row[1] })),
+            tables_count: tablesResult.rows.length,
+            tables_sample: tablesResult.rows.slice(0, 10).map(row => row[0]),
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('[DEBUG-SIMPLE] Respuesta:', JSON.stringify(debugData, null, 2));
+        res.json(debugData);
+        
+    } catch (err) {
+        console.error('[DEBUG-SIMPLE] Error general:', err);
+        res.status(500).json({ 
+            error: 'Error de conexión o configuración',
+            message: err.message,
+            schema: dbConfig.schema,
+            timestamp: new Date().toISOString()
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[DEBUG-SIMPLE] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// === ENDPOINT SIMPLE SOLO PARA MUSEOS (PARA TESTING RÁPIDO) ===
+app.get('/api/museos-simple', async (req, res) => {
+    let connection;
+    try {
+        console.log('[MUSEOS-SIMPLE] Iniciando...');
+        connection = await oracledb.getConnection(dbConfig);
+        console.log('[MUSEOS-SIMPLE] Conexión exitosa');
+        
+        const result = await connection.execute(
+            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`
+        );
+        
+        const museos = result.rows.map(row => ({
+            id: row[0],
+            nombre: row[1]
+        }));
+        
+        console.log(`[MUSEOS-SIMPLE] Devolviendo ${museos.length} museos`);
+        res.json({
+            success: true,
+            count: museos.length,
+            data: museos
+        });
+        
+    } catch (err) {
+        console.error('[MUSEOS-SIMPLE] Error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            schema: dbConfig.schema
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[MUSEOS-SIMPLE] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint para obtener datos de apoyo (museos, empleados, etc.)
