@@ -481,3 +481,138 @@ EXCEPTION
         RAISE_APPLICATION_ERROR(-20451, 'Error inesperado en el trigger TRG_VALIDAR_EMPLEADO_INACTIVO: ' || SQLERRM);
 END TRG_VALIDAR_EMPLEADO_INACTIVO;
 /
+
+
+
+------------------------------------ CAMBIOS 16 JUNIO -----------------------------------------------------
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_MOV_OBRA_EN_MANT
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Valida que no se pueda mvoer una obra en mantenimiento
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_MOV_OBRA_EN_MANT
+BEFORE UPDATE OF fecha_salida ON HIST_OBRAS_MOV
+FOR EACH ROW
+WHEN (OLD.fecha_salida IS NULL AND NEW.fecha_salida IS NOT NULL)
+DECLARE
+    v_contador_obra_en_mant NUMBER;
+    v_catalogo_mover NUMBER;
+BEGIN
+
+    v_catalogo_mover:= :OLD.id_catalogo_museo;
+    
+    SELECT COUNT (*)
+    INTO v_contador_obra_en_mant
+    FROM MANTENIMIENTOS_OBRAS_REALIZADOS
+    WHERE id_catalogo = v_catalogo_mover AND
+    fecha_fin IS NULL;
+    
+    IF v_contador_obra_en_mant > 0 THEN
+        RAISE_APPLICATION_ERROR(-20102, 'No se puede mover una obra que se encuentra en mantenimiento actualmente.');
+    END IF;
+END TRG_VALIDAR_MOV_OBRA_EN_MANT;
+/
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_ASIGNACION_RESPONSABLE_A_OBRA
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Valida que solo un empleado con cierto cargo pueda estar a cargo de la obra
+-- Valida que el empleado deba estar en el mismo museo que la obra
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_ASIGNACION_RESPONSABLE_A_OBRA
+BEFORE INSERT ON HIST_OBRAS_MOV
+FOR EACH ROW
+DECLARE
+    v_id_nuevo_empleado NUMBER;
+    v_cargo_nuevo_empleado HIST_EMPLEADOS.cargo%TYPE;
+    v_id_museo_empleado HIST_EMPLEADOS.id_museo%TYPE;
+BEGIN
+    v_id_nuevo_empleado := :NEW.id_empleado;
+    
+    SELECT id_museo, cargo 
+    INTO v_id_museo_empleado, v_cargo_nuevo_empleado
+    FROM HIST_EMPLEADOS
+    WHERE id_empleado_prof = v_id_nuevo_empleado AND
+    fecha_fin IS NULL;
+    
+    
+    IF v_cargo_nuevo_empleado NOT IN ('CURADOR', 'RESTAURADOR') THEN
+        RAISE_APPLICATION_ERROR(-20103, 'Solo un CURADOR o RESTAURADOR pueden estar a cargo de una obra.');
+    END IF;
+    
+    IF v_id_museo_empleado <> :NEW.id_museo THEN
+        RAISE_APPLICATION_ERROR(-20104, 'La obra y el empleado deben ser del mismo museo.');
+    END IF;
+    
+END TRG_VALIDAR_ASIGNACION_RESPONSABLE_A_OBRA;
+/
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_ASIGNACION_MANTENIMIENTO_RESPONSABLE
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Valida que solo un empleado con cierto cargo pueda aplicar mantenimiento a una obra
+-- Valida que tanto la obra como el empleado deben ser del mismo museo
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_ASIGNACION_MANTENIMIENTO_RESPONSABLE
+BEFORE INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
+FOR EACH ROW
+DECLARE
+    v_nuevo_empleado NUMBER;
+    v_cargo HIST_EMPLEADOS.cargo%TYPE;
+    v_id_museo_empleado HIST_EMPLEADOS.id_museo%TYPE;
+BEGIN
+    v_nuevo_empleado := :NEW.id_empleado;
+    
+    SELECT id_museo, cargo INTO v_id_museo_empleado, v_cargo
+    FROM HIST_EMPLEADOS
+    WHERE id_empleado_prof = v_nuevo_empleado;
+    
+    IF v_cargo NOT IN ('CURADOR', 'RESTAURADOR') THEN
+         RAISE_APPLICATION_ERROR(-20105, 'Solo un CURADOR o RESTAURADOR puede realizar MANTENIMIENTO a una obra.');
+    END IF;
+    
+    IF v_id_museo_empleado <> :NEW.id_museo THEN
+        RAISE_APPLICATION_ERROR(-20106, 'La obra y el empleado deben ser del mismo museo.');
+    END IF;
+    
+END TRG_VALIDAR_ASIGNACION_MANTENIMIENTO_RESPONSABLE;
+/
+
+
+-- -----------------------------------------------------------------------------
+-- TRIGGER: TRG_VALIDAR_OBRA_EXISTENTE_MANT
+-- -----------------------------------------------------------------------------
+-- Fecha de Creación: 16-JUN-2025
+-- Descripción:
+-- Valida que una obra debe tener un historico abierto para entrar en mantenimiento
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER TRG_VALIDAR_OBRA_EXISTENTE_MANT
+BEFORE INSERT ON MANTENIMIENTOS_OBRAS_REALIZADOS
+FOR EACH ROW
+DECLARE
+    v_cont_hist_obras NUMBER;
+BEGIN
+
+    IF :NEW.id_catalogo IS NULL THEN
+        RAISE_APPLICATION_ERROR(-20107, 'Error: El ID de catálogo del histórico de la obra no puede ser nulo para registrar un mantenimiento.');
+    END IF;
+
+    SELECT COUNT (*)
+    INTO v_cont_hist_obras
+    FROM HIST_OBRAS_MOV
+    WHERE id_catalogo_museo = :NEW.id_catalogo
+    AND fecha_salida IS NULL;
+
+    IF v_cont_hist_obras = 0 THEN
+        RAISE_APPLICATION_ERROR(-20108, 'Error: La obra asociada al ID de catálogo ' || :NEW.id_catalogo || ' no tiene un registro histórico activo. No se puede realizar mantenimiento.');
+    ELSIF v_cont_hist_obras > 1 THEN
+        RAISE_APPLICATION_ERROR(-20109, 'Error de consistencia de datos: El ID de catálogo ' || :NEW.id_catalogo || ' está asociado a múltiples registros históricos activos.');
+    END IF;
+END TRG_VALIDAR_OBRA_EXISTENTE_MANT;
+/
