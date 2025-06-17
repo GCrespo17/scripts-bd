@@ -191,9 +191,6 @@ app.post('/api/artistas', async (req, res) => {
             });
         }
         
-        // Iniciar transacción
-        await connection.execute('BEGIN');
-        
         // 1. Insertar el artista y obtener su ID
         const sqlArtista = `
             INSERT INTO ${dbConfig.schema}.ARTISTAS (
@@ -233,7 +230,8 @@ app.post('/api/artistas', async (req, res) => {
             id_artista: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
         };
         
-        const resultArtista = await connection.execute(sqlArtista, paramsArtista);
+        // Ejecutar inserción del artista sin autoCommit para manejar transacción manualmente
+        const resultArtista = await connection.execute(sqlArtista, paramsArtista, { autoCommit: false });
         const idArtistaGenerado = resultArtista.outBinds.id_artista[0];
         
         // 2. Insertar las asociaciones con obras (ahora obligatorias)
@@ -246,11 +244,11 @@ app.post('/api/artistas', async (req, res) => {
             await connection.execute(sqlAsociacion, {
                 id_artista: idArtistaGenerado,
                 id_obra: id_obra
-            });
+            }, { autoCommit: false });
         }
         
         // Confirmar transacción
-        await connection.execute('COMMIT');
+        await connection.commit();
         
         res.status(201).json({ 
             message: 'Artista registrado exitosamente', 
@@ -262,7 +260,7 @@ app.post('/api/artistas', async (req, res) => {
         // Rollback en caso de error
         if (connection) {
             try {
-                await connection.execute('ROLLBACK');
+                await connection.rollback();
             } catch (rollbackErr) {
                 console.error('Error en rollback:', rollbackErr);
             }
@@ -668,9 +666,6 @@ app.post('/api/programas-mant', async (req, res) => {
         
         // ===== FASE 2: INSERCIÓN CON TRANSACCIÓN =====
         
-        // Iniciar transacción
-        await connection.execute('SAVEPOINT before_insert');
-        
         const sql = `
             INSERT INTO ${dbConfig.schema}.PROGRAMAS_MANT (
                 id_catalogo, id_obra, actividad, frecuencia, tipo_responsable
@@ -687,7 +682,8 @@ app.post('/api/programas-mant', async (req, res) => {
             responsable: tipo_responsable
         };
         
-        await connection.execute(sql, params);
+        // Ejecutar inserción sin autoCommit para manejar transacción manualmente
+        await connection.execute(sql, params, { autoCommit: false });
         
         // ===== FASE 3: AUTOMATIZACIÓN OPCIONAL INMEDIATA =====
         
@@ -713,7 +709,8 @@ app.post('/api/programas-mant', async (req, res) => {
                         empleado: id_empleado_responsable,
                         catalogo: id_catalogo,
                         obra: id_obra
-                    }
+                    },
+                    { autoCommit: false }
                 );
                 
                 automatizacionActivada = true;
@@ -734,7 +731,8 @@ app.post('/api/programas-mant', async (req, res) => {
                     {
                         museo: id_museo,
                         out_registros: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-                    }
+                    },
+                    { autoCommit: false }
                 );
                 
                 registrosProcesados = automatizacionResult.outBinds.out_registros;
@@ -790,7 +788,7 @@ app.post('/api/programas-mant', async (req, res) => {
         // Rollback en caso de error
         if (connection) {
             try {
-                await connection.execute('ROLLBACK TO before_insert');
+                await connection.rollback();
             } catch (rollbackErr) {
                 console.error('Error en rollback:', rollbackErr);
             }
