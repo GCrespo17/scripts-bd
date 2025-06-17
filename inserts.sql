@@ -1147,6 +1147,83 @@ INSERT INTO ARTISTAS_OBRAS (id_obra, id_artista) VALUES ((SELECT id_obra FROM OB
 INSERT INTO ARTISTAS_OBRAS (id_obra, id_artista) VALUES ((SELECT id_obra FROM OBRAS WHERE nombre = 'El Rabino'), 
 (SELECT id_artista FROM ARTISTAS WHERE primer_nombre = 'Maurycy' AND primer_apellido = 'Gottlieb'));
 
+
+--INSERT HIST_EMPLEADO
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion General' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114385),
+ 'DIRECTOR',
+ NULL);
+ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114386),
+ 'CURADOR',
+ NULL);
+ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2023-02-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114387),
+ 'CURADOR',
+ NULL);
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2023-12-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114388),
+ 'RESTAURADOR',
+ NULL);
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2020-02-09', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114389),
+ 'RESTAURADOR',
+ NULL);
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2010-10-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion General' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114385),
+ 'DIRECTOR',
+ TO_DATE('2018-05-01', 'YYYY-MM-DD'));
+
+
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2018-06-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114385),
+ 'DIRECTOR', NULL);
+ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2015-08-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114386),
+ 'CURADOR', NULL);
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2010-09-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114387),
+ 'CURADOR', NULL);
+ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2017-08-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114388),
+ 'RESTAURADOR', NULL);
+INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
+(TO_DATE('2012-11-01', 'YYYY-MM-DD'),
+ (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
+ (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114389),
+ 'RESTAURADOR', NULL);
+
 --INSERT HIST_OBRA_MOV
 INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Copernico'), 
@@ -1435,83 +1512,6 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Primera Planta' AND m.nombre = 'Museo de Nieborow y Arkadia'), 
     TO_DATE('1785-01-01', 'YYYY-MM-DD'), 
     'COMPRADA', 'NO', NULL, NULL, NULL);
-
---INSERT HIST_EMPLEADO
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion General' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114385),
- 'DIRECTOR',
- NULL);
- INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2019-01-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114386),
- 'CURADOR',
- NULL);
- INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2023-02-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114387),
- 'CURADOR',
- NULL);
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2023-12-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114388),
- 'RESTAURADOR',
- NULL);
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2020-02-09', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Conservacion y Restauracion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114389),
- 'RESTAURADOR',
- NULL);
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2010-10-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion General' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo Nacional de Varsovia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114385),
- 'DIRECTOR',
- TO_DATE('2018-05-01', 'YYYY-MM-DD'));
-
-
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2018-06-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Direccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114385),
- 'DIRECTOR', NULL);
- INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2015-08-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114386),
- 'CURADOR', NULL);
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2010-09-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114387),
- 'CURADOR', NULL);
- INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2017-08-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114388),
- 'RESTAURADOR', NULL);
-INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
-(TO_DATE('2012-11-01', 'YYYY-MM-DD'),
- (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Restauracion y Coleccion' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia')),
- (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museo de Nieborow y Arkadia'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 34114389),
- 'RESTAURADOR', NULL);
-
 
 --INSERT PROGRAMAS_MANT
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
@@ -1952,24 +1952,7 @@ INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (
     'Limpieza de estructura metálica con compuesto antistático. Ensamblajes revisados: todos los componentes están firmes. Obra en estado estable.');
     --PINTURA
 
--- 2. Para 'El Judío Errante'
-INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (
-    id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones
-) VALUES (
-    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra 
-     WHERE o.nombre = 'El Judío Errante' AND pm.actividad LIKE 'Revisión de los materiales%' 
-     AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN MUSEOS m ON hom.id_museo = m.id_museo 
-                          WHERE hom.id_obra = o.id_obra AND m.nombre = 'Museo Nacional de Varsovia' AND ROWNUM = 1)),
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra 
-     JOIN MUSEOS m ON hom.id_museo = m.id_museo 
-     WHERE o.nombre = 'El Judío Errante' AND m.nombre = 'Museo Nacional de Varsovia' AND ROWNUM = 1),
-    (SELECT id_obra FROM OBRAS WHERE nombre = 'El Judío Errante'),
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 33114389), 
-    TO_DATE('2025-02-10', 'YYYY-MM-DD'), TO_DATE('2025-02-17', 'YYYY-MM-DD'),
-    'Análisis de veladuras al óleo: los contrastes lumínicos se mantienen intactos. Se aplicó protección UV al marco original.'
-);
-
--- 3. Para 'Autorretrato Con Paleta'
+-- 2. Para 'Autorretrato Con Paleta'
 INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (
     id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones
 ) VALUES (
@@ -2841,7 +2824,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2012-04-10', 'YYYY-MM-DD'),
  (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo WHERE eo.nombre = 'Departamento de Curaduría y Colecciones' AND eo.id_museo = (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte')),
  (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Galería Nacional de Arte'),
- (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 834 5878),
+ (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 8345878),
  'RESTAURADOR',
  TO_DATE('2023-12-30', 'YYYY-MM-DD'));
 
@@ -7541,7 +7524,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Die Lebensstufen'), 
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000005), 
     (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
@@ -7552,7 +7535,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Metropolis'), 
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Vanguardias del Siglo XX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Sala Temporal A - 1.OG' AND ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000006), 
     (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Area Exposiciones Temporales 1.OG MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
@@ -7563,7 +7546,7 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven'), 
     (SELECT cp.id_coleccion FROM COLECCIONES_PERMANENTES cp JOIN MUSEOS m ON cp.id_museo = m.id_museo WHERE cp.nombre = 'Arte Alemán del Siglo XIX (MdbK)' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT se.id_sala FROM SALAS_EXP se JOIN EST_FISICA ef ON se.id_est = ef.id_est JOIN MUSEOS m ON se.id_museo = m.id_museo WHERE se.nombre = 'Galería Romántica Alemana' AND ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000007), 
     (SELECT eo.id_est_org FROM EST_ORGANIZACIONAL eo JOIN MUSEOS m ON eo.id_museo = m.id_museo WHERE eo.nombre = 'Departamento de Colecciones MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT m.id_museo FROM MUSEOS m WHERE m.nombre = 'Museum der bildenden Künste Leipzig'), 
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Galerías Arte Siglo XIX MdbK' AND m.nombre = 'Museum der bildenden Künste Leipzig'), 
@@ -7603,11 +7586,6 @@ INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_
     (SELECT ef.id_est FROM EST_FISICA ef JOIN MUSEOS m ON ef.id_museo = m.id_museo WHERE ef.nombre = 'Sammlung Zeitgenössische Kunst GdG KH' AND m.nombre = 'Hamburger Kunsthalle'),
     TO_DATE('1975-09-01', 'YYYY-MM-DD'), 
     'COMPRADA', 'NO', NULL, 3, 800000.00);
-
--- -----------------------------------------------------------------------------
--- REGISTROS FALTANTES DE HIST_OBRAS_MOV
--- Agregando los registros de adquisición inicial para las 18 obras que carecían de historial
--- -----------------------------------------------------------------------------
 
 -- Obras de Caspar David Friedrich para MdbK Leipzig
 INSERT INTO HIST_OBRAS_MOV (id_obra, id_coleccion, id_sala, id_empleado, id_est_org, id_museo, id_est_fis, fecha_entrada, tipo_adquisicion, destacada, fecha_salida, orden_recorrido, valor_monetario) VALUES (
@@ -7828,23 +7806,23 @@ PROMPT -------------------------------------------------------------------------
 PROMPT Inserting data into PROGRAMAS_MANT table...
 
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Die Lebensstufen' AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1),
-    (SELECT id_obra FROM OBRAS WHERE nombre = 'Die Lebensstufen'),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Felsenlandschaft im Elbsandsteingebirge') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Felsenlandschaft im Elbsandsteingebirge'),
     'Revisión de estado de conservación y condiciones ambientales de la pintura.',
     'Semestral',
     'CURADOR'
 );
 
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Die Lebensstufen' AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1),
-    (SELECT id_obra FROM OBRAS WHERE nombre = 'Die Lebensstufen'),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer'),
     'Limpieza superficial de polvo y monitorización del barniz.',
     'Anual',
     'RESTAURADOR'
 );
 
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Beethoven' AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven'),
     'Inspección detallada de materiales (mármol, bronce, piedras) y control de microclima.',
     'Anual',
@@ -7852,7 +7830,7 @@ INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_re
 );
 
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Wanderer über dem Nebelmeer' AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Wanderer über dem Nebelmeer') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Wanderer über dem Nebelmeer'),
     'Control de condiciones de iluminación y humedad relativa para pintura sobre lienzo.',
     'Trimestral',
@@ -7860,7 +7838,7 @@ INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_re
 );
 
 INSERT INTO PROGRAMAS_MANT (id_catalogo, id_obra, actividad, frecuencia, tipo_responsable) VALUES (
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'La Petite Danseuse de Quatorze Ans' AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'La Petite Danseuse de Quatorze Ans') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'La Petite Danseuse de Quatorze Ans'),
     'Verificación de estabilidad de materiales mixtos (bronce, tul, seda) y limpieza delicada.',
     'Semestral',
@@ -7877,40 +7855,40 @@ PROMPT -------------------------------------------------------------------------
 PROMPT Inserting data into MANTENIMIENTOS_OBRAS_REALIZADOS table...
 
 INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES (
-    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Die Lebensstufen' AND pm.actividad LIKE 'Limpieza superficial%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE hom.id_obra = o.id_obra AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1)),
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Die Lebensstufen' AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1),
-    (SELECT id_obra FROM OBRAS WHERE nombre = 'Die Lebensstufen'),
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
+    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm WHERE pm.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer') AND pm.actividad LIKE 'Limpieza superficial%' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
+    (SELECT id_obra FROM OBRAS WHERE nombre = 'Das Eismeer'),
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000017), 
     TO_DATE('2025-01-15', 'YYYY-MM-DD'),
     TO_DATE('2025-01-16', 'YYYY-MM-DD'),
     'Limpieza superficial completada. Barniz estable.'
 );
 
 INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES (
-    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Beethoven' AND pm.actividad LIKE 'Inspección detallada%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE hom.id_obra = o.id_obra AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1)),
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Beethoven' AND m.nombre = 'Museum der bildenden Künste Leipzig' AND ROWNUM = 1),
+    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm WHERE pm.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven') AND pm.actividad LIKE 'Inspección detallada%' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Beethoven'),
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000003), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000017), 
     TO_DATE('2025-03-10', 'YYYY-MM-DD'),
     TO_DATE('2025-03-10', 'YYYY-MM-DD'),
     'Inspección anual realizada. Sin cambios significativos. Microclima estable.'
 );
 
 INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES (
-    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'Wanderer über dem Nebelmeer' AND pm.actividad LIKE 'Control de condiciones%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE hom.id_obra = o.id_obra AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1)),
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'Wanderer über dem Nebelmeer' AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1),
+    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm WHERE pm.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Wanderer über dem Nebelmeer') AND pm.actividad LIKE 'Control de condiciones%' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'Wanderer über dem Nebelmeer') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'Wanderer über dem Nebelmeer'),
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000004), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000054), 
     TO_DATE('2025-04-01', 'YYYY-MM-DD'),
     NULL,
     'Revisión trimestral de luxómetro y termohigrómetro. Valores dentro de los rangos permitidos.'
 );
 
 INSERT INTO MANTENIMIENTOS_OBRAS_REALIZADOS (id_mant, id_catalogo, id_obra, id_empleado, fecha_inicio, fecha_fin, observaciones) VALUES (
-    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm JOIN OBRAS o ON pm.id_obra = o.id_obra WHERE o.nombre = 'La Petite Danseuse de Quatorze Ans' AND pm.actividad LIKE 'Verificación de estabilidad%' AND pm.id_catalogo = (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE hom.id_obra = o.id_obra AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1)),
-    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom JOIN OBRAS o ON hom.id_obra = o.id_obra JOIN MUSEOS m ON hom.id_museo = m.id_museo WHERE o.nombre = 'La Petite Danseuse de Quatorze Ans' AND m.nombre = 'Hamburger Kunsthalle' AND ROWNUM = 1),
+    (SELECT pm.id_mant FROM PROGRAMAS_MANT pm WHERE pm.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'La Petite Danseuse de Quatorze Ans') AND pm.actividad LIKE 'Verificación de estabilidad%' AND ROWNUM = 1),
+    (SELECT hom.id_catalogo_museo FROM HIST_OBRAS_MOV hom WHERE hom.id_obra = (SELECT id_obra FROM OBRAS WHERE nombre = 'La Petite Danseuse de Quatorze Ans') AND hom.id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle') AND hom.fecha_salida IS NULL AND ROWNUM = 1),
     (SELECT id_obra FROM OBRAS WHERE nombre = 'La Petite Danseuse de Quatorze Ans'),
-    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000002), 
+    (SELECT ep.id_empleado FROM EMPLEADOS_PROFESIONALES ep WHERE ep.doc_identidad = 20000064), 
     TO_DATE('2025-05-20', 'YYYY-MM-DD'),
     TO_DATE('2025-05-21', 'YYYY-MM-DD'),
     'Verificación semestral de materiales. Tutú y lazo en buen estado. Leve limpieza de polvo en base.'
