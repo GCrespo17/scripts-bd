@@ -2710,9 +2710,9 @@ PROMPT Inserting data into EST_ORGANIZACIONAL table...
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 'Dirección General', 'DIRECCION', 1, 'Responsable de la gestión estratégica, financiera y operativa de la Galería de Arte Nacional.', NULL);
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 'Departamento de Curaduría y Colecciones', 'DEPARTAMENTO', 2, 'Gestión, estudio, conservación y desarrollo de las colecciones de arte venezolano.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General GAN' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería de Arte Nacional')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 'Departamento de Curaduría y Colecciones', 'DEPARTAMENTO', 2, 'Gestión, estudio, conservación y desarrollo de las colecciones de arte venezolano.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería de Arte Nacional')));
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 'Departamento de Administración', 'DEPARTAMENTO', 2, 'Gestión de recursos financieros y administrativos.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General GAN' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería de Arte Nacional')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería Nacional de Arte'), 'Departamento de Administración', 'DEPARTAMENTO', 2, 'Gestión de recursos financieros y administrativos.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Galería de Arte Nacional')));
 
 -- Estructura Organizacional para el Museo de Bellas Artes (MBA)
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES 
