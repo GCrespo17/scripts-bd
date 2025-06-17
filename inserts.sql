@@ -2448,7 +2448,7 @@ PROMPT -------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into EMPLEADOS_IDIOMAS table...
 
--- Empleado Profesional: Dr. Stefan Baumann (doc_identidad: 9155789)
+-- Empleado Profesional: Stefan Baumann (doc_identidad: 9155789)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 9155789), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Español'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 9155789), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 -- Empleado Profesional: Prof. Eva Keller (doc_identidad: 8345878)
@@ -6276,25 +6276,25 @@ PROMPT Inserting data into EMPLEADOS_PROFESIONALES table...
 
 -- EMPLEADOS REALES MdbK LEIPZIG
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000001, 'Dr. Stefan', 'Weppelmann', TO_DATE('1968-03-15', 'YYYY-MM-DD'), 4934121370460, NULL, NULL); -- Director MdbK
+(20000001, 'Stefan', 'Weppelmann', TO_DATE('1968-03-15', 'YYYY-MM-DD'), 4934121370460, NULL, NULL); -- Director MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000002, 'Dr. Jeannette', 'Stoschek', TO_DATE('1975-07-22', 'YYYY-MM-DD'), 4934121370461, NULL, NULL); -- Subdirectora MdbK
+(20000002, 'Jeannette', 'Stoschek', TO_DATE('1975-07-22', 'YYYY-MM-DD'), 4934121370461, NULL, NULL); -- Subdirectora MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000003, 'Sithara', 'Weeratunga', TO_DATE('1985-11-08', 'YYYY-MM-DD'), 4934121370462, NULL, NULL); -- Agente para la Diversidad MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000004, 'Olga', 'Vostretsova', TO_DATE('1982-04-18', 'YYYY-MM-DD'), 4934121370463, NULL, NULL); -- Agente para la Diversidad MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000005, 'Dr. Jan', 'Nicolaisen', TO_DATE('1973-09-12', 'YYYY-MM-DD'), 4934121370464, NULL, NULL); -- Jefe Pintura y Escultura MdbK
+(20000005, 'Jan', 'Nicolaisen', TO_DATE('1973-09-12', 'YYYY-MM-DD'), 4934121370464, NULL, NULL); -- Jefe Pintura y Escultura MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000006, 'Dr. Jenny', 'Graser', TO_DATE('1981-01-25', 'YYYY-MM-DD'), 4934121370465, NULL, NULL); -- Curadora Pintura y Escultura S. XX/XXI MdbK
+(20000006, 'Jenny', 'Graser', TO_DATE('1981-01-25', 'YYYY-MM-DD'), 4934121370465, NULL, NULL); -- Curadora Pintura y Escultura S. XX/XXI MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000007, 'Dr. Philipp', 'Freytag', TO_DATE('1979-06-30', 'YYYY-MM-DD'), 4934121370466, NULL, NULL); -- Curador Fotografía y Artes Mediales MdbK
+(20000007, 'Philipp', 'Freytag', TO_DATE('1979-06-30', 'YYYY-MM-DD'), 4934121370466, NULL, NULL); -- Curador Fotografía y Artes Mediales MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000008, 'Julia', 'Beckmann', TO_DATE('1987-12-14', 'YYYY-MM-DD'), 4934121370467, NULL, NULL); -- Asistente de Curaduría MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000009, 'Anne', 'Richter', TO_DATE('1984-08-03', 'YYYY-MM-DD'), 4934121370468, NULL, NULL); -- Asistente de Curaduría MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000010, 'Dr. Ulrike', 'Saß', TO_DATE('1976-05-19', 'YYYY-MM-DD'), 4934121370469, NULL, NULL); -- Investigación de Procedencia MdbK
+(20000010, 'Ulrike', 'Saß', TO_DATE('1976-05-19', 'YYYY-MM-DD'), 4934121370469, NULL, NULL); -- Investigación de Procedencia MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000011, 'Lina', 'Frubrich', TO_DATE('1988-02-07', 'YYYY-MM-DD'), 4934121370470, NULL, NULL); -- Investigación de Procedencia MdbK
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
@@ -6340,31 +6340,31 @@ INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apelli
 
 -- EMPLEADOS REALES HAMBURGER KUNSTHALLE
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000050, 'Prof. Dr. Alexander', 'Klar', TO_DATE('1965-05-18', 'YYYY-MM-DD'), 494028613200, NULL, NULL); -- Director Kunsthalle
+(20000050, 'Prof. Alexander', 'Klar', TO_DATE('1965-05-18', 'YYYY-MM-DD'), 494028613200, NULL, NULL); -- Director Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000051, 'Dr. Helga', 'Huskamp', TO_DATE('1972-09-24', 'YYYY-MM-DD'), 494028613201, NULL, NULL); -- Managing Director Kunsthalle
+(20000051, 'Helga', 'Huskamp', TO_DATE('1972-09-24', 'YYYY-MM-DD'), 494028613201, NULL, NULL); -- Managing Director Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000052, 'Dr. Andreas', 'Stolzenburg', TO_DATE('1968-11-12', 'YYYY-MM-DD'), 494028613202, NULL, NULL); -- Grabados y Dibujos Kunsthalle
+(20000052, 'Andreas', 'Stolzenburg', TO_DATE('1968-11-12', 'YYYY-MM-DD'), 494028613202, NULL, NULL); -- Grabados y Dibujos Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000053, 'Dr. Sandra', 'Pisot', TO_DATE('1975-03-07', 'YYYY-MM-DD'), 494028613203, NULL, NULL); -- Antiguos Maestros Kunsthalle
+(20000053, 'Sandra', 'Pisot', TO_DATE('1975-03-07', 'YYYY-MM-DD'), 494028613203, NULL, NULL); -- Antiguos Maestros Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000054, 'Dr. Markus', 'Bertsch', TO_DATE('1971-08-29', 'YYYY-MM-DD'), 494028613204, NULL, NULL); -- Siglo XIX Kunsthalle
+(20000054, 'Markus', 'Bertsch', TO_DATE('1971-08-29', 'YYYY-MM-DD'), 494028613204, NULL, NULL); -- Siglo XIX Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000055, 'Toby', 'Kamps', TO_DATE('1969-01-15', 'YYYY-MM-DD'), 494028613205, NULL, NULL); -- Colección Modernista Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000056, 'Dr. Brigitte', 'Kölle', TO_DATE('1973-06-21', 'YYYY-MM-DD'), 494028613206, NULL, NULL); -- Arte Contemporáneo Kunsthalle
+(20000056, 'Brigitte', 'Kölle', TO_DATE('1973-06-21', 'YYYY-MM-DD'), 494028613206, NULL, NULL); -- Arte Contemporáneo Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000057, 'Dr. Corinne', 'Diserens', TO_DATE('1967-04-10', 'YYYY-MM-DD'), 494028613207, NULL, NULL); -- Arte Contemporáneo Kunsthalle
+(20000057, 'Corinne', 'Diserens', TO_DATE('1967-04-10', 'YYYY-MM-DD'), 494028613207, NULL, NULL); -- Arte Contemporáneo Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000058, 'Dr. Annabelle', 'Görgen-Lammers', TO_DATE('1980-12-03', 'YYYY-MM-DD'), 494028613208, NULL, NULL); -- Esculturas y Numismática Kunsthalle
+(20000058, 'Annabelle', 'Görgen-Lammers', TO_DATE('1980-12-03', 'YYYY-MM-DD'), 494028613208, NULL, NULL); -- Esculturas y Numismática Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000059, 'Dr. Ute', 'Haug', TO_DATE('1974-07-16', 'YYYY-MM-DD'), 494028613209, NULL, NULL); -- Investigación de Procedencia Kunsthalle
+(20000059, 'Ute', 'Haug', TO_DATE('1974-07-16', 'YYYY-MM-DD'), 494028613209, NULL, NULL); -- Investigación de Procedencia Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000060, 'Dr. David', 'Klemm', TO_DATE('1982-02-28', 'YYYY-MM-DD'), 494028613210, NULL, NULL); -- Proyecto de Digitalización Kunsthalle
+(20000060, 'David', 'Klemm', TO_DATE('1982-02-28', 'YYYY-MM-DD'), 494028613210, NULL, NULL); -- Proyecto de Digitalización Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000061, 'Ursula', 'Trieloff', TO_DATE('1976-10-05', 'YYYY-MM-DD'), 494028613211, NULL, NULL); -- Oficina de Colecciones Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000062, 'Dr. Andrea', 'Weniger', TO_DATE('1970-05-22', 'YYYY-MM-DD'), 494028613212, NULL, NULL); -- Educación Kunsthalle
+(20000062, 'Andrea', 'Weniger', TO_DATE('1970-05-22', 'YYYY-MM-DD'), 494028613212, NULL, NULL); -- Educación Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000063, 'Katharina Therese', 'Gietkowski', TO_DATE('1978-09-14', 'YYYY-MM-DD'), 494028613213, NULL, NULL); -- Biblioteca, Archivo y Documentación Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
@@ -6376,7 +6376,7 @@ INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apelli
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000067, 'Jochen', 'Möhle', TO_DATE('1981-07-11', 'YYYY-MM-DD'), 494028613217, NULL, NULL); -- Manejo de Obras Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000068, 'Dr. Jan', 'Metzler', TO_DATE('1977-12-19', 'YYYY-MM-DD'), 494028613218, NULL, NULL); -- Marketing y Relaciones con el Cliente Kunsthalle
+(20000068, 'Jan', 'Metzler', TO_DATE('1977-12-19', 'YYYY-MM-DD'), 494028613218, NULL, NULL); -- Marketing y Relaciones con el Cliente Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000069, 'Martina', 'Gschwilm', TO_DATE('1983-06-02', 'YYYY-MM-DD'), 494028613219, NULL, NULL); -- Comunicación Digital Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
@@ -6384,7 +6384,7 @@ INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apelli
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000071, 'Gesa-Thorid', 'Huget', TO_DATE('1974-08-06', 'YYYY-MM-DD'), 494028613221, NULL, NULL); -- Patrocinios y Alianzas Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
-(20000072, 'Dr. Anna', 'Punke-Dresen', TO_DATE('1976-11-23', 'YYYY-MM-DD'), 494028613222, NULL, NULL); -- Patrocinios y Alianzas Kunsthalle
+(20000072, 'Anna', 'Punke-Dresen', TO_DATE('1976-11-23', 'YYYY-MM-DD'), 494028613222, NULL, NULL); -- Patrocinios y Alianzas Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
 (20000073, 'Sina', 'Fuhrmann', TO_DATE('1988-01-09', 'YYYY-MM-DD'), 494028613223, NULL, NULL); -- Gestión de Eventos Kunsthalle
 INSERT INTO EMPLEADOS_PROFESIONALES (doc_identidad, primer_nombre, primer_apellido, fecha_nacimiento, contacto, segundo_nombre, segundo_apellido) VALUES 
@@ -6472,24 +6472,24 @@ PROMPT -------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into EMPLEADOS_IDIOMAS table...
 
--- Empleado Profesional: Dr. Stefan Weppelmann - Director (doc_identidad: 20000001)
+-- Empleado Profesional: Stefan Weppelmann - Director (doc_identidad: 20000001)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Francés'));
 
--- Empleado Profesional: Dr. Jeannette Stoschek - Subdirectora (doc_identidad: 20000002)
+-- Empleado Profesional: Jeannette Stoschek - Subdirectora (doc_identidad: 20000002)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
--- Empleado Profesional: Dr. Jan Nicolaisen - Jefe Pintura y Escultura (doc_identidad: 20000005)
+-- Empleado Profesional: Jan Nicolaisen - Jefe Pintura y Escultura (doc_identidad: 20000005)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000005), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000005), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
--- Empleado Profesional: Dr. Jenny Graser - Curadora (doc_identidad: 20000006)
+-- Empleado Profesional: Jenny Graser - Curadora (doc_identidad: 20000006)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000006), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000006), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
--- Empleado Profesional: Dr. Philipp Freytag - Curador (doc_identidad: 20000007)
+-- Empleado Profesional: Philipp Freytag - Curador (doc_identidad: 20000007)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000007), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000007), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
@@ -6502,25 +6502,25 @@ INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_emplea
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000019), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
 -- Empleados para Hamburger Kunsthalle
--- Prof. Dr. Alexander Klar - Director (doc_identidad: 20000050)
+-- Prof. Alexander Klar - Director (doc_identidad: 20000050)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Francés'));
 
--- Dr. Helga Huskamp - Managing Director (doc_identidad: 20000051)
+-- Helga Huskamp - Managing Director (doc_identidad: 20000051)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
--- Dr. Andreas Stolzenburg - Grabados y Dibujos (doc_identidad: 20000052)
+-- Andreas Stolzenburg - Grabados y Dibujos (doc_identidad: 20000052)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000052), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000052), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
--- Dr. Sandra Pisot - Antiguos Maestros (doc_identidad: 20000053)
+-- Sandra Pisot - Antiguos Maestros (doc_identidad: 20000053)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Italiano'));
 
--- Dr. Markus Bertsch - Siglo XIX (doc_identidad: 20000054)
+-- Markus Bertsch - Siglo XIX (doc_identidad: 20000054)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000054), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000054), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
@@ -6528,7 +6528,7 @@ INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_emplea
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000055), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000055), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 
--- Dr. Andrea Weniger - Educación (doc_identidad: 20000062)
+-- Andrea Weniger - Educación (doc_identidad: 20000062)
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000062), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Alemán'));
 INSERT INTO EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000062), (SELECT id_idioma FROM IDIOMAS WHERE nombre = 'Inglés'));
 
@@ -6540,27 +6540,27 @@ PROMPT -------------------------------------------------------------------------
 -- -----------------------------------------------------------------------------
 PROMPT Inserting data into FORMACIONES table...
 
--- Formaciones para Empleado: Dr. Stefan Weppelmann - Director (doc_identidad: 20000001)
+-- Formaciones para Empleado: Stefan Weppelmann - Director (doc_identidad: 20000001)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), 'Doctorado en Historia del Arte', 1998, 'Especialización en arte italiano del Renacimiento, Universidad de Bonn.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), 'Máster en Historia del Arte', 1994, 'Arte del Renacimiento y Barroco, Universidad de Heidelberg.');
 
--- Formaciones para Empleado: Dr. Jeannette Stoschek - Subdirectora (doc_identidad: 20000002)
+-- Formaciones para Empleado: Jeannette Stoschek - Subdirectora (doc_identidad: 20000002)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), 'Doctorado en Historia del Arte', 2003, 'Especialización en arte gráfico alemán del siglo XIX y XX.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), 'Máster en Museología', 1999, 'Gestión de colecciones y conservación preventiva.');
 
--- Formaciones para Empleado: Dr. Jan Nicolaisen - Jefe Pintura y Escultura (doc_identidad: 20000005)
+-- Formaciones para Empleado: Jan Nicolaisen - Jefe Pintura y Escultura (doc_identidad: 20000005)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000005), 'Doctorado en Historia del Arte', 2001, 'Pintura alemana del siglo XIX, Universidad de Leipzig.');
 
--- Formaciones para Empleado: Dr. Jenny Graser - Curadora (doc_identidad: 20000006)
+-- Formaciones para Empleado: Jenny Graser - Curadora (doc_identidad: 20000006)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000006), 'Doctorado en Historia del Arte', 2009, 'Arte del siglo XX y XXI, especialización en escultura contemporánea.');
 
--- Formaciones para Empleado: Dr. Philipp Freytag - Curador (doc_identidad: 20000007)
+-- Formaciones para Empleado: Philipp Freytag - Curador (doc_identidad: 20000007)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000007), 'Doctorado en Historia del Arte', 2010, 'Fotografía y nuevos medios en el arte contemporáneo.');
 
@@ -6573,27 +6573,27 @@ INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALU
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000019), 'Máster en Educación Artística', 2010, 'Pedagogía museística y mediación cultural, Universidad de Leipzig.');
 
 -- Formaciones para Empleados Hamburger Kunsthalle
--- Prof. Dr. Alexander Klar - Director (doc_identidad: 20000050)
+-- Prof. Alexander Klar - Director (doc_identidad: 20000050)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), 'Doctorado en Historia del Arte', 1995, 'Especialización en arte alemán del siglo XIX, Universidad de Heidelberg.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), 'Máster en Museología', 1991, 'Gestión y administración de museos, Universidad de Múnich.');
 
--- Dr. Helga Huskamp - Managing Director (doc_identidad: 20000051)
+-- Helga Huskamp - Managing Director (doc_identidad: 20000051)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), 'Doctorado en Administración Pública', 2002, 'Especialización en gestión cultural y museística.');
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), 'MBA en Gestión Cultural', 1998, 'Administración de instituciones culturales.');
 
--- Dr. Andreas Stolzenburg - Grabados y Dibujos (doc_identidad: 20000052)
+-- Andreas Stolzenburg - Grabados y Dibujos (doc_identidad: 20000052)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000052), 'Doctorado en Historia del Arte', 1996, 'Especialización en grabado alemán del siglo XVI-XVIII.');
 
--- Dr. Sandra Pisot - Antiguos Maestros (doc_identidad: 20000053)
+-- Sandra Pisot - Antiguos Maestros (doc_identidad: 20000053)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), 'Doctorado en Historia del Arte', 2004, 'Pintura italiana del Renacimiento y Barroco.');
 
--- Dr. Markus Bertsch - Siglo XIX (doc_identidad: 20000054)
+-- Markus Bertsch - Siglo XIX (doc_identidad: 20000054)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000054), 'Doctorado en Historia del Arte', 2006, 'Romanticismo alemán y pintura del siglo XIX.');
 
@@ -6601,7 +6601,7 @@ INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALU
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000055), 'Máster en Arte Moderno', 1994, 'Arte estadounidense contemporáneo, Universidad de Nueva York.');
 
--- Dr. Andrea Weniger - Educación (doc_identidad: 20000062)
+-- Andrea Weniger - Educación (doc_identidad: 20000062)
 INSERT INTO FORMACIONES (id_empleado_prof, titulo, anio, descripcion_espec) VALUES 
 ((SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000062), 'Doctorado en Pedagogía del Arte', 2007, 'Educación artística y mediación cultural en museos.');
 
@@ -6823,14 +6823,14 @@ PROMPT Inserting data into EST_ORGANIZACIONAL table...
 -- Estructura Organizacional para MdbK Leipzig (id_museo = 1)
 -- NIVEL 1: DIRECCIÓN
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Dirección General MdbK', 'DIRECCION', 1, 'Unidad central que supervisa todas las demás áreas del museo. Jefatura: Dr. Stefan Weppelmann (Director), Dr. Jeannette Stoschek (Subdirectora).', NULL);
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Dirección General MdbK', 'DIRECCION', 1, 'Unidad central que supervisa todas las demás áreas del museo. Jefatura: Stefan Weppelmann (Director), Jeannette Stoschek (Subdirectora).', NULL);
 
 -- NIVEL 2: DEPARTAMENTOS
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'MdbK [in transit]', 'DEPARTAMENTO', 2, 'Programa especial bajo supervisión directa de la Dirección. Personal: Sithara Weeratunga, Olga Vostretsova (Agentes para la Diversidad).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Colecciones MdbK', 'DEPARTAMENTO', 2, 'Gestión, estudio, conservación y desarrollo de las colecciones del museo. Jefatura: Dr. Jeannette Stoschek (Jefa de Colecciones y Colección Gráfica), Dr. Jan Nicolaisen (Jefe de Pintura y Escultura).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Colecciones MdbK', 'DEPARTAMENTO', 2, 'Gestión, estudio, conservación y desarrollo de las colecciones del museo. Jefatura: Jeannette Stoschek (Jefa de Colecciones y Colección Gráfica), Jan Nicolaisen (Jefe de Pintura y Escultura).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Restauración MdbK', 'DEPARTAMENTO', 2, 'Conservación preventiva y curativa de las obras de arte. Jefatura: Theresa Anna Bräunig.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
@@ -6839,7 +6839,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Biblioteca y Archivo de Artistas MdbK', 'DEPARTAMENTO', 2, 'Gestión de recursos bibliográficos y archivos documentales. Jefatura: Sebastian Stumpe.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Colecciones Externas MdbK', 'DEPARTAMENTO', 2, 'Gestión del Archivo EVELYN RICHTER & URSULA ARNOLD. Jefatura: Dr. Jeannette Stoschek.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Colecciones Externas MdbK', 'DEPARTAMENTO', 2, 'Gestión del Archivo EVELYN RICHTER & URSULA ARNOLD. Jefatura: Jeannette Stoschek.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Departamento de Educación Artística MdbK', 'DEPARTAMENTO', 2, 'Programas educativos y de mediación cultural. Jefatura: Carolin Rothmund.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
@@ -6858,10 +6858,10 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 
 -- NIVEL 3: SECCIONES/UNIDADES dentro del Departamento de Colecciones
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Sección de Curaduría MdbK', 'SECCION', 3, 'Personal: Dr. Jenny Graser (Curadora Pintura y Escultura S. XX/XXI), Dr. Philipp Freytag (Curador Fotografía y Artes Mediales), Julia Beckmann, Anne Richter (Asistentes de Curaduría).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Sección de Curaduría MdbK', 'SECCION', 3, 'Personal: Jenny Graser (Curadora Pintura y Escultura S. XX/XXI), Philipp Freytag (Curador Fotografía y Artes Mediales), Julia Beckmann, Anne Richter (Asistentes de Curaduría).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Sección de Investigación de Procedencia MdbK', 'SECCION', 3, 'Personal: Dr. Ulrike Saß, Lina Frubrich.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Sección de Investigación de Procedencia MdbK', 'SECCION', 3, 'Personal: Ulrike Saß, Lina Frubrich.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'), 'Sección de Documentación y Digitalización MdbK', 'SECCION', 3, 'Personal: Susanne Petri (Asistente de Investigación).', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')));
@@ -6890,14 +6890,14 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 -- Estructura Organizacional para Hamburger Kunsthalle (id_museo = 2)
 -- NIVEL 1: DIRECCIÓN (Management Board)
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Management Board Kunsthalle', 'DIRECCION', 1, 'Consejo de Dirección. Jefatura: Prof. Dr. Alexander Klar (Director), Dr. Helga Huskamp (Managing Director). Personal de Soporte a la Dirección: Asistentes de Dirección y del Consejo.', NULL);
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Management Board Kunsthalle', 'DIRECCION', 1, 'Consejo de Dirección. Jefatura: Prof. Alexander Klar (Director), Helga Huskamp (Managing Director). Personal de Soporte a la Dirección: Asistentes de Dirección y del Consejo.', NULL);
 
 -- NIVEL 2: DEPARTAMENTOS
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Colecciones y Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Departamento académico central organizado por áreas de colección. Jefes: Dr. Andreas Stolzenburg, Dr. Sandra Pisot, Dr. Markus Bertsch, Toby Kamps, Dr. Brigitte Kölle, Dr. Corinne Diserens, Dr. Annabelle Görgen-Lammers.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Colecciones y Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Departamento académico central organizado por áreas de colección. Jefes: Andreas Stolzenburg, Sandra Pisot, Markus Bertsch, Toby Kamps, Brigitte Kölle, Corinne Diserens, Annabelle Görgen-Lammers.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Educación Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Dr. Andrea Weniger.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Educación Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Andrea Weniger.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Biblioteca, Archivo y Documentación Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Katharina Therese Gietkowski.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -6909,7 +6909,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Registro y Coordinación de Exposiciones Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Meike Wenck.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Marketing y Relaciones con el Cliente Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Dr. Jan Metzler.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Marketing y Relaciones con el Cliente Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Jan Metzler.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Comunicación Digital Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Martina Gschwilm.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -6918,7 +6918,7 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Prensa y Relaciones Públicas Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Mira Forte.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Patrocinios y Alianzas Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Gesa-Thorid Huget, Dr. Anna Punke-Dresen.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Patrocinios y Alianzas Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Gesa-Thorid Huget, Anna Punke-Dresen.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Departamento de Gestión de Eventos y Coordinación de Programas Kunsthalle', 'DEPARTAMENTO', 2, 'Jefatura: Sina Fuhrmann.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -6937,10 +6937,10 @@ INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_e
 
 -- NIVEL 3: SECCIONES
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Sección de Investigación de Procedencia e Historia de la Colección Kunsthalle', 'SECCION', 3, 'Jefatura: Dr. Ute Haug.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Sección de Investigación de Procedencia e Historia de la Colección Kunsthalle', 'SECCION', 3, 'Jefatura: Ute Haug.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
-((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Sección de Proyecto de Digitalización Kunsthalle', 'SECCION', 3, 'Jefatura: Dr. David Klemm.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
+((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Sección de Proyecto de Digitalización Kunsthalle', 'SECCION', 3, 'Jefatura: David Klemm.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
 
 INSERT INTO EST_ORGANIZACIONAL (id_museo, nombre, tipo, nivel, descripcion, id_est_org_padre) VALUES
 ((SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'), 'Sección de Oficina de Colecciones Kunsthalle', 'SECCION', 3, 'Soporte administrativo. Jefatura: Ursula Trieloff.', (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')));
@@ -7084,7 +7084,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2021-01-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), -- Dr. Stefan Weppelmann
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000001), -- Stefan Weppelmann
  'DIRECTOR', NULL);
 
 -- Subdirección (Deputy Director - ACTIVO)
@@ -7092,7 +7092,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2018-06-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Dirección General MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Dr. Jeannette Stoschek (como Subdirectora)
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000002), -- Jeannette Stoschek (como Subdirectora)
  'DIRECTOR', NULL);
 
 -- MdbK [in transit]
@@ -7115,7 +7115,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2015-03-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000005), -- Dr. Jan Nicolaisen
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000005), -- Jan Nicolaisen
  'CURADOR', NULL);
 
 -- Sección de Curaduría
@@ -7123,14 +7123,14 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2019-09-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Curaduría MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000006), -- Dr. Jenny Graser
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000006), -- Jenny Graser
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2020-02-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Curaduría MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000007), -- Dr. Philipp Freytag
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000007), -- Philipp Freytag
  'CURADOR', NULL);
 
 -- Departamento de Restauración
@@ -7178,7 +7178,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2017-03-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Investigación de Procedencia MdbK' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Museum der bildenden Künste Leipzig'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000010), -- Dr. Ulrike Saß
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000010), -- Ulrike Saß
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
@@ -7328,14 +7328,14 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2015-09-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), -- Prof. Dr. Alexander Klar
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000050), -- Prof. Alexander Klar
  'DIRECTOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2018-04-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Management Board Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), -- Dr. Helga Huskamp
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000051), -- Helga Huskamp
  'ADMINISTRATIVO', NULL);
 
 -- Departamento de Colecciones y Exposiciones (Curadores y Jefes de Colección)
@@ -7343,21 +7343,21 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2010-03-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000052), -- Dr. Andreas Stolzenburg
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000052), -- Andreas Stolzenburg
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2012-09-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), -- Dr. Sandra Pisot
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000053), -- Sandra Pisot
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2016-02-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000054), -- Dr. Markus Bertsch
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000054), -- Markus Bertsch
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
@@ -7371,21 +7371,21 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2011-11-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000056), -- Dr. Brigitte Kölle
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000056), -- Brigitte Kölle
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2013-05-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000057), -- Dr. Corinne Diserens
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000057), -- Corinne Diserens
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2017-09-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Colecciones y Exposiciones Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000058), -- Dr. Annabelle Görgen-Lammers
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000058), -- Annabelle Görgen-Lammers
  'CURADOR', NULL);
 
 -- Secciones del Departamento de Colecciones
@@ -7393,14 +7393,14 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2015-01-15', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Investigación de Procedencia e Historia de la Colección Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000059), -- Dr. Ute Haug
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000059), -- Ute Haug
  'CURADOR', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
 (TO_DATE('2018-11-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Sección de Proyecto de Digitalización Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000060), -- Dr. David Klemm
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000060), -- David Klemm
  'ADMINISTRATIVO', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
@@ -7415,7 +7415,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2014-08-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Educación Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000062), -- Dr. Andrea Weniger
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000062), -- Andrea Weniger
  'ADMINISTRATIVO', NULL);
 
 -- Departamento de Biblioteca, Archivo y Documentación
@@ -7461,7 +7461,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2019-03-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Marketing y Relaciones con el Cliente Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000068), -- Dr. Jan Metzler
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000068), -- Jan Metzler
  'ADMINISTRATIVO', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES
@@ -7489,7 +7489,7 @@ INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof
 (TO_DATE('2017-03-01', 'YYYY-MM-DD'),
  (SELECT id_est_org FROM EST_ORGANIZACIONAL WHERE nombre = 'Departamento de Patrocinios y Alianzas Kunsthalle' AND id_museo = (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle')),
  (SELECT id_museo FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle'),
- (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000072), -- Dr. Anna Punke-Dresen
+ (SELECT id_empleado FROM EMPLEADOS_PROFESIONALES WHERE doc_identidad = 20000072), -- Anna Punke-Dresen
  'ADMINISTRATIVO', NULL);
 
 INSERT INTO HIST_EMPLEADOS (fecha_inicio, id_est_org, id_museo, id_empleado_prof, cargo, fecha_fin) VALUES

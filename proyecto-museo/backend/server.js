@@ -935,6 +935,7 @@ app.post('/api/est-fisica', async (req, res) => {
 // Endpoint para obtener la estructura organizacional de un museo de forma jerárquica (MEJORADO)
 app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     const { id_museo } = req.params;
+    const { nivel } = req.query; // Parámetro opcional para filtrar por nivel
     let connection;
 
     console.log(`\n🔍 CONSULTANDO ORGANIGRAMA PARA MUSEO ID: ${id_museo}`);
@@ -942,14 +943,21 @@ app.get('/api/est-organizacional/museo/:id_museo', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
 
-        // 1. Obtener todas las unidades organizacionales del museo
-        const orgUnitsPromise = connection.execute(
-            `SELECT id_est_org, nombre, tipo, nivel, descripcion, id_est_org_padre 
+        // 1. Obtener todas las unidades organizacionales del museo (con filtro opcional por nivel)
+        let query = `SELECT id_est_org, nombre, tipo, nivel, descripcion, id_est_org_padre 
              FROM ${dbConfig.schema}.EST_ORGANIZACIONAL 
-             WHERE id_museo = :id_museo
-             ORDER BY nivel ASC, nombre ASC`,
-            [id_museo]
-        );
+             WHERE id_museo = :id_museo`;
+        
+        const params = [id_museo];
+        
+        if (nivel) {
+            query += ` AND tipo = :nivel`;
+            params.push(nivel);
+        }
+        
+        query += ` ORDER BY nivel ASC, nombre ASC`;
+        
+        const orgUnitsPromise = connection.execute(query, params);
 
         // 2. Obtener todos los empleados actualmente asignados en ese museo
         // Incluimos información adicional para mejorar la presentación
