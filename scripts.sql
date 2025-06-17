@@ -2168,21 +2168,35 @@ DECLARE
     v_nuevo_empleado NUMBER;
     v_cargo HIST_EMPLEADOS.cargo%TYPE;
     v_id_museo_empleado HIST_EMPLEADOS.id_museo%TYPE;
+    v_id_museo_obra HIST_OBRAS_MOV.id_museo%TYPE;
 BEGIN
     v_nuevo_empleado := :NEW.id_empleado;
     
+    -- Obtener el cargo y museo del empleado (solo registro activo)
     SELECT id_museo, cargo INTO v_id_museo_empleado, v_cargo
     FROM HIST_EMPLEADOS
-    WHERE id_empleado_prof = v_nuevo_empleado;
+    WHERE id_empleado_prof = v_nuevo_empleado
+    AND fecha_fin IS NULL;
+    
+    -- Obtener el museo de la obra a través del catálogo en HIST_OBRAS_MOV
+    SELECT id_museo INTO v_id_museo_obra
+    FROM HIST_OBRAS_MOV
+    WHERE id_catalogo_museo = :NEW.id_catalogo
+    AND id_obra = :NEW.id_obra;
     
     IF v_cargo NOT IN ('CURADOR', 'RESTAURADOR') THEN
          RAISE_APPLICATION_ERROR(-20105, 'Solo un CURADOR o RESTAURADOR puede realizar MANTENIMIENTO a una obra.');
     END IF;
     
-    IF v_id_museo_empleado <> :NEW.id_museo THEN
+    IF v_id_museo_empleado <> v_id_museo_obra THEN
         RAISE_APPLICATION_ERROR(-20106, 'La obra y el empleado deben ser del mismo museo.');
     END IF;
     
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RAISE_APPLICATION_ERROR(-20107, 'Error: No se encontró información del empleado activo o del registro de la obra en el catálogo.');
+    WHEN TOO_MANY_ROWS THEN
+        RAISE_APPLICATION_ERROR(-20108, 'Error de consistencia: Múltiples registros activos encontrados para el empleado.');
 END TRG_VALIDAR_ASIGNACION_MANTENIMIENTO_RESPONSABLE;
 /
 
