@@ -104,6 +104,20 @@
             <li><strong>Histórico:</strong> Se cierra el registro anterior y se crea uno nuevo con los nuevos datos</li>
           </ul>
         </div>
+
+        <!-- Ayuda específica para SP_REGISTRAR_MANTENIMIENTO_OBRA -->
+        <div v-if="currentProcedure.name === 'SP_REGISTRAR_MANTENIMIENTO_OBRA'" class="procedure-help">
+          <h4>🔧 Registro de Mantenimiento:</h4>
+          <ul>
+            <li><strong>Mantenimiento Programado:</strong> Seleccione el mantenimiento a registrar (obligatorio)</li>
+            <li><strong>Filtrado Inteligente:</strong> Los empleados responsables se filtran automáticamente según el museo donde está ubicada la obra</li>
+            <li><strong>Solo Especialistas:</strong> Solo se muestran empleados con cargo de "Curador" o "Restaurador"</li>
+            <li><strong>Lógica de Negocio:</strong> Un empleado solo puede responsabilizarse de mantenimientos de obras en su mismo museo</li>
+            <li><strong>Observaciones:</strong> Campo obligatorio para documentar el trabajo realizado</li>
+            <li><strong>Fecha de Finalización:</strong> Campo opcional - si no se especifica, se usa la fecha actual</li>
+            <li><strong>Sin Mantenimiento = Sin Empleados:</strong> Si no se selecciona mantenimiento, no aparecerán empleados disponibles</li>
+          </ul>
+        </div>
       </div>
 
       <form @submit.prevent="executeProcedure" class="form">
@@ -591,6 +605,25 @@ export default {
         return // Salir para SP_MOVER_OBRA
       }
       
+      // === LÓGICA ESPECÍFICA PARA SP_REGISTRAR_MANTENIMIENTO_OBRA ===
+      if (selectedProcedure.value === 'SP_REGISTRAR_MANTENIMIENTO_OBRA') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_REGISTRAR_MANTENIMIENTO_OBRA')
+        
+        // Si cambió el mantenimiento, limpiar el empleado responsable para refiltrado
+        if (paramName === 'n_id_mant' && value) {
+          console.log('[FIELD-CHANGE] Mantenimiento cambió, limpiando empleado responsable para refiltrado')
+          
+          // Limpiar empleado responsable porque debe filtrarse por el museo de la nueva obra
+          if (formData.n_id_empleado) {
+            console.log('[FIELD-CHANGE] Limpiando n_id_empleado porque cambió el mantenimiento')
+            formData.n_id_empleado = ''
+          }
+          return
+        }
+        
+        return // Salir para SP_REGISTRAR_MANTENIMIENTO_OBRA
+      }
+      
       // === LÓGICA ESPECÍFICA PARA SP_ASIGNAR_VIGILANTE_MANT ===
       if (selectedProcedure.value === 'SP_ASIGNAR_VIGILANTE_MANT') {
         console.log('[FIELD-CHANGE] Lógica específica para SP_ASIGNAR_VIGILANTE_MANT')
@@ -917,6 +950,70 @@ export default {
         }
         
         console.log(`[DROPDOWN] ${param.dataSource} devolviendo ${options.length} opciones finales`)
+        return options
+      }
+      
+      // === FILTRADO ESPECÍFICO PARA SP_REGISTRAR_MANTENIMIENTO_OBRA ===
+      if (selectedProcedure.value === 'SP_REGISTRAR_MANTENIMIENTO_OBRA' && param.dataSource === 'empleados') {
+        console.log(`[DROPDOWN] Filtrado específico para SP_REGISTRAR_MANTENIMIENTO_OBRA - empleados responsables`)
+        
+        const mantenimientoSeleccionado = formData.n_id_mant
+        if (mantenimientoSeleccionado) {
+          console.log(`[DROPDOWN] Mantenimiento seleccionado: ${mantenimientoSeleccionado}`)
+          
+          // Buscar el mantenimiento en los datos de apoyo para obtener el museo de la obra
+          const mantenimiento = supportData.value.mantenimientos.find(m => m.id == mantenimientoSeleccionado)
+          console.log(`[DROPDOWN] Mantenimiento encontrado:`, mantenimiento)
+          
+          if (mantenimiento && mantenimiento.id_museo) {
+            console.log(`[DROPDOWN] Obra del mantenimiento está en museo ID: ${mantenimiento.id_museo}`)
+            
+            // Filtrar empleados solo del museo donde está la obra
+            options = options.filter(empleado => {
+              const matchMuseo = String(empleado.id_museo) === String(mantenimiento.id_museo)
+              
+              // También filtrar por cargo: solo curadores y restauradores
+              const cargo = empleado.cargo ? empleado.cargo.toLowerCase() : ''
+              const esCuradorORestaurador = cargo.includes('curador') || cargo.includes('restaurador')
+              
+              const cumpleCondiciones = matchMuseo && esCuradorORestaurador
+              
+              if (!matchMuseo) {
+                console.log(`[DROPDOWN] Descartando empleado ${empleado.nombre} (museo ${empleado.id_museo}) no coincide con obra (museo ${mantenimiento.id_museo})`)
+              } else if (!esCuradorORestaurador) {
+                console.log(`[DROPDOWN] Descartando empleado ${empleado.nombre} (cargo: ${empleado.cargo}) no es curador ni restaurador`)
+              }
+              
+              return cumpleCondiciones
+            })
+            
+            console.log(`[DROPDOWN] Empleados curadores/restauradores filtrados para museo de la obra: ${options.length}`)
+            
+            // DEBUG: Mostrar los empleados filtrados
+            if (options.length > 0) {
+              console.log(`[DROPDOWN] Empleados después del filtro:`, options.slice(0, 3))
+            } else {
+              console.warn(`[DROPDOWN] ⚠️ No se encontraron curadores ni restauradores para el museo ${mantenimiento.id_museo}`)
+            }
+          } else {
+            console.warn(`[DROPDOWN] No se encontró museo para mantenimiento ID: ${mantenimientoSeleccionado}`)
+            console.log(`[DROPDOWN] Datos del mantenimiento:`, mantenimiento)
+            
+            // Si no tiene museo asignado, filtrar solo por cargo como fallback
+            console.log(`[DROPDOWN] FALLBACK: Filtrando solo por cargo (curadores y restauradores)`)
+            options = options.filter(empleado => {
+              const cargo = empleado.cargo ? empleado.cargo.toLowerCase() : ''
+              return cargo.includes('curador') || cargo.includes('restaurador')
+            })
+            console.log(`[DROPDOWN] Empleados curadores/restauradores (sin filtro de museo): ${options.length}`)
+          }
+        } else {
+          // Si no hay mantenimiento seleccionado, no mostrar empleados
+          console.log(`[DROPDOWN] No hay mantenimiento seleccionado, sin empleados disponibles`)
+          options = []
+        }
+        
+        console.log(`[DROPDOWN] ${param.dataSource} devolviendo ${options.length} opciones finales para SP_REGISTRAR_MANTENIMIENTO_OBRA`)
         return options
       }
       

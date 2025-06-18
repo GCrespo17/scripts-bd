@@ -3173,24 +3173,13 @@ app.post('/api/test-procedure', async (req, res) => {
             },
             
             // === PROCEDIMIENTOS DE GESTIÓN DE VIGILANCIA ===
-            'SP_REGISTRAR_VIGILANTE_MANT': {
-                params: [
-                    { name: 'n_nombre', type: 'IN', dbType: 'STRING' },
-                    { name: 'n_apellido', type: 'IN', dbType: 'STRING' },
-                    { name: 'n_doc_identidad', type: 'IN', dbType: 'NUMBER' },
-                    { name: 'n_tipo_responsable', type: 'IN', dbType: 'STRING' },
-                    { name: 'n_id_est', type: 'IN', dbType: 'NUMBER' },
-                    { name: 'n_turno', type: 'IN', dbType: 'STRING' }
-                ],
-                sql: 'CALL SP_REGISTRAR_VIGILANTE_MANT(:n_nombre, :n_apellido, :n_doc_identidad, :n_tipo_responsable, :n_id_est, :n_turno)'
-            },
             'SP_ASIGNAR_VIGILANTE_MANT': {
                 params: [
                     { name: 'n_id_vig_mant', type: 'IN', dbType: 'NUMBER' },
                     { name: 'n_id_est', type: 'IN', dbType: 'NUMBER' },
                     { name: 'n_turno', type: 'IN', dbType: 'STRING' }
                 ],
-                sql: 'CALL SP_REGISTRAR_VIGILANTE_MANT(:n_id_vig_mant, :n_id_est, :n_turno)'
+                sql: 'CALL SP_ASIGNAR_VIGILANTE_MANT(:n_id_vig_mant, :n_id_est, :n_turno)'
             },
             
             // === PROCEDIMIENTOS DE ANÁLISIS Y RANKING ===
@@ -3567,7 +3556,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Registrar un mantenimiento realizado a una obra',
             category: 'Mantenimiento',
             inputParams: [
-                { name: 'n_id_mant', label: 'Mantenimiento Programado', type: 'dropdown', dataSource: 'mantenimientos', displayField: 'obra_nombre', required: true },
+                { name: 'n_id_mant', label: 'Mantenimiento Programado', type: 'dropdown', dataSource: 'mantenimientos', required: true },
                 { name: 'n_id_empleado', label: 'Empleado Responsable', type: 'dropdown', dataSource: 'empleados', required: true },
                 { name: 'n_observaciones', label: 'Observaciones', type: 'text', required: true },
                 { name: 'n_fecha_fin', label: 'Fecha de Finalización', type: 'date', required: false }
@@ -3599,20 +3588,6 @@ app.get('/api/procedures', (req, res) => {
         },
         
         // === GESTIÓN DE VIGILANCIA ===
-        'SP_REGISTRAR_VIGILANTE_MANT': {
-            name: 'SP_REGISTRAR_VIGILANTE_MANT',
-            description: 'Registrar un nuevo vigilante de mantenimiento',
-            category: 'Vigilancia y Seguridad',
-            inputParams: [
-                { name: 'n_nombre', label: 'Nombre', type: 'text', required: true },
-                { name: 'n_apellido', label: 'Apellido', type: 'text', required: true },
-                { name: 'n_doc_identidad', label: 'Documento de Identidad', type: 'number', required: true },
-                { name: 'n_tipo_responsable', label: 'Tipo de Responsable', type: 'dropdown', dataSource: 'tiposResponsable', required: true },
-                { name: 'n_id_est', label: 'Estructura Física', type: 'dropdown', dataSource: 'estructurasFisicas', required: true },
-                { name: 'n_turno', label: 'Turno', type: 'dropdown', dataSource: 'turnos', required: true }
-            ],
-            outputParams: []
-        },
         'SP_ASIGNAR_VIGILANTE_MANT': {
             name: 'SP_ASIGNAR_VIGILANTE_MANT',
             description: 'Asignar un vigilante existente a una nueva área',
@@ -3718,13 +3693,21 @@ app.get('/api/support-data', async (req, res) => {
             'MUSEOS'
         );
         
-        // Obtener empleados (solo tabla base, sin joins complejos)
+        // Obtener empleados con información del museo actual (para filtrado)
         const empleadosResult = existingTables.includes('EMPLEADOS_PROFESIONALES') ? 
             await safeExecute(
-                `SELECT id_empleado, 
-                        primer_nombre || ' ' || primer_apellido as nombre_completo
-                 FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES 
-                 ORDER BY primer_apellido, primer_nombre`,
+                `SELECT ep.id_empleado, 
+                        ep.primer_nombre || ' ' || ep.primer_apellido as nombre_completo,
+                        he.id_museo,
+                        he.cargo
+                 FROM ${dbConfig.schema}.EMPLEADOS_PROFESIONALES ep
+                 LEFT JOIN (
+                     SELECT id_empleado_prof, id_museo, cargo,
+                            ROW_NUMBER() OVER (PARTITION BY id_empleado_prof ORDER BY fecha_inicio DESC) as rn
+                     FROM ${dbConfig.schema}.HIST_EMPLEADOS
+                     WHERE fecha_fin IS NULL
+                 ) he ON ep.id_empleado = he.id_empleado_prof AND he.rn = 1
+                 ORDER BY ep.primer_apellido, ep.primer_nombre`,
                 'EMPLEADOS_PROFESIONALES'
             ) : { rows: [] };
         
@@ -3804,15 +3787,22 @@ app.get('/api/support-data', async (req, res) => {
         
         // === CONSULTAS COMPLEJAS SIMPLIFICADAS ===
         
-        // Mantenimientos (solo si existe PROGRAMAS_MANT) - con nombres de obras
+        // Mantenimientos (solo si existe PROGRAMAS_MANT) - con nombres de obras y museo de la obra
         const mantenimientosResult = existingTables.includes('PROGRAMAS_MANT') ?
             await safeExecute(
                 `SELECT pm.id_mant, 
                         pm.actividad as descripcion, 
                         o.nombre as obra_nombre,
-                        pm.tipo_responsable
+                        pm.tipo_responsable,
+                        hom.id_museo
                  FROM ${dbConfig.schema}.PROGRAMAS_MANT pm
                  JOIN ${dbConfig.schema}.OBRAS o ON pm.id_obra = o.id_obra
+                 LEFT JOIN (
+                     SELECT id_obra, id_museo,
+                            ROW_NUMBER() OVER (PARTITION BY id_obra ORDER BY fecha_inicio DESC) as rn
+                     FROM ${dbConfig.schema}.HIST_OBRAS_MOV
+                     WHERE fecha_fin IS NULL
+                 ) hom ON o.id_obra = hom.id_obra AND hom.rn = 1
                  ORDER BY o.nombre, pm.actividad`,
                 'PROGRAMAS_MANT'
             ) : { rows: [] };
@@ -3895,7 +3885,9 @@ app.get('/api/support-data', async (req, res) => {
             
             empleados: empleadosResult.rows.map(row => ({ 
                 id: row[0], 
-                nombre: row[1]
+                nombre: row[1],
+                id_museo: row[2],
+                cargo: row[3]
             })),
             
             obras: obrasResult.rows.map(row => ({ 
@@ -3945,7 +3937,8 @@ app.get('/api/support-data', async (req, res) => {
                 id: row[0], 
                 descripcion: row[1],
                 obra_nombre: row[2],
-                tipo_responsable: row[3]
+                tipo_responsable: row[3],
+                id_museo: row[4]
             })),
             
             vigilantes: vigilantesResult.rows.map(row => ({ 
