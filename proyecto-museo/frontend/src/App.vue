@@ -58,7 +58,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <div class="sidebar-footer">
         <div class="version-info">
           <small>Sistema de BD</small>
-          <small>v2024.2</small>
+          <small>Grupo 3 - 2025</small>
         </div>
       </div>
     </header>
