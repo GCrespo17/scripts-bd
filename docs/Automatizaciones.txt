@@ -1,0 +1,99 @@
+﻿Plan de Demostración: Automatizaciones Inteligentes del Sistema de Museos
+Objetivo General: Demostrar que la base de datos es un componente activo e inteligente del sistema, capaz de ejecutar procesos de negocio complejos, reaccionar a eventos para mantener la integridad y anticipar necesidades operativas de forma autónoma.
+Demostración 1: Automatización Proactiva (El "Viaje en el Tiempo")
+* Pitch Conceptual:"Un sistema de élite no solo reacciona, sino que anticipa las necesidades del negocio. Vamos a probar nuestro proceso de 'chequeo diario', SP_CONSOLIDAR_OPERACIONES_DIARIAS. En un entorno real, este proceso se ejecutaría automáticamente cada noche. Simularemos un viaje en el tiempo para ver cómo el sistema detecta proactivamente una necesidad futura y actúa en consecuencia."
+* Detalles de Implementación Técnica:
+   * Backend (Node.js - server.js): En un sistema de producción, se implementaría un planificador de tareas. Usando una librería como node-cron, se configuraría una tarea para que se ejecute todos los días a la medianoche.
+// Ejemplo de implementación en el backend
+const cron = require('node-cron');
+const db = require('./db-connection'); // Módulo de conexión a la BD
+
+// Tarea programada para ejecutarse todos los días a las 00:01 AM
+cron.schedule('1 0 * * *', async () => {
+ console.log('Ejecutando consolidación diaria automática...');
+ try {
+   await db.execute("BEGIN SP_CONSOLIDAR_OPERACIONES_DIARIAS(p_ejecutar_acciones => 'SI'); END;");
+   console.log('Consolidación diaria completada exitosamente.');
+ } catch (err) {
+   console.error('Error durante la consolidación diaria:', err);
+ }
+});
+
+   * Frontend (Vue.js): Para la demostración, hemos implementado un botón en el DashboardMantenimientoView.vue que permite la ejecución manual. Este botón llama a un endpoint en nuestra API.
+// En el componente de Vue
+<button @click="runDailyConsolidation">Ejecutar Consolidación Diaria</button>
+
+// Método en el script
+async runDailyConsolidation() {
+ this.loading = true;
+ try {
+   // Llama al backend, que a su vez ejecuta el Stored Procedure
+   const response = await fetch('/api/run-consolidation', { method: 'POST' });
+   const data = await response.json();
+   alert(data.summary); // Muestra el resumen de la operación
+   this.refreshDashboard(); // Refresca la lista de mantenimientos
+ } catch (error) {
+   alert('Error al ejecutar la consolidación.');
+ } finally {
+   this.loading = false;
+ }
+}
+
+   * Base de Datos (Oracle): El cerebro es SP_CONSOLIDAR_OPERACIONES_DIARIAS, que actúa como orquestador y llama al sub-proceso SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO.
+   * Guion y Pasos de la Demostración:
+   1. Preparación Técnica: Antes de la demo, elegir una obra (ej. id_obra = 10) y asegurarse de que su último mantenimiento finalizó hace ~20 días con un UPDATE y COMMIT.
+   2. Paso 1 (Estado Actual): Mostrar el Dashboard en la UI. Ejecutar la consolidación con la fecha actual. Mostrar la salida Mantenimientos programados: 0.
+   3. Paso 2 (Viaje en el Tiempo): Cambiar la fecha del sistema operativo 45 días al futuro.
+   4. Paso 3 (Detección y Acción): Volver a ejecutar la consolidación. Mostrar la nueva salida Mantenimientos programados: 1.
+   5. Paso 4 (Verificación en BD): Cambiar al manejador de BD (DBeaver/SQL Developer). Ejecutar un SELECT * FROM MANTENIMIENTOS_OBRAS_REALIZADOS WHERE id_obra = 10 ORDER BY fecha_inicio DESC;. Señalar la nueva fila que fue creada automáticamente por el procedimiento, destacando la fecha_inicio y las observaciones.
+Demostración 2: Automatización Reactiva (La "Reacción en Cadena")
+   * Pitch Conceptual:"La integridad de los datos es crucial. Demostraremos cómo una sola acción del usuario, mover una obra, desencadena una cascada de actualizaciones automáticas en la base de datos para garantizar una perfecta cadena de custodia sin que el usuario tenga que realizar pasos adicionales."
+   * Detalles de Implementación Técnica:
+   * Frontend (Vue.js): Un formulario de "Mover Obra" que recopila la nueva ubicación y llama a un endpoint de la API, por ejemplo PUT /api/artworks/10/move.
+   * Backend (Node.js): El endpoint recibe la petición y ejecuta una única llamada al procedimiento almacenado, pasándole los parámetros.
+// En el backend (ej. Express.js)
+app.put('/api/artworks/:id/move', async (req, res) => {
+ const { id } = req.params;
+ const { newLocationId, newRoomId } = req.body;
+ try {
+   // Llama al procedure que hace todo el trabajo pesado
+   await db.execute(
+     `BEGIN SP_MOVER_OBRA(n_id_obra => :id, p_id_sala_destino => :newRoomId); END;`,
+     { id, newRoomId }
+   );
+   res.status(200).send({ message: 'Obra movida exitosamente.' });
+ } catch (err) {
+   res.status(500).send({ error: err.message });
+ }
+});
+
+   * Base de Datos (Oracle): La magia ocurre aquí. La llamada a SP_MOVER_OBRA realiza el INSERT del nuevo movimiento. Este INSERT a su vez dispara automáticamente al TRG_HIST_OBRAS_MOV_FECHAS, que encuentra el registro anterior y lo actualiza. Es una interacción perfecta entre un procedimiento y un trigger.
+      * Guion y Pasos de la Demostración:
+      1. Paso 1 (Estado Inicial): Mostrar en el manejador de BD el resultado de SELECT * FROM HIST_OBRAS_MOV WHERE id_obra = X;. Señalar la última fila donde FECHA_SALIDA es NULL.
+      2. Paso 2 (Acción del Usuario): En la UI, mover la obra a una nueva sala y guardar.
+      3. Paso 3 (La Reacción en Cadena): Volver a ejecutar el SELECT en la BD.
+      * Evidencia 1: Señalar cómo el registro que antes tenía FECHA_SALIDA nula, ahora tiene una fecha. Explicar que el trigger lo hizo solo.
+      * Evidencia 2: Señalar la nueva fila que se ha creado para la nueva ubicación, demostrando la acción del procedure.
+Demostración 3: Automatización de Integridad Financiera (El "Guardián de Precios")
+      * Pitch Conceptual:"Prevenir errores humanos en áreas críticas como las finanzas es fundamental. Demostraremos cómo nuestro sistema utiliza una automatización reactiva para actuar como un 'guardián', impidiendo que se puedan configurar precios inconsistentes."
+      * Detalles de Implementación Técnica:
+      * Frontend (Vue.js): Un formulario simple para "Crear Nueva Tarifa" que envía el tipo de ticket, el nuevo precio y la fecha de inicio a la API.
+      * Backend (Node.js): Un endpoint (POST /api/ticket-prices) que recibe los datos y realiza un INSERT simple en la tabla TIPO_TICKETS.
+      * Base de Datos (Oracle): Toda la inteligencia reside en el trigger TRG_GESTIONAR_HISTORIAL_PRECIOS. Es un trigger BEFORE INSERT, lo que significa que se ejecuta antes de que el nuevo precio se guarde. Busca cualquier precio del mismo tipo con FECHA_FIN nula y lo actualiza. Solo después de que el trigger termina su trabajo, el INSERT del nuevo precio se completa.
+      * Guion y Pasos de la Demostración:
+      1. Paso 1 (Estado Inicial): En el manejador de BD, ejecutar SELECT * FROM TIPO_TICKETS WHERE tipo = 'ADULTO';. Mostrar la fila activa con precio $10 y FECHA_FIN nula.
+      2. Paso 2 (Acción del Administrador): En la UI, registrar una nueva tarifa para "ADULTO" de $12, con fecha de inicio de mañana.
+      3. Paso 3 (El Guardián en Acción): Volver a ejecutar el SELECT en la BD. Mostrar las dos filas: la antigua de $10 ahora tiene una FECHA_FIN (la de hoy), y la nueva de $12 es la que está activa a futuro. Explicar que el trigger hizo esta actualización de forma automática y transparente para el usuario.
+Demostración 4: Ciclo de Vida del Ingreso y Popularidad (La "Retroalimentación Analítica")
+      * Pitch Conceptual:"Finalmente, demostraremos que nuestro sistema no solo registra datos, sino que los utiliza para crear inteligencia de negocio en un ciclo de retroalimentación automático. Veremos cómo una simple operación diaria, vender un ticket, impacta directamente y sin pasos intermedios en los indicadores de rendimiento del museo."
+      * Detalles de Implementación Técnica:
+      * Frontend (Vue.js): Dos componentes clave. Primero, una interfaz de "Venta de Tickets" para registrar transacciones. Segundo, una vista de "Ficha de Museo" que muestra el ranking y tiene un botón para recalcularlo.
+      * Backend (Node.js): Dos endpoints.
+      1. POST /api/tickets: Recibe la solicitud de venta y llama a SP_VENDER_TICKET.
+      2. GET /api/museums/:id/ranking: Llama a SP_CALCULAR_RANKING_MUSEO y devuelve las métricas.
+      * Base de Datos (Oracle): Un ecosistema de dos procedimientos trabajando juntos. SP_VENDER_TICKET genera los datos transaccionales. SP_CALCULAR_RANKING_MUSEO los consume de forma agregada para generar el análisis (COUNT(*) FROM TICKETS WHERE ...).
+      * Guion y Pasos de la Demostración:
+      1. Paso 1 (Estado Inicial): En la UI, ir a la "Ficha de Museo" de un museo específico. Ejecutar el cálculo del ranking y mostrar el número actual de "Visitas en el último año" (ej. "150 visitas").
+      2. Paso 2 (Operación Diaria): Ir a la interfaz de venta de tickets. Vender tres tickets nuevos para ese mismo museo.
+      3. Paso 3 (La Retroalimentación Automática): Volver a la "Ficha de Museo". Hacer clic en el botón para refrescar/recalcular el ranking.
+      4. Paso 4 (La Consecuencia Inmediata): Mostrar el indicador de visitas actualizado. Ahora dirá "153 visitas".Narración Final: "Como pueden observar, no hubo un proceso manual de consolidación. Las tres ventas que realizamos fueron consumidas inmediatamente por nuestra automatización analítica la próxima vez que se solicitó. Esto demuestra un ciclo completo: la operación transaccional alimenta en tiempo real la inteligencia de negocio, dándole al museo una visión siempre actualizada de su popularidad."

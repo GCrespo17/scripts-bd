@@ -53,6 +53,10 @@ import { RouterLink, RouterView } from 'vue-router'
           <span class="nav-icon">🧪</span>
           <span class="nav-text">Testing Procedimientos</span>
         </RouterLink>
+        <RouterLink to="/dashboard-mantenimiento" class="nav-link">
+          <span class="nav-icon">⚡</span>
+          <span class="nav-text">Dashboard Mantenimiento</span>
+        </RouterLink>
       </nav>
       
       <div class="sidebar-footer">

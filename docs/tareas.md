@@ -198,6 +198,59 @@ Este documento detalla la hoja de ruta para la Segunda Entrega del proyecto. El 
     - `SP_REGISTRAR_MANTENIMIENTO_OBRA`: Registro de mantenimientos
     - `SP_PROGRAMAR_MANTENIMIENTO_AUTOMATICO`: Programación automática
     - `SP_REGISTRAR_CIERRE_TEMPORAL`: Gestión de cierres de salas
+
+### Sesión del 17-DIC-2024 (Automatizaciones Inteligentes)
+- ✅ **Sistema de Demostraciones de Automatizaciones - IMPLEMENTADO**:
+  - **Descripción**: Implementación completa de la primera demostración de automatizaciones inteligentes siguiendo el plan detallado en `docs/Automatizaciones.txt`
+  
+  - **Frontend implementado**:
+    - ✅ Nuevo enlace "Dashboard Mantenimiento" agregado al sidebar con icono ⚡
+    - ✅ Ruta `/dashboard-mantenimiento` configurada en el router
+    - ✅ Sección "Automatizaciones Inteligentes" agregada a `DashboardMantenimientoView.vue`
+    - ✅ **Demo 1: "Viaje en el Tiempo"** - Botón funcional para ejecutar consolidación diaria
+    - ✅ Placeholders para las 3 demostraciones restantes (pendientes de implementación)
+    - ✅ Estilos CSS completos con diseño moderno y profesional
+    - ✅ Manejo de estados de carga y resultados de ejecución
+  
+  - **Backend implementado**:
+    - ✅ Endpoint `/api/run-consolidation` para ejecutar `SP_CONSOLIDAR_OPERACIONES_DIARIAS`
+    - ✅ Endpoint `/api/museos` para obtener lista de museos (dropdown)
+    - ✅ Endpoint `/api/dashboard/mantenimientos/:museoId` con datos mock
+    - ✅ Manejo completo de errores de Oracle con códigos específicos
+    - ✅ Logging detallado para debugging y monitoreo
+  
+  - **Demo 1: Automatización Proactiva ("Viaje en el Tiempo")**:
+    - **Funcionalidad**: Ejecuta `SP_CONSOLIDAR_OPERACIONES_DIARIAS` que programa mantenimientos automáticamente
+    - **UI**: Botón "Ejecutar Consolidación Diaria" con estado de carga
+    - **Respuesta**: Muestra resumen detallado de operaciones realizadas
+    - **Endpoint**: `POST /api/run-consolidation`
+    - **Parámetros**: `museoId` (opcional), `ejecutarAcciones` ('SI'/'NO')
+    - **Estado**: ✅ COMPLETAMENTE FUNCIONAL
+  
+  - **Demo 2: Automatización Reactiva ("Reacción en Cadena")**:
+    - **Funcionalidad**: Demuestra cómo `SP_MOVER_OBRA` + `TRG_HIST_OBRAS_MOV_FECHAS` crean una cadena automática
+    - **UI**: Flujo de 3 pasos - Estado Inicial → Movimiento → Evidencia de Automatización
+    - **Endpoint principal**: `PUT /api/artworks/:id/move`
+    - **Endpoints auxiliares**: `/api/obras-disponibles/:museoId`, `/api/salas-disponibles/:museoId`, `/api/artworks/:id/status`
+    - **Estado**: ✅ COMPLETAMENTE FUNCIONAL
+    - **Valor demostrativo**: Una sola acción desencadena múltiples actualizaciones automáticas sin intervención humana
+  
+  - **Demo 3: Automatización Preventiva ("Guardián de Precios")**:
+    - **Funcionalidad**: Demuestra cómo `TRG_GESTIONAR_HISTORIAL_PRECIOS` previene errores financieros automáticamente
+    - **UI**: Flujo de 3 pasos - Ver Precio Actual → Crear Nueva Tarifa → Evidencia de Automatización Preventiva
+    - **Endpoint principal**: `POST /api/guardian-precios`
+    - **Endpoint auxiliar**: `GET /api/precio-actual/:museoId/:tipoTicket`
+    - **Estado**: ✅ COMPLETAMENTE FUNCIONAL
+    - **Valor demostrativo**: Prevención automática de errores humanos en áreas financieras críticas
+  
+  - **Próximas implementaciones planificadas**:
+    - 🔄 Demo 4: "Retroalimentación Analítica" (SP_VENDER_TICKET + SP_CALCULAR_RANKING_MUSEO)
+  
+  - **Valor estratégico**:
+    - Demuestra las capacidades proactivas de la base de datos
+    - Showcases para evaluación: sistema inteligente que "anticipa necesidades"
+    - Base sólida para completar las 4 demostraciones del documento de automatizaciones
+    - Mejora significativa de la experiencia de usuario del sistema
     
     **🛡️ Vigilancia y Seguridad:**
     - `SP_REGISTRAR_VIGILANTE_MANT`: Registro de vigilantes

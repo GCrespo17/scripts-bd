@@ -2561,6 +2561,427 @@ app.post('/api/lugares', async (req, res) => {
     }
 });
 
+// ============ ENDPOINT PARA AUTOMATIZACIONES ============
+
+// Endpoint para ejecutar la consolidación diaria (Demo 1: "Viaje en el Tiempo")
+app.post('/api/run-consolidation', async (req, res) => {
+    const { museoId, ejecutarAcciones = 'SI' } = req.body;
+    let connection;
+    
+    try {
+        console.log('[CONSOLIDATION] Iniciando consolidación diaria...');
+        console.log(`[CONSOLIDATION] Museo ID: ${museoId || 'TODOS'}`);
+        console.log(`[CONSOLIDATION] Ejecutar acciones: ${ejecutarAcciones}`);
+        
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Preparar la llamada al procedimiento almacenado con parámetros de salida
+        const sql = `
+            BEGIN
+                ${dbConfig.schema}.SP_CONSOLIDAR_OPERACIONES_DIARIAS(
+                    p_id_museo => :p_id_museo,
+                    p_ejecutar_acciones => :p_ejecutar_acciones,
+                    p_resumen_operaciones => :p_resumen_operaciones
+                );
+            END;
+        `;
+        
+        // Configurar los parámetros
+        const binds = {
+            p_id_museo: museoId || null,
+            p_ejecutar_acciones: ejecutarAcciones,
+            p_resumen_operaciones: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 }
+        };
+        
+        // Ejecutar el procedimiento
+        const result = await connection.execute(sql, binds, { autoCommit: true });
+        
+        // Extraer el resumen de las operaciones
+        const resumenOperaciones = result.outBinds.p_resumen_operaciones;
+        
+        console.log('[CONSOLIDATION] ✅ Consolidación ejecutada exitosamente');
+        console.log('[CONSOLIDATION] Resumen:', resumenOperaciones);
+        
+        // Responder con el resumen
+        res.json({
+            success: true,
+            message: 'Consolidación diaria ejecutada exitosamente',
+            summary: resumenOperaciones,
+            resumen_operaciones: resumenOperaciones,
+            timestamp: new Date().toISOString(),
+            params: {
+                museoId: museoId || 'TODOS',
+                ejecutarAcciones: ejecutarAcciones
+            }
+        });
+        
+    } catch (err) {
+        console.error('[CONSOLIDATION] Error:', err);
+        
+        // Extraer información específica del error de Oracle
+        let errorMessage = err.message;
+        let errorCode = err.code || 'UNKNOWN';
+        
+        // Si es un error de Oracle con código específico, proporcionar más contexto
+        if (err.code) {
+            switch (err.code) {
+                case 'ORA-20067':
+                    errorMessage = 'Error en consolidación de operaciones diarias: ' + err.message;
+                    break;
+                case 'ORA-20062':
+                    errorMessage = 'Error: Museo no encontrado: ' + err.message;
+                    break;
+                case 'ORA-20063':
+                    errorMessage = 'Error en programación automática de mantenimientos: ' + err.message;
+                    break;
+                default:
+                    errorMessage = `Error del sistema (${err.code}): ${err.message}`;
+            }
+        }
+        
+        res.status(500).json({
+            success: false,
+            message: 'Error ejecutando la consolidación diaria',
+            error: errorMessage,
+            errorCode: errorCode,
+            timestamp: new Date().toISOString(),
+            params: {
+                museoId: museoId || 'TODOS',
+                ejecutarAcciones: ejecutarAcciones
+            }
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[CONSOLIDATION] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint simple para obtener lista de museos (para el dropdown)
+app.get('/api/museos', async (req, res) => {
+    let connection;
+    try {
+        console.log('[MUSEOS] Obteniendo lista de museos...');
+        connection = await oracledb.getConnection(dbConfig);
+        
+        const result = await connection.execute(
+            `SELECT id_museo, nombre FROM ${dbConfig.schema}.MUSEOS ORDER BY nombre`
+        );
+        
+        const museos = result.rows.map(row => ({
+            id: row[0],
+            nombre: row[1]
+        }));
+        
+        console.log(`[MUSEOS] Devolviendo ${museos.length} museos`);
+        res.json(museos);
+        
+    } catch (err) {
+        console.error('[MUSEOS] Error:', err);
+        res.status(500).json({ message: 'Error obteniendo museos', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[MUSEOS] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint placeholder para el dashboard de mantenimientos
+app.get('/api/dashboard/mantenimientos/:museoId', async (req, res) => {
+    const { museoId } = req.params;
+    
+    // Por ahora devolvemos datos simulados para que la UI funcione
+    // Posteriormente esto se conectará con las consultas reales
+    const mockData = {
+        estadisticas: {
+            total_programas: 15,
+            mantenimientos_activos: 3,
+            mantenimientos_completados: 12,
+            duracion_promedio_dias: 7
+        },
+        mantenimientos_pendientes: [
+            {
+                id: 1,
+                obra: 'Las Meninas (Copia)',
+                actividad: 'Limpieza superficial',
+                responsable: 'María García',
+                fecha_inicio: '2024-12-20',
+                estado: 'PENDIENTE'
+            }
+        ],
+        programas_activos: [
+            {
+                id: 1,
+                obra: 'Guernica (Reproducción)',
+                actividad: 'Revisión estructural',
+                frecuencia: 'TRIMESTRAL',
+                tipo_responsable: 'RESTAURADOR',
+                mantenimientos_realizados: 4
+            }
+        ],
+        mantenimientos_en_curso: [
+            {
+                id: 1,
+                obra: 'La Gioconda (Replica)',
+                actividad: 'Restauración menor',
+                responsable: 'Juan Pérez',
+                fecha_inicio: '2024-12-15',
+                dias_transcurridos: 5
+            }
+        ]
+    };
+    
+    console.log(`[DASHBOARD] Devolviendo datos mock para museo ${museoId}`);
+    res.json(mockData);
+});
+
+// ============ ENDPOINTS PARA DEMO 2: REACCIÓN EN CADENA ============
+
+// Endpoint para obtener obras disponibles para mover en un museo
+app.get('/api/obras-disponibles/:museoId', async (req, res) => {
+    const { museoId } = req.params;
+    let connection;
+    
+    try {
+        console.log(`[OBRAS-DISPONIBLES] Obteniendo obras para museo ${museoId}...`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Obtener obras activas (con fecha_salida NULL) en el museo
+        const result = await connection.execute(
+            `SELECT 
+                o.id_obra as id,
+                o.nombre,
+                se.nombre as sala_actual,
+                cp.nombre as coleccion_actual,
+                (se.nombre || ' - ' || cp.nombre) as ubicacion_actual,
+                hom.id_catalogo_museo
+             FROM ${dbConfig.schema}.OBRAS o
+             JOIN ${dbConfig.schema}.HIST_OBRAS_MOV hom ON o.id_obra = hom.id_obra
+             JOIN ${dbConfig.schema}.SALAS_EXP se ON hom.id_sala = se.id_sala
+             JOIN ${dbConfig.schema}.COLECCIONES_PERMANENTES cp ON hom.id_coleccion = cp.id_coleccion
+             WHERE hom.id_museo = :museoId
+               AND hom.fecha_salida IS NULL
+             ORDER BY o.nombre`,
+            [museoId]
+        );
+        
+        const obras = result.rows.map(row => ({
+            id: row[0],
+            nombre: row[1],
+            sala_actual: row[2],
+            coleccion_actual: row[3],
+            ubicacion_actual: row[4],
+            id_catalogo_museo: row[5]
+        }));
+        
+        console.log(`[OBRAS-DISPONIBLES] Devolviendo ${obras.length} obras`);
+        res.json(obras);
+        
+    } catch (err) {
+        console.error('[OBRAS-DISPONIBLES] Error:', err);
+        res.status(500).json({ message: 'Error obteniendo obras disponibles', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[OBRAS-DISPONIBLES] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint para obtener salas disponibles para destino
+app.get('/api/salas-disponibles/:museoId', async (req, res) => {
+    const { museoId } = req.params;
+    let connection;
+    
+    try {
+        console.log(`[SALAS-DISPONIBLES] Obteniendo salas para museo ${museoId}...`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Obtener todas las salas del museo (pueden moverse entre salas del mismo museo)
+        const result = await connection.execute(
+            `SELECT 
+                se.id_sala as id,
+                se.nombre,
+                m.nombre as museo,
+                ef.nombre as edificio
+             FROM ${dbConfig.schema}.SALAS_EXP se
+             JOIN ${dbConfig.schema}.MUSEOS m ON se.id_museo = m.id_museo
+             JOIN ${dbConfig.schema}.EST_FISICA ef ON se.id_est = ef.id_est
+             WHERE se.id_museo = :museoId
+             ORDER BY se.nombre`,
+            [museoId]
+        );
+        
+        const salas = result.rows.map(row => ({
+            id: row[0],
+            nombre: row[1],
+            museo: row[2],
+            edificio: row[3]
+        }));
+        
+        console.log(`[SALAS-DISPONIBLES] Devolviendo ${salas.length} salas`);
+        res.json(salas);
+        
+    } catch (err) {
+        console.error('[SALAS-DISPONIBLES] Error:', err);
+        res.status(500).json({ message: 'Error obteniendo salas disponibles', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[SALAS-DISPONIBLES] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint para obtener estado detallado de una obra
+app.get('/api/artworks/:id/status', async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    
+    try {
+        console.log(`[ARTWORK-STATUS] Obteniendo estado de obra ${id}...`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Obtener el estado actual detallado de la obra
+        const result = await connection.execute(
+            `SELECT 
+                hom.id_catalogo_museo as id_historico,
+                o.nombre as obra_nombre,
+                se.nombre as sala_actual,
+                cp.nombre as coleccion_actual,
+                hom.fecha_entrada,
+                hom.fecha_salida,
+                (se.nombre || ' - ' || cp.nombre) as ubicacion_actual
+             FROM ${dbConfig.schema}.HIST_OBRAS_MOV hom
+             JOIN ${dbConfig.schema}.OBRAS o ON hom.id_obra = o.id_obra
+             JOIN ${dbConfig.schema}.SALAS_EXP se ON hom.id_sala = se.id_sala
+             JOIN ${dbConfig.schema}.COLECCIONES_PERMANENTES cp ON hom.id_coleccion = cp.id_coleccion
+             WHERE hom.id_obra = :id
+               AND hom.fecha_salida IS NULL`,
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Obra no encontrada o no está activa en ningún museo' });
+        }
+        
+        const row = result.rows[0];
+        const estadoDetallado = {
+            id_historico: row[0],
+            obra_nombre: row[1],
+            sala_actual: row[2],
+            coleccion_actual: row[3],
+            fecha_entrada: row[4],
+            fecha_salida: row[5],
+            ubicacion_actual: row[6]
+        };
+        
+        console.log(`[ARTWORK-STATUS] Estado obtenido para obra ${id}`);
+        res.json(estadoDetallado);
+        
+    } catch (err) {
+        console.error('[ARTWORK-STATUS] Error:', err);
+        res.status(500).json({ message: 'Error obteniendo estado de la obra', error: err.message });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[ARTWORK-STATUS] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
+// Endpoint principal para mover obras (Demo 2) - Según documento de automatizaciones
+app.put('/api/artworks/:id/move', async (req, res) => {
+    const { id } = req.params;
+    const { newRoomId } = req.body;
+    let connection;
+    
+    try {
+        console.log(`[MOVE-ARTWORK] Iniciando movimiento de obra ${id} a sala ${newRoomId}...`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Ejecutar SP_MOVER_OBRA según el documento de automatizaciones
+        // Este procedimiento + el trigger TRG_HIST_OBRAS_MOV_FECHAS crean la "reacción en cadena"
+        const sql = `
+            BEGIN
+                ${dbConfig.schema}.SP_MOVER_OBRA(
+                    n_id_obra => :id,
+                    p_id_sala_destino => :newRoomId
+                );
+            END;
+        `;
+        
+        await connection.execute(sql, { id, newRoomId }, { autoCommit: true });
+        
+        console.log(`[MOVE-ARTWORK] ✅ Obra ${id} movida exitosamente a sala ${newRoomId}`);
+        console.log(`[MOVE-ARTWORK] 🔗 Reacción en cadena automática completada por trigger`);
+        
+        // Responder según especificación del documento
+        res.status(200).json({ 
+            message: 'Obra movida exitosamente.',
+            details: {
+                obraId: id,
+                nuevaSalaId: newRoomId,
+                automatizacion: 'SP_MOVER_OBRA + TRG_HIST_OBRAS_MOV_FECHAS',
+                timestamp: new Date().toISOString()
+            }
+        });
+        
+    } catch (err) {
+        console.error('[MOVE-ARTWORK] Error:', err);
+        
+        // Manejo específico de errores del procedimiento
+        let errorMessage = err.message;
+        if (err.code) {
+            switch (err.code) {
+                case 'ORA-20002':
+                    errorMessage = 'La obra ya se encuentra en la ubicación especificada';
+                    break;
+                case 'ORA-20200':
+                case 'ORA-20204':
+                    errorMessage = 'Error en el orden de recorrido: ' + err.message;
+                    break;
+                case 'ORA-20005':
+                    errorMessage = 'Error inesperado en el movimiento: ' + err.message;
+                    break;
+                default:
+                    errorMessage = `Error del sistema (${err.code}): ${err.message}`;
+            }
+        }
+        
+        res.status(500).json({ 
+            error: errorMessage,
+            code: err.code || 'UNKNOWN',
+            timestamp: new Date().toISOString()
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[MOVE-ARTWORK] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
@@ -2624,10 +3045,12 @@ app.post('/api/test-procedure', async (req, res) => {
                     { name: 'p_id_museo', type: 'IN', dbType: 'NUMBER' },
                     { name: 'p_nombre_unidad_org', type: 'IN', dbType: 'STRING' },
                     { name: 'p_cargo', type: 'IN', dbType: 'STRING' },
-                    { name: 'p_fecha_inicio_cargo', type: 'IN', dbType: 'DATE' },
-                    { name: 'p_id_empleado_generado', type: 'OUT', dbType: 'NUMBER' }
+                    { name: 'p_fecha_inicio_cargo', type: 'IN', dbType: 'DATE' }, // Se establecerá automáticamente a SYSDATE
+                    { name: 'p_id_empleado_generado', type: 'OUT', dbType: 'NUMBER' },
+                    { name: 'p_id_idioma', type: 'IN', dbType: 'NUMBER' } // Parámetro adicional para idioma
                 ],
-                sql: 'CALL SP_REGISTRAR_NUEVO_EMPLEADO(:p_doc_identidad, :p_primer_nombre, :p_primer_apellido, :p_fecha_nacimiento, :p_contacto, :p_segundo_nombre, :p_segundo_apellido, :p_id_museo, :p_nombre_unidad_org, :p_cargo, :p_fecha_inicio_cargo, :p_id_empleado_generado)'
+                sql: 'CALL SP_REGISTRAR_NUEVO_EMPLEADO(:p_doc_identidad, :p_primer_nombre, :p_primer_apellido, :p_fecha_nacimiento, :p_contacto, :p_segundo_nombre, :p_segundo_apellido, :p_id_museo, :p_nombre_unidad_org, :p_cargo, :p_fecha_inicio_cargo, :p_id_empleado_generado)',
+                specialHandling: 'empleado_con_idioma' // Marcador para manejo especial
             },
             'SP_MOVER_EMPLEADO_ACTIVO': {
                 params: [
@@ -2720,12 +3143,7 @@ app.post('/api/test-procedure', async (req, res) => {
                 ],
                 sql: 'CALL SP_MODIFICAR_ORDEN_COLECCION(:n_id_coleccion, :n_orden_recorrido)'
             },
-            'SP_ELIMINAR_COLECCION': {
-                params: [
-                    { name: 'p_id_coleccion', type: 'IN', dbType: 'NUMBER' }
-                ],
-                sql: 'CALL SP_ELIMINAR_COLECCION(:p_id_coleccion)'
-            },
+
             
             // === PROCEDIMIENTOS DE MANTENIMIENTO ===
             'SP_REGISTRAR_MANTENIMIENTO_OBRA': {
@@ -2836,7 +3254,43 @@ app.post('/api/test-procedure', async (req, res) => {
         console.log(`[TEST-PROCEDURE] Ejecutando: ${procedureName}`);
         console.log(`[TEST-PROCEDURE] Parámetros:`, bindVars);
         
-        result = await connection.execute(procedureConfig.sql, bindVars);
+        // === MANEJO ESPECIAL PARA SP_REGISTRAR_NUEVO_EMPLEADO ===
+        if (procedureName === 'SP_REGISTRAR_NUEVO_EMPLEADO') {
+            // Agregar automáticamente la fecha de inicio como SYSDATE
+            bindVars['p_fecha_inicio_cargo'] = new Date();
+            console.log(`[TEST-PROCEDURE] Estableciendo p_fecha_inicio_cargo automáticamente a SYSDATE`);
+            
+            // Guardar el ID de idioma para procesamiento posterior
+            const idIdioma = bindVars['p_id_idioma'];
+            delete bindVars['p_id_idioma']; // Remover del bindVars del procedimiento principal
+            console.log(`[TEST-PROCEDURE] Idioma para asociar después de ejecutar el procedimiento: ${idIdioma}`);
+            
+            // Ejecutar el procedimiento principal
+            result = await connection.execute(procedureConfig.sql, bindVars);
+            
+            // Si el procedimiento fue exitoso y tenemos un idioma, asociar el idioma al empleado
+            if (idIdioma && bindVars['p_id_empleado_generado']) {
+                const idEmpleadoGenerado = bindVars['p_id_empleado_generado'];
+                console.log(`[TEST-PROCEDURE] Asociando idioma ${idIdioma} al empleado generado ${idEmpleadoGenerado}`);
+                
+                try {
+                    await connection.execute(
+                        `INSERT INTO ${dbConfig.schema}.EMPLEADOS_IDIOMAS (id_empleado, id_idioma) VALUES (:idEmpleado, :idIdioma)`,
+                        {
+                            idEmpleado: idEmpleadoGenerado,
+                            idIdioma: idIdioma
+                        }
+                    );
+                    console.log(`[TEST-PROCEDURE] ✅ Idioma asociado exitosamente`);
+                } catch (idiomaErr) {
+                    console.error(`[TEST-PROCEDURE] ❌ Error asociando idioma:`, idiomaErr);
+                    // No fallar la transacción completa por este error
+                }
+            }
+        } else {
+            // Ejecución normal para otros procedimientos
+            result = await connection.execute(procedureConfig.sql, bindVars);
+        }
         
         // Extraer parámetros de salida
         procedureConfig.params
@@ -2882,6 +3336,73 @@ app.post('/api/test-procedure', async (req, res) => {
     }
 });
 
+// Endpoint para obtener el precio de un ticket según museo y tipo
+app.get('/api/ticket-price/:id_museo/:tipo', async (req, res) => {
+    const { id_museo, tipo } = req.params;
+    let connection;
+    
+    try {
+        console.log(`[TICKET-PRICE] Consultando precio para museo ${id_museo}, tipo ${tipo}`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        const result = await connection.execute(
+            `SELECT precio, fecha_inicio, fecha_fin 
+             FROM ${dbConfig.schema}.TIPO_TICKETS 
+             WHERE id_museo = :id_museo 
+               AND tipo = :tipo 
+               AND SYSDATE >= fecha_inicio 
+               AND (fecha_fin IS NULL OR SYSDATE <= fecha_fin)
+             ORDER BY fecha_inicio DESC`,
+            [id_museo, tipo]
+        );
+        
+        console.log(`[TICKET-PRICE] Resultados encontrados: ${result.rows.length}`);
+        
+        if (result.rows.length === 0) {
+            return res.json({ 
+                success: false,
+                message: `No se encontró precio válido para el ticket tipo "${tipo}" en el museo seleccionado para la fecha actual.`
+            });
+        }
+        
+        if (result.rows.length > 1) {
+            console.log(`[TICKET-PRICE] ⚠️  Múltiples precios encontrados, usando el más reciente`);
+        }
+        
+        const row = result.rows[0];
+        const precioInfo = {
+            precio: row[0],
+            fecha_inicio: row[1],
+            fecha_fin: row[2],
+            moneda: 'USD' // Asumiendo USD como moneda por defecto
+        };
+        
+        console.log(`[TICKET-PRICE] ✅ Precio encontrado: ${precioInfo.precio}`);
+        
+        res.json({
+            success: true,
+            precio: precioInfo.precio,
+            detalles: precioInfo
+        });
+        
+    } catch (err) {
+        console.error('[TICKET-PRICE] Error:', err);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error consultando precio del ticket',
+            error: err.message 
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[TICKET-PRICE] Error cerrando conexión:', err);
+            }
+        }
+    }
+});
+
 // Endpoint para obtener la lista de procedimientos disponibles
 app.get('/api/procedures', (req, res) => {
     const procedures = {
@@ -2915,7 +3436,7 @@ app.get('/api/procedures', (req, res) => {
                 { name: 'p_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
                 { name: 'p_nombre_unidad_org', label: 'Unidad Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', displayField: 'nombre', required: true },
                 { name: 'p_cargo', label: 'Cargo', type: 'dropdown', dataSource: 'cargos', required: true },
-                { name: 'p_fecha_inicio_cargo', label: 'Fecha Inicio Cargo', type: 'date', required: true }
+                { name: 'p_id_idioma', label: 'Idioma', type: 'dropdown', dataSource: 'idiomas', required: true }
             ],
             outputParams: [
                 { name: 'p_id_empleado_generado', label: 'ID del Empleado Generado', type: 'number' }
@@ -2927,23 +3448,25 @@ app.get('/api/procedures', (req, res) => {
             category: 'Recursos Humanos',
             inputParams: [
                 { name: 'n_id_empleado', label: 'Empleado', type: 'dropdown', dataSource: 'empleados', required: true },
-                { name: 'n_id_museo', label: 'Museo Destino', type: 'dropdown', dataSource: 'museos', required: false },
-                { name: 'n_id_est_org', label: 'Estructura Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: false },
-                { name: 'n_cargo', label: 'Nuevo Cargo', type: 'dropdown', dataSource: 'cargos', required: false }
+                { name: 'n_id_museo', label: 'Museo Destino (opcional si solo cambia cargo/estructura)', type: 'dropdown', dataSource: 'museos', required: false },
+                { name: 'n_id_est_org', label: 'Estructura Organizacional (requerida si cambia museo)', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: false },
+                { name: 'n_cargo', label: 'Nuevo Cargo (requerido si cambia museo)', type: 'dropdown', dataSource: 'cargos', required: false }
             ],
-            outputParams: []
+            outputParams: [],
+            specialValidation: 'mover_empleado_activo' // Marcador para validación especial
         },
         'SP_MOVER_EMPLEADO_INACTIVO': {
             name: 'SP_MOVER_EMPLEADO_INACTIVO',
             description: 'Reactivar y transferir un empleado inactivo',
             category: 'Recursos Humanos',
             inputParams: [
-                { name: 'n_id_empleado', label: 'Empleado', type: 'dropdown', dataSource: 'empleados', required: true },
-                { name: 'n_id_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', required: true },
-                { name: 'n_id_est_org', label: 'Estructura Organizacional', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: true },
-                { name: 'n_cargo', label: 'Cargo', type: 'dropdown', dataSource: 'cargos', required: true }
+                { name: 'n_id_empleado', label: 'Empleado Inactivo', type: 'dropdown', dataSource: 'empleados', required: true },
+                { name: 'n_id_museo', label: 'Museo Destino (requerido para reactivación)', type: 'dropdown', dataSource: 'museos', required: true },
+                { name: 'n_id_est_org', label: 'Estructura Organizacional (requerida)', type: 'dropdown', dataSource: 'unidadesOrganizacionales', required: true },
+                { name: 'n_cargo', label: 'Cargo (requerido)', type: 'dropdown', dataSource: 'cargos', required: true }
             ],
-            outputParams: []
+            outputParams: [],
+            specialValidation: 'mover_empleado_inactivo' // Marcador para validación especial
         },
         
         // === GESTIÓN DE OBRAS ===
@@ -3018,7 +3541,7 @@ app.get('/api/procedures', (req, res) => {
             category: 'Gestión de Colecciones',
             inputParams: [
                 { name: 'n_nombre_museo', label: 'Museo', type: 'dropdown', dataSource: 'museos', displayField: 'nombre', required: true },
-                { name: 'n_nombre_depto', label: 'Departamento', type: 'dropdown', dataSource: 'departamentos', required: true },
+                { name: 'n_nombre_depto', label: 'Departamento', type: 'dropdown', dataSource: 'unidadesOrganizacionales', displayField: 'nombre', required: true },
                 { name: 'n_nombre_coleccion', label: 'Nombre de la Colección', type: 'text', required: true },
                 { name: 'n_caracteristicas', label: 'Características', type: 'text', required: true },
                 { name: 'n_palabra_clave', label: 'Palabra Clave', type: 'text', required: true },
@@ -3036,15 +3559,7 @@ app.get('/api/procedures', (req, res) => {
             ],
             outputParams: []
         },
-        'SP_ELIMINAR_COLECCION': {
-            name: 'SP_ELIMINAR_COLECCION',
-            description: 'Eliminar una colección permanente',
-            category: 'Gestión de Colecciones',
-            inputParams: [
-                { name: 'p_id_coleccion', label: 'Colección', type: 'dropdown', dataSource: 'colecciones', required: true }
-            ],
-            outputParams: []
-        },
+
         
         // === MANTENIMIENTO ===
         'SP_REGISTRAR_MANTENIMIENTO_OBRA': {
@@ -3052,7 +3567,7 @@ app.get('/api/procedures', (req, res) => {
             description: 'Registrar un mantenimiento realizado a una obra',
             category: 'Mantenimiento',
             inputParams: [
-                { name: 'n_id_mant', label: 'Mantenimiento Programado', type: 'dropdown', dataSource: 'mantenimientos', displayField: 'tipo', required: true },
+                { name: 'n_id_mant', label: 'Mantenimiento Programado', type: 'dropdown', dataSource: 'mantenimientos', displayField: 'obra_nombre', required: true },
                 { name: 'n_id_empleado', label: 'Empleado Responsable', type: 'dropdown', dataSource: 'empleados', required: true },
                 { name: 'n_observaciones', label: 'Observaciones', type: 'text', required: true },
                 { name: 'n_fecha_fin', label: 'Fecha de Finalización', type: 'date', required: false }
@@ -3224,10 +3739,11 @@ app.get('/api/support-data', async (req, res) => {
         
         // Obtener colecciones permanentes
         const coleccionesResult = existingTables.includes('COLECCIONES_PERMANENTES') ?
-            await safeExecute(
-                `SELECT id_coleccion, nombre, id_museo, nombre_depto 
-                 FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
-                 ORDER BY nombre`,
+                        await safeExecute(
+                `SELECT cp.id_coleccion, cp.nombre, cp.id_museo, eo.nombre as nombre_depto
+                 FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES cp
+                 LEFT JOIN ${dbConfig.schema}.EST_ORGANIZACIONAL eo ON eo.id_est_org = cp.id_est_org AND eo.id_museo = cp.id_museo
+                 ORDER BY cp.nombre`,
                 'COLECCIONES_PERMANENTES'
             ) : { rows: [] };
         
@@ -3276,40 +3792,61 @@ app.get('/api/support-data', async (req, res) => {
                  ORDER BY primer_apellido, primer_nombre`,
                 'ARTISTAS'
             ) : { rows: [] };
+
+        // Obtener idiomas
+        const idiomasResult = existingTables.includes('IDIOMAS') ?
+            await safeExecute(
+                `SELECT id_idioma, nombre 
+                 FROM ${dbConfig.schema}.IDIOMAS 
+                 ORDER BY nombre`,
+                'IDIOMAS'
+            ) : { rows: [] };
         
         // === CONSULTAS COMPLEJAS SIMPLIFICADAS ===
         
-        // Mantenimientos (solo si existe PROGRAMAS_MANT)
+        // Mantenimientos (solo si existe PROGRAMAS_MANT) - con nombres de obras
         const mantenimientosResult = existingTables.includes('PROGRAMAS_MANT') ?
             await safeExecute(
-                `SELECT id_mant, actividad as descripcion, tipo_responsable
-                 FROM ${dbConfig.schema}.PROGRAMAS_MANT 
-                 ORDER BY actividad`,
+                `SELECT pm.id_mant, 
+                        pm.actividad as descripcion, 
+                        o.nombre as obra_nombre,
+                        pm.tipo_responsable
+                 FROM ${dbConfig.schema}.PROGRAMAS_MANT pm
+                 JOIN ${dbConfig.schema}.OBRAS o ON pm.id_obra = o.id_obra
+                 ORDER BY o.nombre, pm.actividad`,
                 'PROGRAMAS_MANT'
             ) : { rows: [] };
 
-        // Vigilantes (solo si existe)
+        // Vigilantes (solo si existe) - INCLUIR INFORMACIÓN DEL MUSEO ACTUAL
         const vigilantesResult = existingTables.includes('EMPLEADOS_VIGILANTE_MANT') ?
             await safeExecute(
-                `SELECT id_vig_mant, 
-                        nombre || ' ' || apellido as nombre_completo,
-                        tipo_responsable
-                 FROM ${dbConfig.schema}.EMPLEADOS_VIGILANTE_MANT 
-                 ORDER BY nombre, apellido`,
+                `SELECT evm.id_vig_mant, 
+                        evm.nombre || ' ' || evm.apellido as nombre_completo,
+                        evm.tipo_responsable,
+                        am.id_museo,
+                        m.nombre as nombre_museo
+                 FROM ${dbConfig.schema}.EMPLEADOS_VIGILANTE_MANT evm
+                 LEFT JOIN (
+                     SELECT id_vig_mant, id_museo, 
+                            ROW_NUMBER() OVER (PARTITION BY id_vig_mant ORDER BY mes_anio DESC) as rn
+                     FROM ${dbConfig.schema}.ASIGNACIONES_MES
+                 ) am ON evm.id_vig_mant = am.id_vig_mant AND am.rn = 1
+                 LEFT JOIN ${dbConfig.schema}.MUSEOS m ON am.id_museo = m.id_museo
+                 ORDER BY evm.nombre, evm.apellido`,
                 'EMPLEADOS_VIGILANTE_MANT'
             ) : { rows: [] };
 
         // === LISTAS DE VALORES ÚNICOS PARA DROPDOWNS (SIMPLIFICADAS) ===
         
         // Departamentos (solo si existe COLECCIONES_PERMANENTES)
-        const departamentosResult = existingTables.includes('COLECCIONES_PERMANENTES') ?
+        const departamentosResult = existingTables.includes('EST_ORGANIZACIONAL') ?
             await safeExecute(
-                `SELECT DISTINCT nombre_depto 
-                 FROM ${dbConfig.schema}.COLECCIONES_PERMANENTES 
-                 WHERE nombre_depto IS NOT NULL 
-                 ORDER BY nombre_depto`,
+                `SELECT DISTINCT nombre 
+                 FROM ${dbConfig.schema}.EST_ORGANIZACIONAL 
+                 WHERE tipo = 'DEPARTAMENTO' 
+                 ORDER BY nombre`,
                 'DEPARTAMENTOS'
-            ) : { rows: [] };
+            ) : { rows: [['CONSERVACIÓN'], ['EXPOSICIONES'], ['EDUCACIÓN'], ['INVESTIGACIÓN']] };
 
         // Tipos de obras (solo si existe OBRAS)
         const tiposObraResult = existingTables.includes('OBRAS') ?
@@ -3344,7 +3881,7 @@ app.get('/api/support-data', async (req, res) => {
         // === LISTAS PREDEFINIDAS PARA DROPDOWNS BÁSICOS ===
         const tiposAdquisicionResult = { rows: [['COMPRA'], ['DONACIÓN'], ['PRÉSTAMO'], ['INTERCAMBIO']] };
         const tiposResponsableResult = { rows: [['VIGILANTE'], ['MANTENIMIENTO'], ['SEGURIDAD']] };
-        const turnosResult = { rows: [['MAÑANA'], ['TARDE'], ['NOCHE'], ['ROTATIVO']] };
+        const turnosResult = { rows: [['MATUTINO'], ['VESPERTINO'], ['NOCTURNO']] };
         const tiposMantenimientoResult = { rows: [['PREVENTIVO'], ['CORRECTIVO'], ['RESTAURACIÓN'], ['CONSERVACIÓN']] };
         
         // === CONSTRUCCIÓN DEL OBJETO DE RESPUESTA ===
@@ -3406,17 +3943,24 @@ app.get('/api/support-data', async (req, res) => {
             mantenimientos: mantenimientosResult.rows.map(row => ({ 
                 id: row[0], 
                 descripcion: row[1],
-                obra: row[2],
+                obra_nombre: row[2],
                 tipo_responsable: row[3]
             })),
             
             vigilantes: vigilantesResult.rows.map(row => ({ 
                 id: row[0], 
                 nombre: row[1],
-                tipo_responsable: row[2]
+                tipo_responsable: row[2],
+                id_museo: row[3],
+                nombre_museo: row[4]
             })),
             
             artistas: artistasResult.rows.map(row => ({ 
+                id: row[0], 
+                nombre: row[1]
+            })),
+            
+            idiomas: idiomasResult.rows.map(row => ({ 
                 id: row[0], 
                 nombre: row[1]
             })),
@@ -3444,7 +3988,8 @@ app.get('/api/support-data', async (req, res) => {
             estructurasFisicas: supportData.estructurasFisicas.length,
             mantenimientos: supportData.mantenimientos.length,
             vigilantes: supportData.vigilantes.length,
-            artistas: supportData.artistas.length
+            artistas: supportData.artistas.length,
+            idiomas: supportData.idiomas.length
         };
         
         console.log('[SUPPORT-DATA] ✅ Datos cargados exitosamente');
@@ -3464,8 +4009,68 @@ app.get('/api/support-data', async (req, res) => {
                 console.error('[SUPPORT-DATA] Error cerrando conexión:', err);
             }
         }
+        }
+});
+
+// === ENDPOINT ESPECÍFICO PARA OBTENER MUSEO ACTUAL DE UN VIGILANTE ===
+app.get('/api/vigilante-museo/:id_vigilante', async (req, res) => {
+    const { id_vigilante } = req.params;
+    let connection;
+    try {
+        console.log(`[VIGILANTE-MUSEO] Obteniendo museo actual para vigilante ID: ${id_vigilante}`);
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Buscar la asignación más reciente del vigilante para obtener su museo actual
+        const result = await connection.execute(
+            `SELECT am.id_museo, m.nombre as nombre_museo, am.mes_anio, am.turno
+             FROM ${dbConfig.schema}.ASIGNACIONES_MES am
+             JOIN ${dbConfig.schema}.MUSEOS m ON am.id_museo = m.id_museo
+             WHERE am.id_vig_mant = :id_vigilante
+             ORDER BY am.mes_anio DESC
+             FETCH FIRST 1 ROWS ONLY`,
+            [id_vigilante]
+        );
+        
+        if (result.rows.length === 0) {
+            console.log(`[VIGILANTE-MUSEO] No se encontró asignación para vigilante ID: ${id_vigilante}`);
+            return res.json({
+                success: false,
+                message: 'No se encontró asignación actual para este vigilante',
+                id_museo: null
+            });
+        }
+        
+        const vigilanteInfo = {
+            id_museo: result.rows[0][0],
+            nombre_museo: result.rows[0][1],
+            fecha_asignacion: result.rows[0][2],
+            turno: result.rows[0][3]
+        };
+        
+        console.log(`[VIGILANTE-MUSEO] Vigilante ${id_vigilante} trabaja en museo ID ${vigilanteInfo.id_museo} (${vigilanteInfo.nombre_museo})`);
+        
+        res.json({
+            success: true,
+            data: vigilanteInfo
+        });
+        
+    } catch (err) {
+        console.error(`[VIGILANTE-MUSEO] Error obteniendo museo del vigilante ${id_vigilante}:`, err);
+        res.status(500).json({
+            success: false,
+            error: err.message,
+            message: 'Error obteniendo información del vigilante'
+        });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('[VIGILANTE-MUSEO] Error cerrando conexión:', err);
+            }
+        }
     }
-}); 
+});
 
 // === ENDPOINT DE DEBUG SIMPLE PARA DROPDOWNS ===
 app.get('/api/debug/simple-data', async (req, res) => {

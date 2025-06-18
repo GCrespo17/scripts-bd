@@ -39,6 +39,71 @@
         <h2>{{ currentProcedure.name }}</h2>
         <p>{{ currentProcedure.description }}</p>
         <span class="category-badge">{{ currentProcedure.category }}</span>
+        
+        <!-- Ayuda específica para SP_MOVER_EMPLEADO_ACTIVO -->
+        <div v-if="currentProcedure.name === 'SP_MOVER_EMPLEADO_ACTIVO'" class="procedure-help">
+          <h4>💡 Lógica de Validación:</h4>
+          <ul>
+            <li><strong>Empleado:</strong> Siempre obligatorio</li>
+            <li><strong>Solo cambio de cargo/estructura:</strong> No es necesario seleccionar museo (se asume el mismo)</li>
+            <li><strong>Cambio de museo:</strong> Requiere seleccionar estructura organizacional Y cargo del museo destino</li>
+            <li><strong>Debe especificar al menos un cambio:</strong> Museo, estructura organizacional, o cargo</li>
+          </ul>
+        </div>
+
+        <!-- Ayuda específica para SP_MOVER_EMPLEADO_INACTIVO -->
+        <div v-if="currentProcedure.name === 'SP_MOVER_EMPLEADO_INACTIVO'" class="procedure-help">
+          <h4>🔄 Lógica de Reactivación:</h4>
+          <ul>
+            <li><strong>Empleado Inactivo:</strong> Siempre obligatorio</li>
+            <li><strong>Reactivación Completa:</strong> Se requieren TODOS los campos para reactivar</li>
+            <li><strong>Museo Destino:</strong> Obligatorio - donde será reactivado el empleado</li>
+            <li><strong>Estructura Organizacional:</strong> Obligatoria - nueva unidad organizacional</li>
+            <li><strong>Cargo:</strong> Obligatorio - nuevo cargo en el museo destino</li>
+            <li><strong>Nota:</strong> Los campos se filtran automáticamente según el museo seleccionado</li>
+          </ul>
+        </div>
+
+        <!-- Ayuda específica para SP_REGISTRAR_OBRA_NUEVA -->
+        <div v-if="currentProcedure.name === 'SP_REGISTRAR_OBRA_NUEVA'" class="procedure-help">
+          <h4>🎨 Registro de Nueva Obra:</h4>
+          <ul>
+            <li><strong>Datos de la Obra:</strong> Todos los campos básicos son obligatorios (título, fecha, tipo, dimensiones, etc.)</li>
+            <li><strong>Ubicación:</strong> Debe seleccionar museo, colección y sala donde se ubicará la obra</li>
+            <li><strong>Empleado Responsable:</strong> Solo se muestran empleados con cargo "Restaurador" o "Curador" del museo seleccionado</li>
+            <li><strong>Obra Destacada:</strong> Si marca "SI", el orden de recorrido se vuelve <strong>obligatorio</strong></li>
+            <li><strong>Orden de Recorrido:</strong> Las obras destacadas tienen prioridad sobre las no destacadas</li>
+            <li><strong>Historial:</strong> Se crea automáticamente un registro en hist_obras_mov con fecha actual</li>
+            <li><strong>Filtros Reactivos:</strong> Las opciones se filtran según el museo seleccionado</li>
+          </ul>
+        </div>
+
+        <!-- Ayuda específica para SP_ASIGNAR_VIGILANTE_MANT -->
+        <div v-if="currentProcedure.name === 'SP_ASIGNAR_VIGILANTE_MANT'" class="procedure-help">
+          <h4>🛡️ Asignación de Vigilante a Estructura:</h4>
+          <ul>
+            <li><strong>Vigilante:</strong> Obligatorio - seleccione el vigilante a asignar</li>
+            <li><strong>Filtrado Inteligente:</strong> Las estructuras físicas se filtran automáticamente para mostrar <strong>solo</strong> las del museo donde trabaja actualmente el vigilante seleccionado</li>
+            <li><strong>Estructura Física:</strong> Obligatoria - solo aparecen las estructuras del museo del vigilante</li>
+            <li><strong>Turno:</strong> Obligatorio - especifique el turno de trabajo</li>
+            <li><strong>Lógica de Negocio:</strong> Un vigilante solo puede ser asignado a estructuras del museo donde ya trabaja</li>
+            <li><strong>Sin Vigilante = Sin Estructuras:</strong> Si no se selecciona vigilante, no aparecerán estructuras disponibles</li>
+          </ul>
+        </div>
+
+        <!-- Ayuda específica para SP_MOVER_OBRA -->
+        <div v-if="currentProcedure.name === 'SP_MOVER_OBRA'" class="procedure-help">
+          <h4>🚚 Movimiento de Obras:</h4>
+          <ul>
+            <li><strong>Obra a Mover:</strong> Seleccione la obra que desea trasladar (obligatorio)</li>
+            <li><strong>Campos Opcionales:</strong> Solo complete los campos que desea cambiar</li>
+            <li><strong>Museo Destino:</strong> Si selecciona un museo diferente, se realiza un traslado completo</li>
+            <li><strong>Filtros Reactivos:</strong> Al seleccionar museo destino, las colecciones, salas y empleados se filtran automáticamente</li>
+            <li><strong>Mantenimiento de Programas:</strong> Si se mueve dentro del mismo museo, se mantienen los programas de mantenimiento</li>
+            <li><strong>Orden de Recorrido:</strong> Se recalcula automáticamente según las obras destacadas</li>
+            <li><strong>Histórico:</strong> Se cierra el registro anterior y se crea uno nuevo con los nuevos datos</li>
+          </ul>
+        </div>
       </div>
 
       <form @submit.prevent="executeProcedure" class="form">
@@ -258,7 +323,8 @@ export default {
       tiposResponsable: [],
       turnos: [],
       tiposMantenimiento: [],
-      tiposTicket: []
+      tiposTicket: [],
+      idiomas: []
     })
     const selectedProcedure = ref('')
     const formData = reactive({})
@@ -354,7 +420,8 @@ export default {
           tiposResponsable: [],
           turnos: [],
           tiposMantenimiento: [],
-          tiposTicket: []
+          tiposTicket: [],
+          idiomas: []
         }
       } finally {
         loadingSupportData.value = false
@@ -372,11 +439,180 @@ export default {
       })
     }
 
-    // Función para limpiar campos dependientes cuando cambia un campo padre
+    // Función para manejar cambios en campos con lógica específica por procedimiento
     const onFieldChange = (paramName, value) => {
       console.log(`[FIELD-CHANGE] ${paramName} cambió a:`, value)
       
-      // Si cambió el museo, limpiar todos los campos dependientes
+      // === LÓGICA ESPECÍFICA PARA SP_MOVER_EMPLEADO_ACTIVO ===
+      if (selectedProcedure.value === 'SP_MOVER_EMPLEADO_ACTIVO') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_MOVER_EMPLEADO_ACTIVO')
+        
+        // Si cambió el empleado, NO limpiar otros campos
+        if (paramName === 'n_id_empleado' && value) {
+          console.log('[FIELD-CHANGE] Empleado seleccionado, manteniendo otros campos')
+          return // No hacer nada más
+        }
+        
+        // Si cambió el museo destino, limpiar SOLO los campos que dependen del museo
+        if (paramName === 'n_id_museo' && value) {
+          console.log('[FIELD-CHANGE] Museo destino cambió, limpiando campos dependientes del museo')
+          
+          // Para SP_MOVER_EMPLEADO_ACTIVO: si selecciona museo, requiere est_org y cargo
+          const camposDependientesMuseo = ['n_id_est_org', 'n_cargo']
+          
+          camposDependientesMuseo.forEach(campo => {
+            if (formData[campo]) {
+              console.log(`[FIELD-CHANGE] Limpiando ${campo} porque cambió el museo`)
+              formData[campo] = ''
+            }
+          })
+          return
+        }
+        
+        // Si cambió estructura organizacional o cargo, NO requerir museo
+        if ((paramName === 'n_id_est_org' || paramName === 'n_cargo') && value) {
+          console.log('[FIELD-CHANGE] Estructura org o cargo cambió, no requiere museo')
+          return
+        }
+        
+        return // Salir para SP_MOVER_EMPLEADO_ACTIVO
+      }
+      
+      // === LÓGICA ESPECÍFICA PARA SP_MOVER_EMPLEADO_INACTIVO ===
+      if (selectedProcedure.value === 'SP_MOVER_EMPLEADO_INACTIVO') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_MOVER_EMPLEADO_INACTIVO')
+        
+        // Si cambió el empleado inactivo, NO limpiar otros campos
+        if (paramName === 'n_id_empleado' && value) {
+          console.log('[FIELD-CHANGE] Empleado inactivo seleccionado, manteniendo otros campos')
+          return // No hacer nada más
+        }
+        
+        // Si cambió el museo destino, limpiar campos que dependen del museo
+        if (paramName === 'n_id_museo' && value) {
+          console.log('[FIELD-CHANGE] Museo destino cambió, limpiando campos dependientes del museo')
+          
+          // Para SP_MOVER_EMPLEADO_INACTIVO: al cambiar museo, limpiar estructura y cargo
+          const camposDependientesMuseo = ['n_id_est_org', 'n_cargo']
+          
+          camposDependientesMuseo.forEach(campo => {
+            if (formData[campo]) {
+              console.log(`[FIELD-CHANGE] Limpiando ${campo} porque cambió el museo`)
+              formData[campo] = ''
+            }
+          })
+          return
+        }
+        
+        // Para estructura organizacional y cargo, mantener consistencia
+        if ((paramName === 'n_id_est_org' || paramName === 'n_cargo') && value) {
+          console.log('[FIELD-CHANGE] Estructura org o cargo cambió para empleado inactivo')
+          return
+        }
+        
+        return // Salir para SP_MOVER_EMPLEADO_INACTIVO
+      }
+
+      // === LÓGICA ESPECÍFICA PARA SP_REGISTRAR_OBRA_NUEVA ===
+      if (selectedProcedure.value === 'SP_REGISTRAR_OBRA_NUEVA') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_REGISTRAR_OBRA_NUEVA')
+        
+        // Si cambió el museo, limpiar campos dependientes del museo
+        if (paramName === 'n_id_museo' && value) {
+          console.log('[FIELD-CHANGE] Museo cambió, limpiando campos dependientes del museo')
+          
+          const camposDependientesMuseo = ['n_id_coleccion', 'n_id_sala', 'n_id_empleado']
+          
+          camposDependientesMuseo.forEach(campo => {
+            if (formData[campo]) {
+              console.log(`[FIELD-CHANGE] Limpiando ${campo} porque cambió el museo`)
+              formData[campo] = ''
+            }
+          })
+          return
+        }
+        
+        // Si cambió el campo "destacada", limpiar orden de recorrido si cambió a "NO"
+        if (paramName === 'n_destacada' && value) {
+          console.log('[FIELD-CHANGE] Campo destacada cambió a:', value)
+          
+          if (value === 'NO') {
+            // Si cambió a NO, limpiar orden de recorrido (ya que ahora es opcional)
+            if (formData.n_orden_recorrido) {
+              console.log('[FIELD-CHANGE] Obra no destacada, limpiando orden de recorrido')
+              formData.n_orden_recorrido = ''
+            }
+          }
+          return
+        }
+        
+        return // Salir para SP_REGISTRAR_OBRA_NUEVA
+      }
+
+      // === LÓGICA ESPECÍFICA PARA SP_INSERTAR_COLECCION ===
+      if (selectedProcedure.value === 'SP_INSERTAR_COLECCION') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_INSERTAR_COLECCION')
+        
+        // Si cambió el museo, limpiar el departamento porque debe filtrarse por el nuevo museo
+        if (paramName === 'n_nombre_museo' && value) {
+          console.log('[FIELD-CHANGE] Museo cambió para SP_INSERTAR_COLECCION, limpiando departamento')
+          
+          // Limpiar departamento porque debe filtrarse por el nuevo museo
+          if (formData.n_nombre_depto) {
+            console.log('[FIELD-CHANGE] Limpiando n_nombre_depto porque cambió el museo')
+            formData.n_nombre_depto = ''
+          }
+          return
+        }
+        
+        return // Salir para SP_INSERTAR_COLECCION
+      }
+
+      // === LÓGICA ESPECÍFICA PARA SP_MOVER_OBRA ===
+      if (selectedProcedure.value === 'SP_MOVER_OBRA') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_MOVER_OBRA')
+        
+        // Si cambió el museo destino, limpiar campos dependientes del museo
+        if (paramName === 'p_id_museo_destino' && value) {
+          console.log('[FIELD-CHANGE] Museo destino cambió para SP_MOVER_OBRA, limpiando campos dependientes')
+          
+          // Limpiar campos que dependen del museo destino
+          const camposDependientesMuseo = ['p_id_coleccion_destino', 'p_id_sala_destino', 'p_id_empleado_destino']
+          
+          camposDependientesMuseo.forEach(campo => {
+            if (formData[campo]) {
+              console.log(`[FIELD-CHANGE] Limpiando ${campo} porque cambió el museo destino`)
+              formData[campo] = ''
+            }
+          })
+          return
+        }
+        
+        return // Salir para SP_MOVER_OBRA
+      }
+      
+      // === LÓGICA ESPECÍFICA PARA SP_ASIGNAR_VIGILANTE_MANT ===
+      if (selectedProcedure.value === 'SP_ASIGNAR_VIGILANTE_MANT') {
+        console.log('[FIELD-CHANGE] Lógica específica para SP_ASIGNAR_VIGILANTE_MANT')
+        
+        // Si cambió el vigilante, limpiar la estructura física porque debe filtrarse por el museo del vigilante
+        if (paramName === 'n_id_vig_mant' && value) {
+          console.log('[FIELD-CHANGE] Vigilante cambió, limpiando estructura física para refiltrado')
+          
+          // Limpiar estructura física porque debe filtrarse por el nuevo vigilante
+          if (formData.n_id_est) {
+            console.log('[FIELD-CHANGE] Limpiando n_id_est porque cambió el vigilante')
+            formData.n_id_est = ''
+          }
+          return
+        }
+        
+        return // Salir para SP_ASIGNAR_VIGILANTE_MANT
+      }
+      
+      // === LÓGICA GENERAL PARA OTROS PROCEDIMIENTOS ===
+      
+      // Si cambió el museo, limpiar todos los campos dependientes (excepto SP_MOVER_EMPLEADO_ACTIVO)
       const esCampoMuseo = paramName.includes('museo') || paramName.includes('id_museo') 
       if (esCampoMuseo) {
         console.log('[FIELD-CHANGE] Campo de museo cambió, limpiando campos dependientes...')
@@ -402,6 +638,155 @@ export default {
 
     const executeProcedure = async () => {
       if (!selectedProcedure.value) return
+
+      // === VALIDACIÓN ESPECIAL PARA SP_MOVER_EMPLEADO_ACTIVO ===
+      if (selectedProcedure.value === 'SP_MOVER_EMPLEADO_ACTIVO') {
+        const empleado = formData.n_id_empleado
+        const museo = formData.n_id_museo
+        const estOrg = formData.n_id_est_org
+        const cargo = formData.n_cargo
+
+        // Validar que al menos se seleccionó un empleado
+        if (!empleado) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Debe seleccionar un empleado',
+            error: 'Empleado es obligatorio'
+          }
+          return
+        }
+
+        // Validar lógica de negocio:
+        // Si selecciona museo, requiere estructura organizacional Y cargo
+        if (museo && (!estOrg || !cargo)) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Si selecciona museo destino, debe seleccionar también estructura organizacional y cargo',
+            error: 'Museo destino requiere estructura organizacional y cargo'
+          }
+          return
+        }
+
+        // Validar que al menos se haya seleccionado algo para cambiar
+        if (!museo && !estOrg && !cargo) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Debe seleccionar al menos un campo para modificar (museo, estructura organizacional, o cargo)',
+            error: 'No hay cambios especificados'
+          }
+          return
+        }
+
+        console.log('[VALIDATION] SP_MOVER_EMPLEADO_ACTIVO validado correctamente')
+      }
+
+      // === VALIDACIÓN ESPECIAL PARA SP_MOVER_EMPLEADO_INACTIVO ===
+      if (selectedProcedure.value === 'SP_MOVER_EMPLEADO_INACTIVO') {
+        const empleado = formData.n_id_empleado
+        const museo = formData.n_id_museo
+        const estOrg = formData.n_id_est_org
+        const cargo = formData.n_cargo
+
+        // Validar que se seleccionó un empleado inactivo
+        if (!empleado) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Debe seleccionar un empleado inactivo',
+            error: 'Empleado inactivo es obligatorio'
+          }
+          return
+        }
+
+        // Para empleados inactivos, TODOS los campos son requeridos (reactivación completa)
+        if (!museo) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Museo destino es obligatorio para reactivar un empleado inactivo',
+            error: 'Museo destino es obligatorio'
+          }
+          return
+        }
+
+        if (!estOrg) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Estructura organizacional es obligatoria para reactivar un empleado inactivo',
+            error: 'Estructura organizacional es obligatoria'
+          }
+          return
+        }
+
+        if (!cargo) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Cargo es obligatorio para reactivar un empleado inactivo',
+            error: 'Cargo es obligatorio'
+          }
+          return
+        }
+
+        console.log('[VALIDATION] SP_MOVER_EMPLEADO_INACTIVO validado correctamente')
+      }
+
+      // === VALIDACIÓN ESPECIAL PARA SP_REGISTRAR_OBRA_NUEVA ===
+      if (selectedProcedure.value === 'SP_REGISTRAR_OBRA_NUEVA') {
+        console.log('[VALIDATION] Validando SP_REGISTRAR_OBRA_NUEVA')
+        
+        // Validar campos obligatorios básicos
+        const camposObligatorios = [
+          'n_nombre', 'n_fecha_periodo', 'n_tipo_obra', 'n_dimensiones', 
+          'n_desc_mat_tec', 'n_desc_estilos', 'n_id_museo', 'n_id_coleccion', 
+          'n_id_sala', 'n_id_empleado', 'n_tipo_adq', 'n_destacada'
+        ]
+        
+        for (const campo of camposObligatorios) {
+          if (!formData[campo]) {
+            const etiquetas = {
+              'n_nombre': 'Título de la Obra',
+              'n_fecha_periodo': 'Fecha/Período',
+              'n_tipo_obra': 'Tipo de Obra',
+              'n_dimensiones': 'Dimensiones',
+              'n_desc_mat_tec': 'Materiales y Técnicas',
+              'n_desc_estilos': 'Estilos y Géneros',
+              'n_id_museo': 'Museo',
+              'n_id_coleccion': 'Colección',
+              'n_id_sala': 'Sala',
+              'n_id_empleado': 'Empleado Responsable',
+              'n_tipo_adq': 'Tipo de Adquisición',
+              'n_destacada': '¿Es Obra Destacada?'
+            }
+            
+            lastResult.value = {
+              success: false,
+              message: `Error de validación: El campo "${etiquetas[campo]}" es obligatorio`,
+              error: `Campo ${campo} es requerido`
+            }
+            return
+          }
+        }
+        
+        // Validación especial: Si es destacada, orden de recorrido es obligatorio
+        if (formData.n_destacada === 'SI' && (!formData.n_orden_recorrido || formData.n_orden_recorrido <= 0)) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: Para obras destacadas, el orden de recorrido es obligatorio y debe ser mayor a 0',
+            error: 'Orden de recorrido requerido para obras destacadas'
+          }
+          return
+        }
+        
+        // Validación de valor monetario (debe ser positivo si se proporciona)
+        if (formData.n_valor_monetario && formData.n_valor_monetario <= 0) {
+          lastResult.value = {
+            success: false,
+            message: 'Error de validación: El valor monetario debe ser mayor a 0',
+            error: 'Valor monetario inválido'
+          }
+          return
+        }
+        
+        console.log('[VALIDATION] SP_REGISTRAR_OBRA_NUEVA validado correctamente')
+      }
 
       loading.value = true
       const startTime = Date.now()
@@ -476,8 +861,68 @@ export default {
       
       // === FILTRADO REACTIVO BASADO EN OTROS CAMPOS ===
       
+      // === FILTRADO ESPECÍFICO PARA SP_ASIGNAR_VIGILANTE_MANT ===
+      if (selectedProcedure.value === 'SP_ASIGNAR_VIGILANTE_MANT' && param.dataSource === 'estructurasFisicas') {
+        console.log(`[DROPDOWN] Filtrado específico para SP_ASIGNAR_VIGILANTE_MANT - estructuras físicas`)
+        console.log(`[DROPDOWN] Total estructuras físicas disponibles: ${options.length}`)
+        console.log(`[DROPDOWN] Vigilantes disponibles: ${supportData.value.vigilantes.length}`)
+        
+        const vigilanteSeleccionado = formData.n_id_vig_mant
+        if (vigilanteSeleccionado) {
+          console.log(`[DROPDOWN] Vigilante seleccionado: ${vigilanteSeleccionado}`)
+          
+          // Buscar el vigilante en los datos de apoyo para obtener su museo actual
+          const vigilante = supportData.value.vigilantes.find(v => v.id == vigilanteSeleccionado)
+          console.log(`[DROPDOWN] Vigilante encontrado:`, vigilante)
+          
+          if (vigilante && vigilante.id_museo) {
+            console.log(`[DROPDOWN] Vigilante trabaja en museo ID: ${vigilante.id_museo} (${vigilante.nombre_museo})`)
+            
+            // DEBUG: Mostrar todas las estructuras físicas antes del filtro
+            console.log(`[DROPDOWN] Estructuras físicas antes del filtro:`, options.slice(0, 3))
+            
+            // Filtrar estructuras físicas solo del museo donde trabaja el vigilante
+            // Usar comparación más robusta para evitar problemas de tipos
+            options = options.filter(estructura => {
+              const match = String(estructura.id_museo) === String(vigilante.id_museo)
+              if (!match) {
+                console.log(`[DROPDOWN] Descartando estructura ${estructura.nombre} (museo ${estructura.id_museo}) no coincide con vigilante (museo ${vigilante.id_museo})`)
+              }
+              return match
+            })
+            console.log(`[DROPDOWN] Estructuras físicas filtradas para museo del vigilante: ${options.length}`)
+            
+            // DEBUG: Mostrar las estructuras filtradas
+            if (options.length > 0) {
+              console.log(`[DROPDOWN] Estructuras físicas después del filtro:`, options.slice(0, 3))
+            } else {
+              console.warn(`[DROPDOWN] ⚠️ No se encontraron estructuras físicas para el museo ${vigilante.id_museo}`)
+              console.log(`[DROPDOWN] Verificando si existen estructuras físicas para ese museo...`)
+              const todasEstructuras = supportData.value.estructurasFisicas || []
+              const estructurasDelMuseo = todasEstructuras.filter(e => String(e.id_museo) === String(vigilante.id_museo))
+              console.log(`[DROPDOWN] Estructuras del museo ${vigilante.id_museo} en datos de apoyo:`, estructurasDelMuseo.length)
+            }
+          } else {
+            console.warn(`[DROPDOWN] No se encontró museo para vigilante ID: ${vigilanteSeleccionado}`)
+            console.log(`[DROPDOWN] Datos del vigilante:`, vigilante)
+            
+            // Si no tiene museo asignado, mostrar todas las estructuras como fallback
+            console.log(`[DROPDOWN] FALLBACK: Mostrando todas las estructuras físicas`)
+            // No filtrar, mantener todas las opciones
+          }
+        } else {
+          // Si no hay vigilante seleccionado, no mostrar estructuras
+          console.log(`[DROPDOWN] No hay vigilante seleccionado, sin estructuras disponibles`)
+          options = []
+        }
+        
+        console.log(`[DROPDOWN] ${param.dataSource} devolviendo ${options.length} opciones finales`)
+        return options
+      }
+      
       // Detectar el ID de museo seleccionado (puede tener diferentes nombres según el procedimiento)
-      const museoSeleccionado = formData.p_id_museo || formData.n_id_museo || formData.id_museo
+      const museoSeleccionado = formData.p_id_museo || formData.n_id_museo || formData.id_museo || 
+                                formData.n_nombre_museo || formData.p_id_museo_destino
       
       if (museoSeleccionado) {
         console.log(`[DROPDOWN] Museo seleccionado: ${museoSeleccionado}`)
@@ -485,26 +930,71 @@ export default {
         // Si es unidades organizacionales, filtrar por museo
         if (param.dataSource === 'unidadesOrganizacionales') {
           console.log(`[DROPDOWN] Filtrando unidades organizacionales para museo: ${museoSeleccionado}`)
-          options = options.filter(unidad => unidad.id_museo == museoSeleccionado)
-          console.log(`[DROPDOWN] Unidades filtradas: ${options.length}`)
+          
+          // Manejar diferentes tipos de parámetros de museo (ID vs nombre)
+          if (typeof museoSeleccionado === 'string' && isNaN(museoSeleccionado)) {
+            // Si es un string (nombre de museo), buscar el ID correspondiente
+            const museoEncontrado = supportData.value.museos.find(museo => museo.nombre === museoSeleccionado)
+            if (museoEncontrado) {
+              options = options.filter(unidad => unidad.id_museo == museoEncontrado.id)
+              console.log(`[DROPDOWN] Filtrado por nombre de museo "${museoSeleccionado}" (ID: ${museoEncontrado.id}): ${options.length} unidades`)
+            } else {
+              console.warn(`[DROPDOWN] No se encontró museo con nombre "${museoSeleccionado}"`)
+              options = []
+            }
+          } else {
+            // Si es un número (ID de museo), filtrar directamente
+            options = options.filter(unidad => unidad.id_museo == museoSeleccionado)
+            console.log(`[DROPDOWN] Filtrado por ID de museo ${museoSeleccionado}: ${options.length} unidades`)
+          }
         }
         
         // Si son salas, filtrar por museo
         if (param.dataSource === 'salas') {
           console.log(`[DROPDOWN] Filtrando salas para museo: ${museoSeleccionado}`)
-          options = options.filter(sala => sala.id_museo == museoSeleccionado)
-          console.log(`[DROPDOWN] Salas filtradas: ${options.length}`)
+          
+          // Manejar diferentes tipos de parámetros de museo (ID vs nombre)
+          if (typeof museoSeleccionado === 'string' && isNaN(museoSeleccionado)) {
+            // Si es un string (nombre de museo), buscar el ID correspondiente
+            const museoEncontrado = supportData.value.museos.find(museo => museo.nombre === museoSeleccionado)
+            if (museoEncontrado) {
+              options = options.filter(sala => sala.id_museo == museoEncontrado.id)
+              console.log(`[DROPDOWN] Salas filtradas por nombre de museo "${museoSeleccionado}" (ID: ${museoEncontrado.id}): ${options.length}`)
+            } else {
+              console.warn(`[DROPDOWN] No se encontró museo con nombre "${museoSeleccionado}"`)
+              options = []
+            }
+          } else {
+            // Si es un número (ID de museo), filtrar directamente
+            options = options.filter(sala => sala.id_museo == museoSeleccionado)
+            console.log(`[DROPDOWN] Salas filtradas por ID de museo ${museoSeleccionado}: ${options.length}`)
+          }
         }
         
         // Si son colecciones, filtrar por museo
         if (param.dataSource === 'colecciones') {
           console.log(`[DROPDOWN] Filtrando colecciones para museo: ${museoSeleccionado}`)
-          options = options.filter(coleccion => coleccion.id_museo == museoSeleccionado)
-          console.log(`[DROPDOWN] Colecciones filtradas: ${options.length}`)
+          
+          // Manejar diferentes tipos de parámetros de museo (ID vs nombre)
+          if (typeof museoSeleccionado === 'string' && isNaN(museoSeleccionado)) {
+            // Si es un string (nombre de museo), buscar el ID correspondiente
+            const museoEncontrado = supportData.value.museos.find(museo => museo.nombre === museoSeleccionado)
+            if (museoEncontrado) {
+              options = options.filter(coleccion => coleccion.id_museo == museoEncontrado.id)
+              console.log(`[DROPDOWN] Colecciones filtradas por nombre de museo "${museoSeleccionado}" (ID: ${museoEncontrado.id}): ${options.length}`)
+            } else {
+              console.warn(`[DROPDOWN] No se encontró museo con nombre "${museoSeleccionado}"`)
+              options = []
+            }
+          } else {
+            // Si es un número (ID de museo), filtrar directamente
+            options = options.filter(coleccion => coleccion.id_museo == museoSeleccionado)
+            console.log(`[DROPDOWN] Colecciones filtradas por ID de museo ${museoSeleccionado}: ${options.length}`)
+          }
         }
         
-        // Si son estructuras físicas, filtrar por museo
-        if (param.dataSource === 'estructurasFisicas') {
+        // Si son estructuras físicas, filtrar por museo (solo para procedimientos que NO sean SP_ASIGNAR_VIGILANTE_MANT)
+        if (param.dataSource === 'estructurasFisicas' && selectedProcedure.value !== 'SP_ASIGNAR_VIGILANTE_MANT') {
           console.log(`[DROPDOWN] Filtrando estructuras físicas para museo: ${museoSeleccionado}`)
           options = options.filter(estructura => estructura.id_museo == museoSeleccionado)
           console.log(`[DROPDOWN] Estructuras físicas filtradas: ${options.length}`)
@@ -513,8 +1003,33 @@ export default {
         // Si son empleados, filtrar por museo (si está disponible)
         if (param.dataSource === 'empleados' && options.length > 0 && options[0].id_museo) {
           console.log(`[DROPDOWN] Filtrando empleados para museo: ${museoSeleccionado}`)
-          options = options.filter(empleado => empleado.id_museo == museoSeleccionado)
-          console.log(`[DROPDOWN] Empleados filtrados: ${options.length}`)
+          
+          // Manejar diferentes tipos de parámetros de museo (ID vs nombre)
+          if (typeof museoSeleccionado === 'string' && isNaN(museoSeleccionado)) {
+            // Si es un string (nombre de museo), buscar el ID correspondiente
+            const museoEncontrado = supportData.value.museos.find(museo => museo.nombre === museoSeleccionado)
+            if (museoEncontrado) {
+              options = options.filter(empleado => empleado.id_museo == museoEncontrado.id)
+              console.log(`[DROPDOWN] Empleados filtrados por nombre de museo "${museoSeleccionado}" (ID: ${museoEncontrado.id}): ${options.length}`)
+            } else {
+              console.warn(`[DROPDOWN] No se encontró museo con nombre "${museoSeleccionado}"`)
+              options = []
+            }
+          } else {
+            // Si es un número (ID de museo), filtrar directamente
+            options = options.filter(empleado => empleado.id_museo == museoSeleccionado)
+            console.log(`[DROPDOWN] Empleados filtrados por ID de museo ${museoSeleccionado}: ${options.length}`)
+          }
+          
+          // Filtrado especial para SP_REGISTRAR_OBRA_NUEVA: solo restauradores y curadores
+          if (selectedProcedure.value === 'SP_REGISTRAR_OBRA_NUEVA' && param.name === 'n_id_empleado') {
+            console.log(`[DROPDOWN] Filtrado especial: solo restauradores y curadores para SP_REGISTRAR_OBRA_NUEVA`)
+            options = options.filter(empleado => {
+              const cargo = empleado.cargo ? empleado.cargo.toLowerCase() : ''
+              return cargo.includes('restaurador') || cargo.includes('curador')
+            })
+            console.log(`[DROPDOWN] Empleados restauradores/curadores filtrados: ${options.length}`)
+          }
         }
         
         // Si son exposiciones, filtrar por museo
@@ -574,10 +1089,15 @@ export default {
 
     const getOptionLabel = (item, param) => {
       if (typeof item === 'object') {
+        // Manejo especial para mantenimientos: mostrar obra y descripción
+        if (param.dataSource === 'mantenimientos' && item.obra_nombre && item.descripcion) {
+          return `${item.obra_nombre} - ${item.descripcion}`
+        }
+        // Manejo estándar para otros casos
         if (item.id && (item.nombre || item.titulo)) {
           return `${item.id} - ${item.nombre || item.titulo}`
         }
-        return item.nombre || item.titulo || item.tipo || item
+        return item.nombre || item.titulo || item.tipo || item.obra_nombre || item
       }
       return item
     }
@@ -687,6 +1207,31 @@ export default {
 .procedure-info h2 {
   color: #2c3e50;
   margin-bottom: 10px;
+}
+
+.procedure-help {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 15px;
+  margin-top: 15px;
+}
+
+.procedure-help h4 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.procedure-help ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.procedure-help li {
+  margin-bottom: 5px;
+  color: #6c757d;
+  font-size: 0.9rem;
 }
 
 .category-badge {

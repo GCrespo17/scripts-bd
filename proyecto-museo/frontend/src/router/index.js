@@ -56,6 +56,11 @@ const router = createRouter({
       path: '/test-procedures',
       name: 'test-procedures',
       component: () => import('../views/TestProceduresView.vue')
+    },
+    {
+      path: '/dashboard-mantenimiento',
+      name: 'dashboard-mantenimiento',
+      component: () => import('../views/DashboardMantenimientoView.vue')
     }
   ]
 })
