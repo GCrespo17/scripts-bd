@@ -3879,7 +3879,8 @@ app.get('/api/support-data', async (req, res) => {
             ) : { rows: [['ADULTO'], ['ESTUDIANTE'], ['NIÑO'], ['TERCERA_EDAD'], ['GRUPO']] };
         
         // === LISTAS PREDEFINIDAS PARA DROPDOWNS BÁSICOS ===
-        const tiposAdquisicionResult = { rows: [['COMPRA'], ['DONACIÓN'], ['PRÉSTAMO'], ['INTERCAMBIO']] };
+        // Tipos de adquisición según constraint check_tipo_adq en HIST_OBRAS_MOV
+        const tiposAdquisicionResult = { rows: [['COMPRADA'], ['DONADA'], ['COMPRADA A MUSEO'], ['DONADA POR MUSEO']] };
         const tiposResponsableResult = { rows: [['VIGILANTE'], ['MANTENIMIENTO'], ['SEGURIDAD']] };
         const turnosResult = { rows: [['MATUTINO'], ['VESPERTINO'], ['NOCTURNO']] };
         const tiposMantenimientoResult = { rows: [['PREVENTIVO'], ['CORRECTIVO'], ['RESTAURACIÓN'], ['CONSERVACIÓN']] };
