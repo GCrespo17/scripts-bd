@@ -624,10 +624,14 @@ GRANT EXECUTE ON SP_VENDER_TICKET TO ROL_VENDEDOR_TICKETS;
 -- Crear los usuarios
 CREATE USER analista01 IDENTIFIED BY password;
 CREATE USER vendedor01 IDENTIFIED BY password;
+CREATE USER administrador01 IDENTIFIED BY password;
+CREATE USER curador01 IDENTIFIED BY password;
 
 -- Asignar los roles a los usuarios
 GRANT ROL_ANALISTA_FINANCIERO TO analista01;
 GRANT ROL_VENDEDOR_TICKETS TO vendedor01;
+GRANT ROL_ADMIN_MUSEO TO administrador01;
+GRANT ROL_CURADOR TO curador01;
 
 -- Otorgar permiso de conexión
-GRANT CREATE SESSION TO analista01, vendedor01;
+GRANT CREATE SESSION TO analista01, vendedor01, administrador01, curador01;
