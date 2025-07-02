@@ -1,4 +1,4 @@
-EJEMPLOS DE USO PARA DEFENSA BD 1
+--EJEMPLOS DE USO PARA DEFENSA BD 1
 
 ----------REGISTRAR UN EMPLEADO QUE NO EXISTA EN LA BASE DE DATOS Y ASIGNARLO A UN MUSEO-----------
 /*
@@ -444,3 +444,122 @@ EXCEPTION
         ROLLBACK; 
 END;
 /
+
+--Mostrar Museos y sus tipos de ticket actuales
+SELECT m.id_museo, m.nombre, tt.tipo, tt.precio
+FROM MUSEOS m, TIPO_TICKETS tt
+WHERE m.id_museo = tt.id_museo AND tt.fecha_fin IS NULL;
+
+
+--Ejemplo para obtener los ingresos de tickets de un museo
+SELECT nombre, FN_CALCULAR_INGRESOS_ANUALES_TOTALES(2, 2025) AS "Ingresos Totales"
+FROM MUSEOS
+WHERE id_museo = 2;
+
+
+-- Simula la venta de un ticket de adulto.
+/*
+	En este bloque de ejemplo, indica el museo y el tipo de ticket,
+	para que se genere automaticamente un ticket
+*/
+
+--Mostrar Museos y sus tipos de ticket actuales
+SELECT m.id_museo, m.nombre, tt.tipo, tt.precio
+FROM MUSEOS m, TIPO_TICKETS tt
+WHERE m.id_museo = tt.id_museo AND tt.fecha_fin IS NULL;
+
+DECLARE
+    v_museo_id      NUMBER := 2;
+    v_ticket_id     NUMBER;
+BEGIN
+    -- Obtener el ID del museo
+    --SELECT id_museo INTO v_museo_id FROM MUSEOS WHERE nombre = 'Hamburger Kunsthalle';
+
+    -- Llamar al procedimiento para vender un ticket de adulto
+    SP_VENDER_TICKET(
+        p_id_museo          => v_museo_id,
+        p_tipo_ticket       => 'ADULTO',
+        p_id_ticket_generado => v_ticket_id
+    );
+    
+    DBMS_OUTPUT.PUT_LINE('Ticket vendido exitosamente. ID del Ticket: ' || v_ticket_id);
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error al vender el ticket: ' || SQLERRM);
+        ROLLBACK;
+        RAISE; -- Re-lanzar para que la aplicación cliente pueda manejarlo
+END;
+/
+
+
+--Mostramos de nuevo los ingresos de tickets
+SELECT 
+    nombre, 
+    FN_INGRESOS_ANUALES_TICKETS(2, 2025) AS "Ingresos Tickets (Actualizado)"
+FROM MUSEOS
+WHERE id_museo = 2;
+
+
+-- Mostrar las exposiciones abiertas actualmente
+SELECT id_expo, fecha_inicio, fecha_fin, id_museo, nombre
+FROM EXPOSICIONES_EVENTOS
+WHERE fecha_inicio <= SYSDATE AND fecha_fin >= SYSDATE
+ORDER BY id_museo;
+
+--mostrar las exposiciones que se cierran en 2025
+SELECT id_expo, fecha_inicio, fecha_fin, id_museo, nombre
+FROM EXPOSICIONES_EVENTOS
+WHERE fecha_fin >= TO_DATE('2025-01-01', 'YYYY-MM-DD')
+AND fecha_inicio < TO_DATE('2026-01-01', 'YYYY-MM-DD')
+ORDER BY id_museo;
+
+
+
+
+DECLARE
+    v_id_expo_a_cerrar  NUMBER := 9;
+    v_id_museo_expo     NUMBER := 3;
+    v_total_visitantes  NUMBER := 15000; 
+    -- Se finaliza la exposición y se registran sus visitantes
+    SP_FINALIZAR_EXPOSICION(
+        p_id_expo         => v_id_expo_a_cerrar,
+        p_id_museo        => v_id_museo_expo,
+        p_cant_visitantes => v_total_visitantes
+    );
+
+    DBMS_OUTPUT.PUT_LINE('La exposición ha sido finalizada exitosamente.');
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error al finalizar la exposición: ' || SQLERRM);
+        ROLLBACK;
+        RAISE;
+END;
+/
+
+COMMIT;
+
+
+-- 1. Verifica el nuevo total de ingresos por tickets.
+SELECT 
+    nombre, 
+    FN_INGRESOS_ANUALES_TICKETS(2, 2025) AS "Ingresos Tickets (Actualizado)"
+FROM MUSEOS
+WHERE id_museo = 2;
+
+-- 2. Verifica el nuevo total de ingresos por eventos.
+SELECT 
+    nombre, 
+    FN_INGRESOS_ANUALES_EVENTOS(2, 2025) AS "Ingresos Exposiciones (Actualizado)"
+FROM MUSEOS
+WHERE id_museo = 2;
+
+-- 3. Verifica el nuevo total anual.
+SELECT 
+    nombre, 
+    FN_CALCULAR_INGRESOS_ANUALES_TOTALES(2, 2025) AS "Ingresos Totales (Final)"
+FROM MUSEOS
+WHERE id_museo = 2;
