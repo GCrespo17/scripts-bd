@@ -47,6 +47,17 @@ services:
     networks:
       - app-network
 
+  oracle-db-backup:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    ports:
+      - "1526:1521"
+    environment:
+      - ORACLE_PASSWORD=admin
+    volumes:
+      - oracle-backup-data:/opt/oracle/oradata
+    networks:
+      - app-network
+
 # Define la red que usarán los servicios para comunicarse
 networks:
   app-network:
@@ -55,4 +66,6 @@ networks:
 # Define el volumen para la persistencia de datos de Oracle
 volumes:
   oracle-data:
+    driver: local
+  oracle-backup-data:
     driver: local 
