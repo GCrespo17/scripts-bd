@@ -1,0 +1,94 @@
+Rúbrica 3- TERCERA ENTREGA DEL PROYECTO -10%
+Actividad a ser evaluada:
+Formato para la revisión:
+Escala final:
+Método de evaluación:
+Niveles de clasificación:
+
+Aspecto
+1. Demostración de la implementación de los requerimientos del
+sistema de bases de datos transaccional referidos a la
+administración de ingresos del museo. (2 pts). Antes de la revisión,
+se indicará cuáles cálculos deben ser implementados por cada
+
+Implementación del sistema de bd transaccional (procesos automatizados - transacciones y seguridad)
+Revisión en vivo del sistema implementado
+Nota sobre 20 pts – conversión con regla de 3
+Analítico
+4 niveles (Necesita mejorar - 1, Regular – 2, Bueno - 3, Excelente - 4)
+1 (01 a 09), 2 (10 a 12), 3 (13 a 16), 4 (17 a 20)
+
+Necesita mejorar
+
+Regular
+
+Bueno
+
+Excelente
+
+No están desarrollados los
+requerimientos solicitados. No sabe
+como realizar las demostraciones de
+las transacciones solicitadas. O
+demuestra con mucha dificultad las
+mismas.
+
+Realiza las demostraciones pero no las
+puede explicar o se le dificulta resolver
+los problemas que se presenten al
+momento de correr algún programa.
+
+Realiza las demostraciones, explica
+casi todas y puede resolver la mayoría
+de los problemas que se presenten al
+momento de correr algún programa.
+
+Realiza las demostraciones, las puede
+explicar y resuelve los problemas que
+se presenten al momento de correr
+algún programa.
+
+No se implementó la seguridad en la
+b/d. O no sabe como realizar las
+demostraciones o demuestra con
+mucha dificultad las mismas.
+
+Realiza las demostraciones pero no las
+puede explicar o se le dificulta resolver
+los problemas que se presenten.
+
+Realiza las demostraciones, explica
+casi todas y puede resolver la mayoría
+de los problemas que se presenten.
+
+Realiza las demostraciones, las puede
+explicar y resuelve los problemas que
+se presenten.
+
+estudiante.
+2. Demostración de la implementación del diseño de seguridad.
+(3 pts)
+
+Nota 1: La demostración de esta entrega es individual y cada estudiante tendrá un puntaje máximo de 5 ptos que serán convertidos a la nota sobre 20 utilizando la
+regla de 3 correspondiente. Los estudiantes que no asistan a la entrega perderán la nota de la misma.
+
+Para el Aspecto 1 los cálculos a demostrar son: (todos los cálculos son por Museo)
+1 – Cálculo total general de los ingresos por eventos/exposiciones
+2 – Cálculo total general de los ingresos por entradas o tickets
+3 – Cálculo semestral de los ingresos totales
+4 – Cálculo anual de los ingresos totales
+Horarios de revisión de la Rúbrica 3 y asignación de cálculos por integrante:
+
+CORRESPONDE HACER LA NUMERO 4
+La revisión de la rúbrica 3 se realizará el martes 8 y miércoles 9 de julio – Semana 15. Especificaciones en la rúbrica
+correspondiente publicada en el módulo Proyecto desde el inicio del semestre.
+Cada estudiante asistirá sólo a la clase en la que le corresponda la defensa. En el salón debe estar sólo el estudiante del
+equipo a presentar según los horarios y orden indicados previamente. El tiempo de demostración individual será de
+aproximadamente 10 minutos – recuerden que demostrarán los cálculos asignados y el diseño de seguridad
+implementado.
+
+Como la defensa es individual cada estudiante debe utilizar su equipo particular. Si alguno
+debe defender en un laboratorio me debe avisar antes del jueves 3 de julio en cuál
+laboratorio será la defensa. En función de lo anterior podrá haber algun cambio en los
+horarios indicados previamente.
+
