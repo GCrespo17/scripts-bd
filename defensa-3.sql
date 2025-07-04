@@ -196,16 +196,7 @@ END;
 -- ========================================
 
 -- ========================================
--- 2.1: DEFINICIÓN DE ROLES
--- ========================================
-
-CREATE ROLE ROL_ADMIN_MUSEO;
-CREATE ROLE ROL_CURADOR;
-CREATE ROLE ROL_RESTAURADOR;
-CREATE ROLE ROL_VIGILANTE;
-
--- ========================================
--- 2.2: CREACIÓN DE VISTAS DE SEGURIDAD
+-- 2.1: CREACIÓN DE VISTAS DE SEGURIDAD
 -- ========================================
 
 -- Vista segura para empleados (oculta doc_identidad y fecha_nacimiento)
@@ -216,12 +207,11 @@ SELECT
     segundo_nombre,
     primer_apellido,
     segundo_apellido,
-    contacto,
-    id_museo
+    contacto
 FROM EMPLEADOS_PROFESIONALES;
 /
 
--- Vista segura para obras (oculta valor_monetario)
+-- Vista segura para obras (información básica sin campos sensibles)
 CREATE OR REPLACE VIEW V_OBRA_CATALOGO AS
 SELECT 
     id_obra,
@@ -229,30 +219,33 @@ SELECT
     fecha_periodo,
     tipo_obra,
     dimensiones,
-    desc_mat_tec,
-    desc_estilos,
-    id_museo,
-    id_coleccion,
-    id_sala,
-    id_empleado,
-    tipo_adq,
-    destacada,
-    orden_recorrido
+    desc_materiales_tecnicas,
+    desc_estilos_generos
 FROM OBRAS;
 /
 
 -- Vista segura para información básica de empleados históricos
 CREATE OR REPLACE VIEW V_HIST_EMPLEADOS_BASICO AS
 SELECT 
-    id_empleado,
-    primer_nombre,
-    primer_apellido,
+    id_empleado_prof,
     fecha_inicio,
     fecha_fin,
+    id_est_org,
     id_museo,
     cargo
 FROM HIST_EMPLEADOS;
 /
+
+-- ========================================
+-- 2.2: DEFINICIÓN DE ROLES
+-- ========================================
+
+CREATE ROLE ROL_ADMIN_MUSEO;
+CREATE ROLE ROL_CURADOR;
+CREATE ROLE ROL_RESTAURADOR;
+CREATE ROLE ROL_VIGILANTE;
+
+
 
 -- ========================================
 -- 2.3: OTORGAMIENTO DE PERMISOS (PRINCIPIO DE MÍNIMO PRIVILEGIO)
@@ -277,7 +270,7 @@ GRANT EXECUTE ON SP_ELIMINAR_COLECCION TO ROL_CURADOR;
 -- Solo acceso a vistas seguras y tablas de referencia
 GRANT SELECT ON V_OBRA_CATALOGO TO ROL_CURADOR;
 GRANT SELECT ON V_EMPLEADO_CONTACTO TO ROL_CURADOR;
-GRANT SELECT ON ARTISTAS, SALAS_EXP TO ROL_CURADOR;
+GRANT SELECT ON ARTISTAS TO ROL_CURADOR;
 
 -- ROL ADMINISTRADOR (Solo procedimientos almacenados)
 GRANT EXECUTE ON SP_REGISTRAR_NUEVO_EMPLEADO TO ROL_ADMIN_MUSEO;
@@ -322,7 +315,7 @@ GRANT SELECT ON V_HIST_EMPLEADOS_BASICO TO director01;
 
 -- Permisos de consulta sobre tablas maestras para análisis
 GRANT SELECT ON MUSEOS TO director01;
-GRANT SELECT ON COLECCIONES_PERMANENTES TO director01;
+GRANT SELECT ON LUGARES TO director01;
 
 -- Otorgar permiso de conexión
 GRANT CREATE SESSION TO administrador01, curador01, restaurador01, vigilante01, director01, analista_rrhh01;
@@ -400,6 +393,3 @@ PUNTO 2 - ESQUEMA DE SEGURIDAD (NIVEL "EXCELENTE"):
 ✅ Procedimientos almacenados como interfaz única
 ✅ Separación clara de responsabilidades
 ✅ Casos de prueba para validación
-
-ESTE ARCHIVO CUMPLE TODOS LOS CRITERIOS DE LA RÚBRICA
-*/ 
