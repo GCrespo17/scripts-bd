@@ -207,7 +207,7 @@ SELECT
     segundo_nombre,
     primer_apellido,
     segundo_apellido,
-    contacto
+    TO_CHAR(contacto) AS contacto
 FROM EMPLEADOS_PROFESIONALES;
 /
 
@@ -344,20 +344,265 @@ EXECUTE SP_MOSTRAR_INGRESOS_ANUALES_EVENTOS_MUSEO(2, 2025);
 -- PRUEBA 1: VERIFICACIÓN DE ACCESO A VISTAS SEGURAS
 -- Ejemplo de consulta segura para empleados (sin doc_identidad ni fecha_nacimiento)
 -- CONNECT curador01/123456;
--- SELECT * FROM V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
 
 -- PRUEBA 2: VERIFICACIÓN DE RESTRICCIÓN DE ACCESO DIRECTO
 -- Estas consultas DEBEN FALLAR para demostrar que no se otorgaron permisos DML directos
 -- CONNECT curador01/123456;
--- SELECT * FROM OBRAS; -- DEBE FALLAR: ORA-00942: table or view does not exist
+-- SELECT * FROM SYSTEM.OBRAS; -- DEBE FALLAR: ORA-00942: table or view does not exist
 
 -- PRUEBA 3: VERIFICACIÓN DE PROCEDIMIENTOS ALMACENADOS
 -- Demostrar que las operaciones deben realizarse a través de procedimientos
 -- CONNECT administrador01/123456;
--- EXECUTE SP_REGISTRAR_NUEVO_EMPLEADO(...);
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(...);
 
 -- ========================================
--- SCRIPT DE VALIDACIÓN RÁPIDA
+-- 3.3: PRUEBAS ESPECÍFICAS POR ROL
+-- ========================================
+
+-- PRUEBAS PARA ROL_CURADOR (curador01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA ROL_CURADOR
+PROMPT ========================================
+
+-- Conexión como curador01
+-- CONNECT curador01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- SELECT * FROM SYSTEM.V_OBRA_CATALOGO WHERE ROWNUM <= 5;
+-- SELECT * FROM SYSTEM.V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.ARTISTAS WHERE ROWNUM <= 3;
+-- EXECUTE SYSTEM.SP_REGISTRAR_OBRA_NUEVA('Obra de Prueba', SYSDATE, 'PINTURA', '50x60', 'Óleo sobre lienzo', 'Realismo');
+-- EXECUTE SYSTEM.SP_ASIGNAR_OBRA_A_EXPOSICION(1, 1, 2);
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- SELECT * FROM SYSTEM.OBRAS; -- ORA-00942: table or view does not exist
+-- INSERT INTO SYSTEM.OBRAS VALUES (...); -- ORA-00942: table or view does not exist
+-- SELECT * FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(...); -- ORA-00942: table or view does not exist
+
+-- ========================================
+
+-- PRUEBAS PARA ROL_ADMIN_MUSEO (administrador01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA ROL_ADMIN_MUSEO
+PROMPT ========================================
+
+-- Conexión como administrador01
+-- CONNECT administrador01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- SELECT * FROM SYSTEM.V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.V_HIST_EMPLEADOS_BASICO WHERE ROWNUM <= 3;
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(12345678, 'Juan', 'Pérez', DATE '1985-05-15', 555123456, 'Carlos', 'González', 2, 'Departamento de Curaduría', 'CURADOR', SYSDATE);
+-- EXECUTE SYSTEM.SP_MOVER_EMPLEADO_ACTIVO(1, 555987654);
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- SELECT * FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- SELECT * FROM SYSTEM.HIST_EMPLEADOS; -- ORA-00942: table or view does not exist
+-- INSERT INTO SYSTEM.EMPLEADOS_PROFESIONALES VALUES (...); -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_OBRA_NUEVA(...); -- PLS-00201: identifier must be declared
+
+-- ========================================
+
+-- PRUEBAS PARA ROL_RESTAURADOR (restaurador01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA ROL_RESTAURADOR
+PROMPT ========================================
+
+-- Conexión como restaurador01
+-- CONNECT restaurador01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- SELECT * FROM SYSTEM.OBRAS WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.PROGRAMAS_MANT WHERE ROWNUM <= 3;
+-- EXECUTE SYSTEM.SP_REGISTRAR_MANTENIMIENTO_OBRA(1, 1, 'Limpieza general de la obra');
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- INSERT INTO SYSTEM.OBRAS VALUES (...); -- ORA-01031: insufficient privileges
+-- DELETE FROM SYSTEM.PROGRAMAS_MANT; -- ORA-01031: insufficient privileges
+-- SELECT * FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(...); -- PLS-00201: identifier must be declared
+
+-- ========================================
+
+-- PRUEBAS PARA ROL_VIGILANTE (vigilante01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA ROL_VIGILANTE
+PROMPT ========================================
+
+-- Conexión como vigilante01
+-- CONNECT vigilante01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- EXECUTE SYSTEM.SP_MOSTRAR_TURNOS_ACTUALES;
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- SELECT * FROM SYSTEM.OBRAS; -- ORA-00942: table or view does not exist
+-- SELECT * FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_OBRA_NUEVA(...); -- PLS-00201: identifier must be declared
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(...); -- PLS-00201: identifier must be declared
+
+-- ========================================
+
+-- PRUEBAS PARA DIRECTOR (director01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA DIRECTOR
+PROMPT ========================================
+
+-- Conexión como director01
+-- CONNECT director01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TOTALES_MUSEO(2, 2025);
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TICKETS_MUSEO(2, 2025);
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_EVENTOS_MUSEO(2, 2025);
+-- SELECT * FROM SYSTEM.V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.V_OBRA_CATALOGO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.V_HIST_EMPLEADOS_BASICO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.MUSEOS WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.LUGARES WHERE ROWNUM <= 3;
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- INSERT INTO SYSTEM.MUSEOS VALUES (...); -- ORA-01031: insufficient privileges
+-- DELETE FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- SELECT doc_identidad FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(...); -- PLS-00201: identifier must be declared
+
+-- ========================================
+
+-- PRUEBAS PARA ANALISTA_RRHH (analista_rrhh01)
+PROMPT ========================================
+PROMPT PRUEBAS DE SEGURIDAD PARA ANALISTA_RRHH
+PROMPT ========================================
+
+-- Conexión como analista_rrhh01
+-- CONNECT analista_rrhh01/123456;
+
+-- PRUEBAS QUE DEBEN FUNCIONAR (permisos otorgados):
+-- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(87654321, 'María', 'López', DATE '1990-03-20', 555654321, 'Ana', 'Martínez', 2, 'Departamento Administrativo', 'ADMINISTRATIVO', SYSDATE);
+-- EXECUTE SYSTEM.SP_MOVER_EMPLEADO_ACTIVO(2, 555111222);
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TOTALES_MUSEO(2, 2025);
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TICKETS_MUSEO(2, 2025);
+-- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_EVENTOS_MUSEO(2, 2025);
+-- SELECT * FROM SYSTEM.V_EMPLEADO_CONTACTO WHERE ROWNUM <= 3;
+-- SELECT * FROM SYSTEM.V_HIST_EMPLEADOS_BASICO WHERE ROWNUM <= 3;
+
+-- PRUEBAS QUE DEBEN FALLAR (sin permisos):
+-- SELECT doc_identidad FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- ORA-00942: table or view does not exist
+-- INSERT INTO SYSTEM.OBRAS VALUES (...); -- ORA-00942: table or view does not exist
+-- EXECUTE SYSTEM.SP_REGISTRAR_OBRA_NUEVA(...); -- PLS-00201: identifier must be declared
+
+-- ========================================
+-- 3.4: SCRIPT DE PRUEBAS AUTOMATIZADO
+-- ========================================
+
+-- Verificar conexiones y permisos básicos
+PROMPT ========================================
+PROMPT SCRIPT DE VERIFICACIÓN AUTOMÁTICA
+PROMPT ========================================
+
+-- Reconectarse como SYSTEM para ejecutar verificaciones
+-- CONNECT SYSTEM/system;
+
+-- Verificar que los usuarios existen
+SELECT 'Usuario ' || username || ' existe' AS verificacion 
+FROM DBA_USERS 
+WHERE username IN ('ADMINISTRADOR01', 'CURADOR01', 'RESTAURADOR01', 'VIGILANTE01', 'DIRECTOR01', 'ANALISTA_RRHH01');
+
+-- Verificar asignación de roles
+SELECT 'Usuario ' || grantee || ' tiene rol ' || granted_role AS verificacion
+FROM DBA_ROLE_PRIVS 
+WHERE grantee IN ('ADMINISTRADOR01', 'CURADOR01', 'RESTAURADOR01', 'VIGILANTE01', 'DIRECTOR01', 'ANALISTA_RRHH01')
+ORDER BY grantee;
+
+-- Verificar permisos de ejecución otorgados
+SELECT 'Usuario/Rol ' || grantee || ' puede ejecutar ' || table_name AS verificacion
+FROM DBA_TAB_PRIVS 
+WHERE privilege = 'EXECUTE' 
+AND grantee IN ('ROL_ADMIN_MUSEO', 'ROL_CURADOR', 'ROL_RESTAURADOR', 'ROL_VIGILANTE', 'DIRECTOR01', 'ANALISTA_RRHH01')
+ORDER BY grantee, table_name;
+
+-- Verificar permisos de consulta otorgados
+SELECT 'Usuario/Rol ' || grantee || ' puede consultar ' || table_name AS verificacion
+FROM DBA_TAB_PRIVS 
+WHERE privilege = 'SELECT' 
+AND grantee IN ('ROL_ADMIN_MUSEO', 'ROL_CURADOR', 'ROL_RESTAURADOR', 'ROL_VIGILANTE', 'DIRECTOR01', 'ANALISTA_RRHH01')
+ORDER BY grantee, table_name;
+
+-- ========================================
+-- 3.5: EJEMPLOS DE PRUEBAS EJECUTABLES
+-- ========================================
+
+PROMPT ========================================
+PROMPT EJEMPLOS DE COMANDOS PARA PRUEBAS MANUALES
+PROMPT ========================================
+
+-- Para ejecutar estas pruebas, copie y pegue los comandos en SQL*Plus o SQL Developer
+-- Recuerde que debe ejecutar cada bloque después de conectarse con el usuario correspondiente
+
+PROMPT -- EJEMPLO 1: PRUEBA COMO CURADOR01
+PROMPT -- CONNECT curador01/123456;
+PROMPT -- SELECT COUNT(*) AS "Obras visibles" FROM SYSTEM.V_OBRA_CATALOGO;
+PROMPT -- SELECT COUNT(*) AS "Empleados visibles" FROM SYSTEM.V_EMPLEADO_CONTACTO;
+PROMPT -- SELECT COUNT(*) AS "Artistas visibles" FROM SYSTEM.ARTISTAS;
+
+PROMPT -- EJEMPLO 2: PRUEBA COMO ADMINISTRADOR01
+PROMPT -- CONNECT administrador01/123456;
+PROMPT -- SELECT COUNT(*) AS "Empleados contacto" FROM SYSTEM.V_EMPLEADO_CONTACTO;
+PROMPT -- SELECT COUNT(*) AS "Histórico empleados" FROM SYSTEM.V_HIST_EMPLEADOS_BASICO;
+
+PROMPT -- EJEMPLO 3: PRUEBA COMO RESTAURADOR01
+PROMPT -- CONNECT restaurador01/123456;
+PROMPT -- SELECT COUNT(*) AS "Obras para mantenimiento" FROM SYSTEM.OBRAS;
+PROMPT -- SELECT COUNT(*) AS "Programas mantenimiento" FROM SYSTEM.PROGRAMAS_MANT;
+
+PROMPT -- EJEMPLO 4: PRUEBA COMO VIGILANTE01
+PROMPT -- CONNECT vigilante01/123456;
+PROMPT -- EXECUTE SYSTEM.SP_MOSTRAR_TURNOS_ACTUALES;
+
+PROMPT -- EJEMPLO 5: PRUEBA COMO DIRECTOR01
+PROMPT -- CONNECT director01/123456;
+PROMPT -- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TOTALES_MUSEO(2, 2025);
+PROMPT -- SELECT COUNT(*) AS "Museos visibles" FROM SYSTEM.MUSEOS;
+PROMPT -- SELECT COUNT(*) AS "Lugares visibles" FROM SYSTEM.LUGARES;
+
+PROMPT -- EJEMPLO 6: PRUEBA COMO ANALISTA_RRHH01
+PROMPT -- CONNECT analista_rrhh01/123456;
+PROMPT -- EXECUTE SYSTEM.SP_MOSTRAR_INGRESOS_ANUALES_TICKETS_MUSEO(2, 2025);
+PROMPT -- SELECT COUNT(*) AS "Empleados contacto" FROM SYSTEM.V_EMPLEADO_CONTACTO;
+
+-- ========================================
+-- 3.6: PRUEBAS DE VIOLACIÓN DE SEGURIDAD
+-- ========================================
+
+PROMPT ========================================
+PROMPT EJEMPLOS DE COMANDOS QUE DEBEN FALLAR
+PROMPT ========================================
+
+-- Estas pruebas DEBEN generar errores para confirmar que la seguridad funciona
+
+PROMPT -- PRUEBA DE FALLO 1: CURADOR INTENTANDO ACCESO DIRECTO A TABLAS
+PROMPT -- CONNECT curador01/123456;
+PROMPT -- SELECT * FROM SYSTEM.EMPLEADOS_PROFESIONALES; -- Debe fallar: ORA-00942
+PROMPT -- INSERT INTO SYSTEM.OBRAS VALUES (999, 'Obra Test', SYSDATE, 'PINTURA', '10x10', 'Test', 'Test'); -- Debe fallar: ORA-00942
+
+PROMPT -- PRUEBA DE FALLO 2: ADMINISTRADOR INTENTANDO OPERACIONES DE CURADOR
+PROMPT -- CONNECT administrador01/123456;
+PROMPT -- EXECUTE SYSTEM.SP_REGISTRAR_OBRA_NUEVA('Test', SYSDATE, 'PINTURA', '10x10', 'Test', 'Test'); -- Debe fallar: PLS-00201
+
+PROMPT -- PRUEBA DE FALLO 3: VIGILANTE INTENTANDO ACCESO NO AUTORIZADO
+PROMPT -- CONNECT vigilante01/123456;
+PROMPT -- SELECT * FROM SYSTEM.OBRAS; -- Debe fallar: ORA-00942
+PROMPT -- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(123, 'Test', 'Test', SYSDATE, 123); -- Debe fallar: PLS-00201
+
+PROMPT -- PRUEBA DE FALLO 4: RESTAURADOR INTENTANDO OPERACIONES ADMINISTRATIVAS
+PROMPT -- CONNECT restaurador01/123456;
+PROMPT -- EXECUTE SYSTEM.SP_REGISTRAR_NUEVO_EMPLEADO(456, 'Test', 'Test', SYSDATE, 456); -- Debe fallar: PLS-00201
+PROMPT -- INSERT INTO SYSTEM.EMPLEADOS_PROFESIONALES VALUES (999, 123, 'Test', 'Test', SYSDATE, 123); -- Debe fallar: ORA-00942
+
+-- ========================================
+-- 3.7: SCRIPT DE VALIDACIÓN RÁPIDA
 -- ========================================
 
 -- Verificar que las vistas de seguridad existen
